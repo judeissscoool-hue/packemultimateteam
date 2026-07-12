@@ -1,0 +1,1679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ALL-TIME ULTIMATE — NBA Pack Opener</title>
+<style>
+/* ============ TOKENS: arena at night ============ */
+:root{
+  --bg:#121212; --panel:#171717; --panel2:#131313; --line:rgba(255,255,255,.08);
+  --ink:#f2f2f5; --dim:#9a9aa5; --cyan:#35d6ff; --amber:#f2a93b; --green:#39ff9c;
+  --bronze:#c08552; --silver:#c7cedb; --gold:#ffc53d; --elite:#ff4d6d;
+  --icon1:#ffd7ef; --icon2:#ff7ac8; --icon3:#ffffff;
+  --disp:'Impact','Haettenschweiler','Arial Narrow Bold','Arial Black',sans-serif;
+  --body:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg);color:var(--ink);font-family:var(--body);min-height:100%}
+body{background:
+  radial-gradient(1200px 800px at 50% 0%, #1d1d1d 0%, #151515 45%, var(--bg) 100%);
+  overflow-x:hidden}
+body::before,body::after{content:"";position:fixed;border-radius:50%;filter:blur(70px);
+  z-index:-1;pointer-events:none;opacity:.8}
+body::before{width:560px;height:560px;left:-180px;top:12%;
+  background:radial-gradient(circle,rgba(53,214,255,.10),transparent 65%);animation:drift1 26s ease-in-out infinite}
+body::after{width:640px;height:640px;right:-220px;top:48%;
+  background:radial-gradient(circle,rgba(255,122,200,.09),transparent 65%);animation:drift2 32s ease-in-out infinite}
+@keyframes drift1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(140px,-90px) scale(1.15)}}
+@keyframes drift2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-160px,110px) scale(1.12)}}
+#neonart{position:fixed;inset:0;z-index:-2;pointer-events:none}
+#neonart svg{width:100%;height:100%;display:block}
+#neonart .glow-cyan{color:var(--cyan);filter:drop-shadow(0 0 7px var(--cyan))}
+#neonart .glow-pink{color:#ff5cb8;filter:drop-shadow(0 0 7px #ff5cb8)}
+#neonart .glow-green{color:var(--green);filter:drop-shadow(0 0 7px var(--green))}
+#arena{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+#arena::before,#arena::after{content:"";position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);
+  border-radius:50%;border:1.5px solid rgba(53,214,255,.08);animation:ringpulse 9s ease-in-out infinite}
+#arena::before{width:78vmin;height:78vmin}
+#arena::after{width:120vmin;height:120vmin;border-color:rgba(57,255,156,.07);animation-delay:-4.5s}
+@keyframes ringpulse{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.7}50%{transform:translate(-50%,-50%) scale(1.06);opacity:1}}
+.spark{position:absolute;border-radius:50%;opacity:0;animation:twinkle ease-in-out infinite}
+@keyframes twinkle{0%,100%{opacity:0;transform:scale(.4)}50%{opacity:.85;transform:scale(1.4)}}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+h1,h2,h3,.disp{font-family:var(--disp);letter-spacing:.04em;text-transform:uppercase;font-weight:400}
+
+/* ============ APP FRAME ============ */
+#app{max-width:1180px;margin:0 auto;padding:12px 14px 90px}
+header.top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 2px 14px;flex-wrap:wrap}
+.logo{font-family:var(--disp);font-size:26px;letter-spacing:.06em;text-transform:uppercase;line-height:.95}
+.logo em{font-style:normal;color:var(--amber)}
+.logo small{display:block;font-family:var(--body);font-size:10px;letter-spacing:.28em;color:var(--dim)}
+.hs{font-size:11px;color:var(--dim);text-align:right;line-height:1.5}
+.hs b{color:var(--gold);font-family:var(--disp);font-size:15px;letter-spacing:.05em}
+
+nav.tabs{display:flex;gap:6px;position:fixed;bottom:0;left:0;right:0;z-index:40;
+  background:linear-gradient(to top,#121212 78%,rgba(18,18,18,0));padding:10px 14px 14px;justify-content:center}
+nav.tabs button{flex:0 1 150px;padding:10px 8px;border-radius:10px;background:var(--panel);border:1px solid rgba(255,255,255,.08);
+  font-family:var(--disp);letter-spacing:.08em;text-transform:uppercase;font-size:13px;color:var(--dim)}
+nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan);box-shadow:0 0 18px rgba(53,214,255,.45)}
+
+.panel{background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px}
+.rowhead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;gap:8px;flex-wrap:wrap}
+.rowhead h2{font-size:18px;color:var(--ink)}
+.rowhead .sub{font-size:11px;color:var(--dim)}
+.btn{padding:9px 14px;border-radius:9px;background:var(--panel2);border:1px solid var(--line);font-size:13px;color:var(--ink)}
+.btn:hover{border-color:var(--cyan)}
+.btn.primary{background:var(--cyan);color:#0c0c0c;border-color:var(--cyan);font-family:var(--disp);letter-spacing:.06em;text-transform:uppercase}
+.btn.danger{border-color:#5c2233;color:#ff8aa0}
+.btn.gold{background:linear-gradient(135deg,#3a2f12,#241d0c);border-color:var(--gold);color:var(--gold)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* ============ SCOREBOARD (team OVR / chem / projection) ============ */
+.scoreboard{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center}
+.ovrbig{font-family:var(--disp);font-size:64px;line-height:1;color:var(--gold);text-shadow:0 0 24px rgba(255,197,61,.35);min-width:110px;text-align:center;transition:transform .25s}
+.ovrbig.bump{transform:scale(1.18)}
+.ovrbig small{display:block;font-size:10px;letter-spacing:.3em;color:var(--dim);font-family:var(--body);margin-top:2px}
+.projrow{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--dim)}
+.projrow b{display:block;color:var(--ink);font-size:15px;font-family:var(--disp);letter-spacing:.05em}
+.chemlinks{margin-top:6px;font-size:11px;color:var(--dim);display:flex;gap:6px;flex-wrap:wrap}
+.chemlinks span{background:var(--panel2);border:1px solid var(--line);padding:2px 8px;border-radius:20px}
+.chemlinks span.hot{border-color:var(--amber);color:var(--amber)}
+.chemlinks span.story{border-color:#ff7ac8;color:#ffb3e0}
+
+/* ============ COURT ROSTER ============ */
+.court{position:relative;border:1px solid rgba(255,255,255,.09);border-radius:14px;overflow:hidden;
+  background:linear-gradient(180deg,rgba(24,24,24,.9) 0%,rgba(17,17,17,.9) 100%);padding:18px 10px 14px;margin-top:12px}
+.court::before{content:"";position:absolute;left:50%;top:-90px;transform:translateX(-50%);
+  width:340px;height:340px;border-radius:50%;border:2px solid rgba(57,255,156,.12);pointer-events:none}
+.court::after{content:"";position:absolute;left:50%;top:0;transform:translateX(-50%);
+  width:2px;height:100%;background:rgba(255,255,255,.05);pointer-events:none}
+.court h3{position:relative;text-align:center;font-size:12px;letter-spacing:.3em;color:var(--dim);margin-bottom:10px;z-index:2}
+.squadweb{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
+.fiveslots,.benchrow,.benchlabel{position:relative;z-index:2}
+.fiveslots{position:relative;display:grid;grid-template-areas:". c ." "f1 . f2" "g1 . g2";
+  grid-template-columns:1fr 1fr 1fr;gap:8px;justify-items:center}
+.slot-C{grid-area:c}.slot-PF{grid-area:f1}.slot-SF{grid-area:f2}.slot-SG{grid-area:g1}.slot-PG{grid-area:g2}
+.pickgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;max-height:52vh;overflow-y:auto;padding:4px 2px}
+.pickgrid .card{width:100%}
+.coll .c3d,.pickgrid .c3d,.draftopts .c3d,.coll .flame,.pickgrid .flame,.draftopts .flame{width:100%}
+.benchrow{display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+.benchlabel{width:100%;text-align:center;font-size:10px;letter-spacing:.3em;color:var(--dim);margin-top:12px}
+
+/* ============ CARDS ============ */
+.slot{width:104px;min-height:148px;border:1.5px dashed var(--line);border-radius:12px;display:flex;
+  align-items:center;justify-content:center;flex-direction:column;gap:4px;color:var(--dim);
+  font-size:10px;letter-spacing:.15em;text-transform:uppercase;background:rgba(10,10,10,.45);position:relative;transition:all .18s;font-family:var(--body)}
+.slot .postag{font-family:var(--disp);font-size:18px;letter-spacing:.1em;color:#4a4a52}
+.slot.eligible{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 14px rgba(53,214,255,.35);animation:pulse 1s infinite}
+.blocked{opacity:.35}
+.droptarget{outline:2px dashed var(--cyan);outline-offset:3px;border-radius:14px}
+.dragsrc{opacity:.45}
+.fromtag{position:absolute;top:5px;left:6px;font-size:8px;background:var(--amber);color:#0c0c0c;font-weight:800;border-radius:8px;padding:1px 5px;letter-spacing:.05em}
+@keyframes pulse{0%,100%{box-shadow:0 0 8px rgba(53,214,255,.25)}50%{box-shadow:0 0 20px rgba(53,214,255,.6)}}
+
+.card{width:104px;height:158px;border-radius:12px;padding:7px 7px 6px;position:relative;display:flex;flex-direction:column;
+  background:var(--panel2);border:1.5px solid var(--line);user-select:none;cursor:pointer;overflow:hidden;transition:transform .12s}
+.card:active{transform:scale(.96)}
+.card .ovr{font-family:var(--disp);font-size:26px;line-height:1;letter-spacing:.02em}
+.card .pos{letter-spacing:.08em;color:var(--dim);white-space:nowrap}
+.card .ini{margin:4px auto 2px;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:var(--disp);font-size:17px;background:#0d0d0d;border:1.5px solid var(--line);letter-spacing:.02em}
+.card .nm{font-size:10.5px;font-weight:700;text-align:center;line-height:1.15;margin-top:auto;min-height:24px;display:flex;align-items:center;justify-content:center}
+.card .meta{font-size:8px;color:var(--dim);text-align:center;letter-spacing:.06em;margin-top:2px}
+/* ---- 3D flip structure ---- */
+.c3d{perspective:800px;position:relative}
+.c3din{position:relative;transform-style:preserve-3d;transition:transform .45s cubic-bezier(.3,.8,.3,1)}
+.c3din.flipped3{transform:rotateY(180deg)}
+.c3face{backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.c3front{position:relative}
+.c3back{position:absolute;inset:0;transform:rotateY(180deg)}
+.infobtn{position:absolute;top:4px;right:5px;width:17px;height:17px;border-radius:50%;z-index:5;
+  font-size:11px;line-height:15px;text-align:center;color:var(--dim);
+  border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.4);padding:0}
+.infobtn:hover{color:var(--cyan);border-color:var(--cyan)}
+.cardback{width:100%;height:100%;border-radius:12px;background:#121212;border:1.5px solid rgba(255,255,255,.14);
+  padding:8px 8px 6px;display:flex;flex-direction:column;gap:2px;cursor:pointer;overflow:hidden;text-align:left}
+.cardback .bk-nm{font-family:var(--disp);font-size:11px;letter-spacing:.05em;text-transform:uppercase}
+.cardback .bk-sub{font-size:7px;color:var(--dim);margin-bottom:2px}
+.cardback .bk-lab{font-size:6.2px;letter-spacing:.22em;text-transform:uppercase;color:#6f6f78;margin-top:3px}
+.cardback .bk-val{font-size:7.6px;line-height:1.35;color:var(--ink)}
+.cardback .bk-flip{margin-top:auto;font-size:6.5px;letter-spacing:.15em;color:#6f6f78;text-align:center}
+.bk-Bronze{border-color:var(--bronze)}.bk-Bronze .bk-nm{color:var(--bronze)}
+.bk-Silver{border-color:var(--silver)}.bk-Silver .bk-nm{color:var(--silver)}
+.bk-Gold{border-color:var(--gold)}.bk-Gold .bk-nm{color:var(--gold)}
+.bk-Elite{border-color:var(--elite)}.bk-Elite .bk-nm{color:var(--elite)}
+.bk-Icon{border-color:var(--icon2)}.bk-Icon .bk-nm{color:#ffc4e6}
+.card .cnt{position:absolute;top:5px;left:6px;font-size:9px;background:var(--cyan);color:#06121a;font-weight:800;border-radius:8px;padding:1px 5px}
+
+.t-Bronze{border-color:var(--bronze)} .t-Bronze .ovr{color:var(--bronze)} .t-Bronze .ini{border-color:var(--bronze)}
+.t-Silver{border-color:var(--silver);background:linear-gradient(160deg,#202024,#131316)} .t-Silver .ovr{color:var(--silver)} .t-Silver .ini{border-color:var(--silver)}
+.t-Gold{border-color:var(--gold);background:linear-gradient(160deg,#241d0a,#141210);box-shadow:0 0 10px rgba(255,197,61,.18)}
+.t-Gold .ovr{color:var(--gold)} .t-Gold .ini{border-color:var(--gold)}
+.t-Elite{border-color:var(--elite);background:linear-gradient(160deg,#2a0f1a,#150b12);box-shadow:0 0 14px rgba(255,77,109,.3)}
+.t-Elite .ovr{color:var(--elite)} .t-Elite .ini{border-color:var(--elite);box-shadow:0 0 10px rgba(255,77,109,.5) inset}
+.t-Icon{border:2px solid transparent;background:
+  linear-gradient(160deg,#241322,#160d18) padding-box,
+  linear-gradient(120deg,var(--icon2),var(--icon3),var(--icon1),var(--icon2)) border-box;
+  box-shadow:0 0 22px rgba(255,140,205,.55)}
+.t-Icon .ovr{background:linear-gradient(180deg,#ffffff,var(--icon2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.t-Icon .ini{border-color:var(--icon2);background:#2a1526;color:#ffd7ef}
+.t-Icon::after{content:"";position:absolute;top:-60%;left:-60%;width:70%;height:220%;transform:rotate(22deg);
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.32),transparent);animation:sheen 3.2s infinite}
+@keyframes sheen{0%{left:-70%}55%{left:130%}100%{left:130%}}
+/* pink flame aura wrapping every Icon card */
+.flame{position:relative;z-index:0;border-radius:14px}
+.flame::before,.flame::after{content:"";position:absolute;z-index:-1;border-radius:18px;pointer-events:none}
+.flame::before{inset:-9px;filter:blur(11px);opacity:.75;
+  background:conic-gradient(from 0deg,#ff5cb8,#fff,#ff9ad5,#ff2fa4,#ffd7ef,#ff5cb8);
+  animation:flamespin 3.2s linear infinite,flick 1.1s ease-in-out infinite}
+.flame::after{inset:-4px;filter:blur(4px);opacity:.55;
+  background:conic-gradient(from 180deg,#fff,#ff7ac8,#fff0f9,#ff4db0,#fff);
+  animation:flamespin 2.1s linear infinite reverse,flick .7s ease-in-out infinite}
+@keyframes flamespin{to{transform:rotate(360deg)}}
+@keyframes flick{0%,100%{opacity:.55;transform:scale(1) rotate(0)}50%{opacity:.95;transform:scale(1.05)}}
+
+/* ============ COLLECTION ============ */
+.coll{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px;margin-top:10px}
+.coll .card{width:100%}
+.empty{color:var(--dim);font-size:13px;padding:18px 6px;text-align:center;width:100%}
+
+/* ============ PACK SHELF ============ */
+.packs{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.pack{background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;position:relative;overflow:hidden;
+  display:flex;flex-direction:column;gap:8px}
+.pack h3{font-size:20px}
+.pack .odds{font-size:11px;color:var(--dim);line-height:1.7}
+.pack .odds i{font-style:normal;display:inline-block;min-width:52px}
+.o-Bronze{color:var(--bronze)}.o-Silver{color:var(--silver)}.o-Gold{color:var(--gold)}.o-Elite{color:var(--elite)}.o-Icon{color:#ff9ad5}
+.pack .guar{font-size:11px;color:var(--amber);letter-spacing:.04em}
+.pack.p-std{border-color:#3a4568}
+.pack.p-prem{border-color:var(--elite);box-shadow:0 0 16px rgba(255,77,109,.12) inset}
+.pack.p-icon{border-color:var(--gold);box-shadow:0 0 22px rgba(255,197,61,.15) inset}
+.pack .btn{margin-top:auto}
+
+/* ============ REVEAL OVERLAY ============ */
+#overlay{position:fixed;inset:0;background:rgba(6,6,6,.95);z-index:60;display:none;flex-direction:column;
+  align-items:center;justify-content:center;gap:20px;padding:16px}
+#overlay.show{display:flex}
+#overlay h2{font-size:22px;letter-spacing:.12em;color:var(--dim)}
+.revealrow{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+.rslot{perspective:900px}
+.flip{width:118px;height:180px;position:relative;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.2,.7,.3,1.2)}
+.flip.flipped{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;border-radius:12px}
+.back{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;cursor:pointer;
+  background:linear-gradient(160deg,#1e1e22,#0f0f11);border:1.5px solid rgba(255,255,255,.16);}
+.back{color:#8a8a95}
+.back .bball{width:46px;height:46px;border-radius:50%;border:2px solid #6b6b76;position:relative}
+.back .bball::before{content:"";position:absolute;inset:0;border-radius:50%;
+  background:linear-gradient(90deg,transparent 48%,#6b6b76 48% 52%,transparent 52%),
+             linear-gradient(0deg,transparent 48%,#6b6b76 48% 52%,transparent 52%)}
+.back span{font-size:9px;letter-spacing:.25em}
+.back.charging{animation:charge .5s infinite}
+.g-Bronze.charging{box-shadow:0 0 14px rgba(192,133,82,.7)}
+.g-Silver.charging{box-shadow:0 0 16px rgba(199,206,219,.8)}
+.g-Gold.charging{box-shadow:0 0 24px rgba(255,197,61,.9)}
+.g-Elite.charging{box-shadow:0 0 30px rgba(255,77,109,1)}
+.g-Icon.charging{box-shadow:0 0 46px rgba(255,150,215,1)}
+@keyframes charge{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.front{transform:rotateY(180deg)}
+.front .card{width:118px;height:180px;cursor:default}
+.dupetag{position:absolute;left:4px;right:4px;bottom:34px;z-index:3;background:rgba(10,10,10,.85);
+  border:1px solid rgba(255,138,160,.5);color:#ff8aa0;font-size:8.5px;letter-spacing:.14em;
+  text-align:center;padding:4px 2px;border-radius:6px;font-weight:700}
+.front .card .ovr{font-size:30px}.front .card .ini{width:52px;height:52px;font-size:20px}
+.front .card .nm{font-size:12px}
+#bigreveal{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:18px;background:rgba(8,4,10,.82);perspective:1100px;cursor:pointer}
+#bigreveal .xlwrap{animation:spinout 1.15s cubic-bezier(.22,.9,.3,1.05) both;transform-style:preserve-3d}
+@keyframes spinout{0%{transform:scale(.12) rotateY(0deg);opacity:0}
+  15%{opacity:1}70%{transform:scale(1.28) rotateY(900deg)}100%{transform:scale(1.12) rotateY(1080deg)}}
+#bigreveal .card{width:190px;height:290px;cursor:pointer}
+#bigreveal .card .ovr{font-size:52px}#bigreveal .card .pos{font-size:13px}
+#bigreveal .card .ini{width:88px;height:88px;font-size:34px}
+#bigreveal .card .nm{font-size:18px}#bigreveal .card .meta{font-size:12px}
+#bigreveal .tapnote{font-size:11px;letter-spacing:.25em;color:#ffc4e6;opacity:.8}
+#flashfx{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:90}
+#flashfx.go{animation:flash .6s ease-out}
+@keyframes flash{0%{opacity:.95}100%{opacity:0}}
+.confetti{position:fixed;top:-12px;width:8px;height:14px;z-index:65;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:.2}}
+.pullmsg{font-family:var(--disp);font-size:26px;letter-spacing:.1em;color:var(--gold);text-shadow:0 0 20px rgba(255,197,61,.6);min-height:32px;text-align:center}
+.pullmsg.icon{color:#ffc4e6;text-shadow:0 0 26px rgba(255,140,205,.9)}
+.pullmsg.elite{color:var(--elite);text-shadow:0 0 26px rgba(255,77,109,.9)}
+
+/* ============ ACTION SHEET / MODALS ============ */
+#sheet{position:fixed;inset:0;background:rgba(5,5,5,.75);z-index:55;display:none;align-items:flex-end;justify-content:center}
+#sheet.show{display:flex}
+.sheetbox{background:#161616;border:1px solid rgba(255,255,255,.09);border-bottom:none;max-height:88vh;overflow-y:auto;border-radius:16px 16px 0 0;
+  padding:16px;width:100%;max-width:480px;display:flex;flex-direction:column;gap:8px}
+.sheetbox h3{font-size:18px}
+.sheetbox .who{font-size:12px;color:var(--dim);margin-bottom:4px}
+.sheetbox .btn{width:100%;text-align:left}
+
+/* ============ DRAFT ============ */
+.draftopts{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:10px;max-width:640px;margin:12px auto}
+.draftopts .card{width:100%}
+@keyframes snapin{0%{transform:rotateY(90deg) scale(.55);opacity:0}60%{transform:rotateY(-12deg) scale(1.06);opacity:1}100%{transform:rotateY(0) scale(1)}}
+/* ---- fullscreen drafting center ---- */
+#draftoverlay{position:fixed;inset:0;background:rgba(6,6,6,.95);z-index:58;display:none;
+  flex-direction:column;align-items:center;justify-content:center;overflow-y:auto}
+#draftoverlay.show{display:flex}
+#draftoverlay h2{font-family:var(--disp);font-size:22px;letter-spacing:.12em;text-transform:uppercase;text-align:center}
+#draftoverlay .sub2{font-size:12px;color:var(--dim);text-align:center;max-width:420px;padding:0 16px;margin-top:6px}
+.captainwrap{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:12px;
+  max-width:100%;padding:16px;box-sizing:border-box;perspective:1100px}
+.captainwrap .c3d,.captainwrap .flame{flex:0 0 auto;min-width:0;width:auto}
+.captainwrap .card{width:clamp(84px,26vw,112px);height:auto;aspect-ratio:104/158}
+@keyframes dropIn{from{transform:translateY(-64px);opacity:0}to{transform:translateY(0);opacity:1}}
+.dropin{animation:dropIn .62s cubic-bezier(.25,.8,.3,1) both}
+/* Icon options spin out like a pack pull instead of fading in */
+@keyframes spinIn{0%{transform:scale(.15) rotateY(0deg);opacity:0}
+  15%{opacity:1}70%{transform:scale(1.16) rotateY(900deg)}100%{transform:scale(1) rotateY(1080deg)}}
+.spindrop{animation:spinIn .95s cubic-bezier(.22,.9,.3,1.05) both;transform-style:preserve-3d}
+.captainwrap{perspective:900px}
+.snapin{animation:snapin .45s cubic-bezier(.25,.9,.3,1.15) both;transform-style:preserve-3d}
+.pickhdr{text-align:center;margin:6px 0 2px}
+.pickhdr .disp{font-size:22px;color:var(--cyan)}
+.pickhdr p{font-size:12px;color:var(--dim);margin-top:4px}
+.draftmini{display:flex;gap:4px;justify-content:center;margin-top:10px;flex-wrap:wrap}
+.draftmini span{width:30px;height:38px;border-radius:6px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--dim)}
+.draftmini span.done{border-color:var(--gold);color:var(--gold);font-weight:700}
+
+.modes{max-width:920px;margin:6px auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+.modehero{grid-column:1/-1;text-align:center;padding:14px 0 4px}
+.modecard{background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:20px 18px;
+  display:flex;flex-direction:column;gap:10px;cursor:pointer;transition:transform .15s,border-color .15s,box-shadow .15s}
+.modecard:hover{transform:translateY(-3px);border-color:var(--cyan);box-shadow:0 0 22px rgba(53,214,255,.15)}
+.modecard h3{font-size:22px}
+.modecard p{font-size:12px;color:var(--dim);line-height:1.55;flex:1}
+.modecard .modebest{font-size:10px;letter-spacing:.2em;color:var(--dim)}
+.modecard .modebest b{color:var(--gold);font-family:var(--disp);font-size:16px;margin-left:6px}
+#policyoverlay{position:fixed;inset:0;background:rgba(6,6,6,.96);z-index:59;display:none;
+  align-items:flex-start;justify-content:center;overflow-y:auto;padding:24px 14px 90px}
+#policyoverlay.show{display:flex}
+.policybox{max-width:640px;width:100%;background:#141414;border:1px solid rgba(255,255,255,.10);
+  border-radius:16px;padding:26px 24px;line-height:1.7}
+.policybox h2{font-size:24px;margin-bottom:2px}
+.policybox .p-date{font-size:10.5px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase;margin-bottom:14px}
+.policybox h3{font-size:14px;color:var(--cyan);margin:16px 0 4px;letter-spacing:.06em}
+.policybox p{font-size:12.5px;color:#c9c9d2;margin-bottom:6px}
+.policybox p b{color:var(--ink)}
+.policybox .p-note{font-size:11px;color:var(--dim);border-top:1px solid rgba(255,255,255,.08);
+  margin-top:16px;padding-top:12px;margin-bottom:14px}
+.foot{margin:26px auto 4px;text-align:center;font-size:10.5px;color:#77777f;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;align-items:center}
+.foot button{color:var(--dim);text-decoration:underline;font-size:10.5px}
+.foot button:hover{color:var(--cyan)}
+.result{max-width:520px;margin:20px auto;text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center}
+.result .ovrbig{font-size:84px}
+.notice{font-size:12px;color:var(--amber);text-align:center;margin-top:8px;min-height:16px}
+.stack{display:flex;flex-direction:column;gap:12px}
+.grid2{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:900px){.grid2{grid-template-columns:340px 1fr}}
+@media(max-width:520px){
+  .slot,.card{width:88px}.card{height:146px}.slot{min-height:134px}
+  .ovrbig{font-size:48px;min-width:84px}
+  nav.tabs button{font-size:11px;padding:9px 4px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<div id="neonart" aria-hidden="true"><svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" fill="none">
+  <!-- shot arc into the hoop -->
+  <g class="glow-cyan" stroke="currentColor" opacity="0.05">
+    <path d="M 90 730 Q 620 60 1150 480" stroke-width="3" stroke-dasharray="2 26" stroke-linecap="round"/>
+    <path d="M 1122 500 h 72" stroke-width="4"/>
+    <path d="M 1194 470 v 64" stroke-width="4"/>
+    <path d="M 1128 504 l 10 44 m 18 -44 l 2 46 m 18 -46 l -8 44 M 1130 526 h 52 M 1136 548 h 40" stroke-width="2"/>
+    <circle cx="330" cy="330" r="15" stroke-width="2.5"/>
+  </g>
+  <!-- crossover dribble path -->
+  <g class="glow-pink" stroke="currentColor" opacity="0.05">
+    <path d="M 140 850 q 90 -150 180 0 q 90 150 180 0 q 90 -180 180 0 q 90 150 180 0" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="320" cy="775" r="12" stroke-width="2.5"/>
+    <circle cx="680" cy="760" r="12" stroke-width="2.5"/>
+    <path d="M 316 771 a 12 12 0 0 1 8 8 M 676 756 a 12 12 0 0 1 8 8" stroke-width="1.5"/>
+  </g>
+  <!-- spin-move swirl + flight to the rim -->
+  <g class="glow-green" stroke="currentColor" opacity="0.05">
+    <path d="M 1210 210 a 62 62 0 1 1 -44 -106 a 46 46 0 1 0 30 78" stroke-width="3" stroke-linecap="round"/>
+    <path d="M 1196 182 l 22 10 l -6 -24" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M 210 260 q 60 -90 150 -110 q 80 -18 120 30" stroke-width="2.5" stroke-dasharray="2 20" stroke-linecap="round"/>
+    <circle cx="492" cy="186" r="13" stroke-width="2.5"/>
+  </g>
+  <!-- legendary silhouette line: abstract rising finisher -->
+  <g class="glow-pink" stroke="currentColor" opacity="0.05" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="705" cy="322" r="16" stroke-width="3"/>
+    <path d="M 700 338 q -18 40 -46 58 q -26 16 -30 52 M 700 338 q 26 26 58 22 q 40 -6 56 -44" stroke-width="3"/>
+    <path d="M 662 448 q -20 44 -58 62 M 676 442 q 10 48 46 70" stroke-width="3"/>
+    <circle cx="830" cy="300" r="14" stroke-width="3"/>
+  </g>
+</svg></div>
+<div id="arena"></div>
+<div id="app"></div>
+<div id="overlay"></div>
+<div id="sheet"></div>
+<div id="draftoverlay"></div>
+<div id="policyoverlay"></div>
+<div id="flashfx"></div>
+<nav class="tabs" id="tabs"></nav>
+<script>
+//<LOGIC>
+/* ================= PLAYER DATABASE =================
+   [name, position, OVR, team, era]. Top ~60 seeded from
+   real all-time 2K-style ratings; rest at plausible OVRs. */
+const P=[
+// —— ICON 96–99 ——
+["Michael Jordan","SG",99,"CHI","90s"],["LeBron James","SF",99,"CLE","10s"],
+["Kareem Abdul-Jabbar","C",99,"LAL","70s"],["Kobe Bryant","SG",99,"LAL","00s"],
+["Wilt Chamberlain","C",99,"GSW","60s"],["Hakeem Olajuwon","C",99,"HOU","90s"],
+["Larry Bird","SF",99,"BOS","80s"],["Magic Johnson","PG",99,"LAL","80s"],
+["Kevin Garnett","PF",98,"MIN","00s"],["Tim Duncan","PF",98,"SAS","00s"],
+["Shaquille O'Neal","C",98,"LAL","00s"],["Dirk Nowitzki","PF",98,"DAL","00s"],
+["Stephen Curry","PG",98,"GSW","10s"],["Bill Russell","C",98,"BOS","60s"],
+["Giannis Antetokounmpo","PF",97,"MIL","20s"],["Kevin Durant","SF",97,"OKC","10s"],
+["Nikola Jokic","C",97,"DEN","20s"],["Julius Erving","SF",97,"PHI","70s"],
+["Jerry West","PG",97,"LAL","60s"],["Oscar Robertson","PG",97,"MIL","60s"],
+["Chris Paul","PG",97,"NOP","10s"],["Dwyane Wade","SG",97,"MIA","00s"],
+["Karl Malone","PF",97,"UTA","90s"],["John Stockton","PG",97,"UTA","90s"],
+["Moses Malone","C",97,"HOU","80s"],["Scottie Pippen","SF",97,"CHI","90s"],
+["Vince Carter","SG",96,"TOR","00s"],["Clyde Drexler","SG",96,"POR","90s"],
+["Allen Iverson","SG",96,"PHI","00s"],["Steve Nash","PG",96,"PHX","00s"],
+["Kawhi Leonard","SF",96,"SAS","10s"],["Shai Gilgeous-Alexander","PG",96,"OKC","20s"],
+["Bob Cousy","PG",96,"BOS","50s"],["Elgin Baylor","SF",96,"LAL","60s"],
+["David Robinson","C",96,"SAS","90s"],["Charles Barkley","PF",96,"PHX","90s"],
+// —— ELITE 92–95 ——
+["Joel Embiid","C",95,"PHI","20s"],["Derrick Rose","PG",95,"CHI","10s"],
+["Dominique Wilkins","SF",95,"ATL","80s"],["James Worthy","SF",95,"LAL","80s"],
+["Isiah Thomas","PG",95,"DET","80s"],["Russell Westbrook","PG",95,"OKC","10s"],
+["Patrick Ewing","C",95,"NYK","90s"],["Tracy McGrady","SG",95,"ORL","00s"],
+["James Harden","SG",95,"HOU","10s"],["Carmelo Anthony","SF",95,"DEN","00s"],
+["Gary Payton","PG",95,"OKC","90s"],["Jason Kidd","PG",95,"BKN","00s"],
+["Luka Doncic","PG",95,"DAL","20s"],
+["Ray Allen","SG",94,"BOS","00s"],["Jayson Tatum","SF",94,"BOS","20s"],
+["Pete Maravich","SG",94,"UTA","70s"],["Damian Lillard","PG",94,"POR","10s"],
+["Kyrie Irving","PG",94,"CLE","10s"],["Paul Pierce","SF",94,"BOS","00s"],
+["Anthony Davis","PF",94,"NOP","10s"],["George Gervin","SG",94,"SAS","70s"],
+["Bob Pettit","PF",94,"ATL","50s"],["George Mikan","C",94,"LAL","50s"],
+["Dwight Howard","C",93,"ORL","00s"],["Reggie Miller","SG",93,"IND","90s"],
+["Walt Frazier","PG",93,"NYK","70s"],["Rick Barry","SF",93,"GSW","70s"],
+["John Havlicek","SF",93,"BOS","60s"],["Victor Wembanyama","C",93,"SAS","20s"],
+["Kevin McHale","PF",92,"BOS","80s"],["Elvin Hayes","PF",92,"WAS","70s"],
+["Jimmy Butler","SF",92,"MIA","10s"],["Anthony Edwards","SG",92,"MIN","20s"],
+// —— GOLD 85–91 ——
+["Yao Ming","C",91,"HOU","00s"],["Chris Webber","PF",91,"SAC","00s"],
+["Grant Hill","SF",91,"DET","90s"],["Penny Hardaway","PG",91,"ORL","90s"],
+["Willis Reed","C",91,"NYK","70s"],["Bill Walton","C",91,"POR","70s"],
+["Devin Booker","SG",91,"PHX","20s"],["Paul George","SF",91,"IND","10s"],
+["Dolph Schayes","PF",91,"PHI","50s"],
+["Pau Gasol","PF",90,"LAL","00s"],["Dikembe Mutombo","C",90,"DEN","90s"],
+["Alonzo Mourning","C",90,"MIA","90s"],["Chris Bosh","PF",90,"MIA","10s"],
+["Bernard King","SF",90,"NYK","80s"],["Dave Cowens","C",90,"BOS","70s"],
+["Nate Thurmond","C",90,"GSW","60s"],["Dennis Rodman","PF",90,"DET","90s"],
+["Ja Morant","PG",90,"MEM","20s"],["Donovan Mitchell","SG",90,"CLE","20s"],
+["Karl-Anthony Towns","C",90,"MIN","20s"],["Jalen Brunson","PG",90,"NYK","20s"],
+["Tony Parker","PG",89,"SAS","00s"],["Manu Ginobili","SG",89,"SAS","00s"],
+["Klay Thompson","SG",89,"GSW","10s"],["Shawn Kemp","PF",89,"OKC","90s"],
+["Alex English","SF",89,"DEN","80s"],["Adrian Dantley","SF",89,"UTA","80s"],
+["Wes Unseld","C",89,"WAS","70s"],["Earl Monroe","SG",89,"NYK","70s"],
+["Bam Adebayo","C",89,"MIA","20s"],["Jaylen Brown","SG",89,"BOS","20s"],
+["Tyrese Haliburton","PG",89,"IND","20s"],["Cade Cunningham","PG",89,"DET","20s"],
+["Draymond Green","PF",88,"GSW","10s"],["Tim Hardaway","PG",88,"GSW","90s"],
+["Chris Mullin","SF",88,"GSW","90s"],["Kevin Johnson","PG",88,"PHX","90s"],
+["Amar'e Stoudemire","PF",88,"PHX","00s"],["Trae Young","PG",88,"ATL","20s"],
+["Zion Williamson","PF",88,"NOP","20s"],["Rudy Gobert","C",88,"UTA","10s"],
+["De'Aaron Fox","PG",88,"SAC","20s"],["Jalen Williams","SF",88,"OKC","20s"],
+["Robert Parish","C",87,"BOS","80s"],["Chauncey Billups","PG",87,"DET","00s"],
+["Mitch Richmond","SG",87,"SAC","90s"],["LaMarcus Aldridge","PF",87,"POR","10s"],
+["Gilbert Arenas","PG",87,"WAS","00s"],["DeMar DeRozan","SG",87,"TOR","10s"],
+["Domantas Sabonis","C",87,"SAC","20s"],["Alperen Sengun","C",87,"HOU","20s"],
+["Tyrese Maxey","PG",87,"PHI","20s"],["Evan Mobley","PF",87,"CLE","20s"],
+["Paolo Banchero","PF",87,"ORL","20s"],
+["Joe Dumars","SG",86,"DET","80s"],["Marc Gasol","C",86,"MEM","10s"],
+["Shawn Marion","SF",86,"PHX","00s"],["Mark Price","PG",86,"CLE","90s"],
+["John Wall","PG",86,"WAS","10s"],["Jamal Murray","PG",86,"DEN","20s"],
+["Chet Holmgren","C",86,"OKC","20s"],
+["Dennis Johnson","PG",85,"BOS","80s"],["Ben Wallace","C",85,"DET","00s"],
+["Rasheed Wallace","PF",85,"DET","00s"],["Deron Williams","PG",85,"UTA","00s"],
+["Rajon Rondo","PG",85,"BOS","10s"],["Jrue Holiday","PG",85,"MIL","20s"],
+["Glen Rice","SF",85,"CHA","90s"],["Kyle Lowry","PG",85,"TOR","10s"],
+["Larry Johnson","PF",85,"CHA","90s"],["Bradley Beal","SG",85,"WAS","10s"],
+["LaMelo Ball","PG",85,"CHA","20s"],["Scottie Barnes","SF",85,"TOR","20s"],
+["Franz Wagner","SF",85,"ORL","20s"],["Arvydas Sabonis","C",85,"POR","90s"],
+// —— SILVER 75–84 ——
+["Peja Stojakovic","SF",84,"SAC","00s"],
+["Zach Randolph","PF",84,"MEM","10s"],
+["Zach LaVine","SG",84,"CHI","20s"],
+["Khris Middleton","SF",84,"MIL","20s"],
+
+["Brook Lopez","C",83,"MIL","20s"],["CJ McCollum","SG",83,"POR","10s"],
+["Sam Cassell","PG",82,"HOU","90s"],["Bill Laimbeer","C",82,"DET","80s"],
+["Rip Hamilton","SG",82,"DET","00s"],["Vlade Divac","C",82,"SAC","00s"],
+
+["Tyler Herro","SG",82,"MIA","20s"],["Aaron Gordon","PF",82,"DEN","20s"],
+["Latrell Sprewell","SG",81,"NYK","90s"],
+
+["Horace Grant","PF",80,"CHI","90s"],["Toni Kukoc","SF",80,"CHI","90s"],
+["Jeff Hornacek","SG",80,"UTA","90s"],["Andrei Kirilenko","SF",80,"UTA","00s"],
+
+["Lamar Odom","PF",80,"LAL","00s"],
+["Ron Artest","SF",80,"IND","00s"],["Andre Iguodala","SF",80,"GSW","10s"],
+["Michael Porter Jr.","SF",80,"DEN","20s"],["Austin Reaves","SG",80,"LAL","20s"],
+["Byron Scott","SG",79,"LAL","80s"],
+
+["Charles Oakley","PF",78,"NYK","90s"],
+
+["Lou Williams","SG",78,"LAC","10s"],
+["DeAndre Jordan","C",78,"LAC","10s"],
+["Andrew Wiggins","SF",78,"GSW","20s"],
+
+["John Starks","SG",76,"NYK","90s"],
+["Jason Williams","PG",76,"SAC","00s"],
+// —— BRONZE 40–74 ——
+["Robert Horry","PF",74,"LAL","00s"],
+["Michael Cooper","SG",74,"LAL","80s"],
+
+["Shane Battier","SF",72,"MIA","10s"],
+["Steve Kerr","PG",72,"CHI","90s"],["Muggsy Bogues","PG",72,"CHA","90s"],
+["JR Smith","SG",72,"CLE","10s"],
+["Boris Diaw","PF",72,"SAS","10s"],
+
+["Tony Allen","SG",70,"MEM","10s"],["Derek Fisher","PG",70,"LAL","00s"],
+["Danny Green","SG",70,"SAS","10s"],
+["Nate Robinson","PG",70,"NYK","00s"],["Jeremy Lin","PG",70,"NYK","10s"],
+
+["Bruce Bowen","SF",68,"SAS","00s"],["John Paxson","PG",68,"CHI","90s"],
+["Spud Webb","PG",68,"ATL","80s"],
+["Patty Mills","PG",68,"SAS","10s"],
+
+["Udonis Haslem","PF",66,"MIA","10s"],
+["Shaun Livingston","PG",66,"GSW","10s"],["Kevon Looney","C",66,"GSW","20s"],
+["Gary Payton II","SG",64,"GSW","20s"],
+["Kendrick Perkins","C",62,"BOS","00s"],["Kurt Rambis","PF",60,"LAL","80s"],
+["Shawn Bradley","C",60,"DAL","90s"],["Manute Bol","C",58,"WAS","80s"],
+["Matt Bonner","PF",55,"SAS","10s"],
+
+["Brian Scalabrine","PF",45,"BOS","00s"],["Mark Madsen","PF",44,"LAL","00s"],
+// —— ERA/TEAM VARIANTS: unique card = name + team + era ——
+["LeBron James","SF",98,"MIA","10s"],["LeBron James","SF",97,"LAL","20s"],
+["Kareem Abdul-Jabbar","C",97,"MIL","70s"],
+["Wilt Chamberlain","C",98,"PHI","60s"],["Wilt Chamberlain","C",96,"LAL","70s"],
+["Shaquille O'Neal","C",96,"ORL","90s"],["Shaquille O'Neal","C",95,"MIA","00s"],
+["Kevin Durant","SF",96,"GSW","10s"],["Kevin Durant","SF",94,"PHX","20s"],
+["Kawhi Leonard","SF",95,"TOR","10s"],["Kawhi Leonard","SF",93,"LAC","20s"],
+["Chris Paul","PG",95,"LAC","10s"],
+["Moses Malone","C",96,"PHI","80s"],
+["Charles Barkley","PF",94,"PHI","80s"],
+["Jason Kidd","PG",93,"PHX","90s"],["Jason Kidd","PG",92,"DAL","10s"],
+["Ray Allen","SG",93,"OKC","00s"],["Ray Allen","SG",90,"MIA","10s"],
+["Kyrie Irving","PG",92,"DAL","20s"],
+["Anthony Davis","PF",93,"LAL","20s"],
+["Dwight Howard","C",89,"LAL","10s"],
+["James Harden","SG",92,"BKN","20s"],
+["Carmelo Anthony","SF",92,"NYK","10s"],
+["Tracy McGrady","SG",94,"HOU","00s"],
+["Vince Carter","SG",93,"BKN","00s"],
+["Allen Iverson","SG",92,"DEN","00s"],
+["Kevin Garnett","PF",96,"BOS","00s"],
+["Steve Nash","PG",94,"DAL","00s"],
+["Pau Gasol","PF",87,"MEM","00s"],
+["Chris Bosh","PF",88,"TOR","00s"],
+["Dennis Rodman","PF",88,"CHI","90s"],
+["Jimmy Butler","SF",90,"CHI","10s"],
+["Damian Lillard","PG",92,"MIL","20s"]
+];
+
+const TIER_ORDER=["Bronze","Silver","Gold","Elite","Icon"];
+function tierOf(o){return o>=96?"Icon":o>=92?"Elite":o>=85?"Gold":o>=75?"Silver":"Bronze";}
+function bucketOf(pos){return pos==="C"?"C":(pos==="PG"||pos==="SG")?"G":"F";}
+/* multi-position eligibility: primary position + secondary/tertiary spots */
+const POS_EXTRA={
+"LeBron James":["PF","PG","SG","C"],"Magic Johnson":["SG","SF","PF","C"],
+"Giannis Antetokounmpo":["SF","C"],"Michael Jordan":["SF"],"Kobe Bryant":["SF"],
+"Kevin Durant":["PF"],"Larry Bird":["PF"],"Kawhi Leonard":["PF"],"Scottie Pippen":["PF","SG"],
+"Julius Erving":["PF"],"Elgin Baylor":["PF"],"John Havlicek":["SG"],"Rick Barry":["PF"],
+"Dominique Wilkins":["PF"],"James Worthy":["PF"],"Carmelo Anthony":["PF"],"Paul Pierce":["PF"],
+"Jayson Tatum":["PF"],"Paul George":["SG","PF"],"Jimmy Butler":["SG","PF"],"Grant Hill":["PF","PG"],
+"Tracy McGrady":["SF","PG"],"Vince Carter":["SF"],"Clyde Drexler":["SF"],"George Gervin":["SF"],
+"Dwyane Wade":["PG"],"James Harden":["PG"],"Allen Iverson":["PG"],"Oscar Robertson":["SG"],
+"Jerry West":["SG"],"Stephen Curry":["SG"],"Luka Doncic":["SG","SF"],"Shai Gilgeous-Alexander":["SG"],
+"Kyrie Irving":["SG"],"Pete Maravich":["PG"],"Penny Hardaway":["SG"],"Walt Frazier":["SG"],
+"Earl Monroe":["PG"],"Russell Westbrook":["SG"],"Anthony Edwards":["SF"],"Donovan Mitchell":["PG"],
+"Jaylen Brown":["SF"],"DeMar DeRozan":["SF"],"Devin Booker":["PG"],"Klay Thompson":["SF"],
+"Tyrese Haliburton":["SG"],"Cade Cunningham":["SG"],"Tyrese Maxey":["SG"],"Adrian Dantley":["SG"],
+"Chris Mullin":["SG"],"Glen Rice":["SG"],"Peja Stojakovic":["SG"],"Andre Iguodala":["SG"],
+"Andrew Wiggins":["SG"],"Michael Porter Jr.":["PF"],"Khris Middleton":["SG"],"Shawn Marion":["PF"],
+"Ron Artest":["SG"],"Toni Kukoc":["PF"],"Andrei Kirilenko":["PF"],"Larry Johnson":["SF"],
+"Bernard King":["PF"],"Charles Barkley":["SF","C"],
+"Tim Duncan":["C"],"Kevin Garnett":["C"],"Dirk Nowitzki":["C"],"Anthony Davis":["C"],
+"Chris Bosh":["C"],"Pau Gasol":["C"],"Rasheed Wallace":["C"],"Amar'e Stoudemire":["C"],
+"Chris Webber":["C"],"Kevin McHale":["C"],"Elvin Hayes":["C"],"Bob Pettit":["C"],
+"LaMarcus Aldridge":["C"],"Evan Mobley":["C"],"Dolph Schayes":["C"],"Draymond Green":["C","SF"],
+"Lamar Odom":["SF","C"],"Boris Diaw":["C","SF"],"Karl Malone":["C"],"Shawn Kemp":["C"],
+"Dennis Rodman":["C","SF"],"Zach Randolph":["C"],"Horace Grant":["C"],"Zion Williamson":["C"],
+"Paolo Banchero":["C","SF"],"Aaron Gordon":["SF","C"],"Robert Horry":["C","SF"],
+"Udonis Haslem":["C"],"Matt Bonner":["C"],"Brian Scalabrine":["SF","C"],"Kurt Rambis":["C"],
+"Nikola Jokic":["PF"],"Victor Wembanyama":["PF"],"Karl-Anthony Towns":["PF"],"Bam Adebayo":["PF"],
+"Domantas Sabonis":["PF"],"Willis Reed":["PF"],"Ben Wallace":["PF"],"Brook Lopez":["PF"],
+"Joel Embiid":["PF"],"David Robinson":["PF"],"Dave Cowens":["PF"],"Nate Thurmond":["PF"],
+"Wes Unseld":["PF"],"Bill Walton":["PF"],"Arvydas Sabonis":["PF"],"Marc Gasol":["PF"],
+"Bill Laimbeer":["PF"],"Vlade Divac":["PF"],"Chet Holmgren":["PF"],"Alperen Sengun":["PF"],
+"Kevon Looney":["PF"],
+"Jason Kidd":["SG"],"Damian Lillard":["SG"],"De'Aaron Fox":["SG"],"Jamal Murray":["SG"],
+"Jrue Holiday":["SG"],"Chauncey Billups":["SG"],"Gilbert Arenas":["SG"],"Dennis Johnson":["SG"],
+"Sam Cassell":["SG"],"LaMelo Ball":["SG"],"Joe Dumars":["PG"],"Latrell Sprewell":["SF"],
+"Jeff Hornacek":["PG"],"Eddie Jones":["SF"],"CJ McCollum":["PG"],"Zach LaVine":["SF"],
+"Tyler Herro":["PG"],"Bradley Beal":["PG"],"Austin Reaves":["PG"],"Jalen Williams":["SG","PF"],
+"Franz Wagner":["PF"],"Scottie Barnes":["PF","PG"],"Lou Williams":["PG"],"Jason Terry":["PG"],
+"Steve Kerr":["SG"],"John Paxson":["SG"],"Patty Mills":["SG"],"Shaun Livingston":["SG"],
+"Nate Robinson":["SG"],"Jeremy Lin":["SG"],"Tony Allen":["SF"],"Danny Green":["SF"],
+"Bruce Bowen":["SG"],"Michael Cooper":["SF","PG"],"Doug Christie":["SF"],"Gary Payton II":["PG"],
+"JR Smith":["SF"],"Bonzi Wells":["SF"],"Shane Battier":["PF"],"Duncan Robinson":["SG"]};
+const DB=P.map((p,i)=>({id:i,name:p[0],pos:p[1],ovr:p[2],team:p[3],era:"'"+p[4],
+  positions:[...new Set([p[1],...(POS_EXTRA[p[0]]||[])])],tier:tierOf(p[2])}));
+/* ============ UNIVERSAL chemistryTags SYSTEM ============ */
+/* A. Generational era — every card gets exactly one, derived from its era */
+const ERA_TAG={"'50s":"Era_Classic","'60s":"Era_Classic","'70s":"Era_Classic","'80s":"Era_Golden",
+"'90s":"Era_Vintage","'00s":"Era_Modern","'10s":"Era_Contemporary","'20s":"Era_Future"};
+/* B. Playstyle archetypes — explicit for notables, positional default for the rest (1–2 each) */
+const STYLE_TAGS={
+"Stephen Curry":["Style_Sharpshooter","Style_FloorGeneral"],"Ray Allen":["Style_Sharpshooter"],
+"Reggie Miller":["Style_Sharpshooter"],"Klay Thompson":["Style_Sharpshooter"],"Larry Bird":["Style_Sharpshooter"],
+"Dirk Nowitzki":["Style_Sharpshooter","Style_PaintBeast"],"Steve Nash":["Style_FloorGeneral","Style_Sharpshooter"],
+"Kevin Durant":["Style_Sharpshooter","Style_FlightClub"],"Damian Lillard":["Style_Sharpshooter","Style_FloorGeneral"],
+"Trae Young":["Style_Sharpshooter","Style_FloorGeneral"],"Peja Stojakovic":["Style_Sharpshooter"],
+"Glen Rice":["Style_Sharpshooter"],"Chris Mullin":["Style_Sharpshooter"],"Jeff Hornacek":["Style_Sharpshooter"],
+"Steve Kerr":["Style_Sharpshooter"],"John Paxson":["Style_Sharpshooter"],"Duncan Robinson":["Style_Sharpshooter"],
+"Tyler Herro":["Style_Sharpshooter"],"Devin Booker":["Style_Sharpshooter"],"Carmelo Anthony":["Style_Sharpshooter"],
+"Michael Jordan":["Style_FlightClub","Style_Lockdown"],"Vince Carter":["Style_FlightClub"],
+"Julius Erving":["Style_FlightClub"],"Dominique Wilkins":["Style_FlightClub"],"Ja Morant":["Style_FlightClub","Style_FloorGeneral"],
+"Kobe Bryant":["Style_FlightClub","Style_Lockdown"],"Dwyane Wade":["Style_FlightClub","Style_Lockdown"],
+"Tracy McGrady":["Style_FlightClub"],"Clyde Drexler":["Style_FlightClub"],"Anthony Edwards":["Style_FlightClub"],
+"Russell Westbrook":["Style_FlightClub","Style_FloorGeneral"],"Zion Williamson":["Style_FlightClub","Style_PaintBeast"],
+"Allen Iverson":["Style_FlightClub"],"LeBron James":["Style_FlightClub","Style_FloorGeneral"],
+"Grant Hill":["Style_FlightClub","Style_FloorGeneral"],"Shawn Kemp":["Style_FlightClub","Style_PaintBeast"],
+"Spud Webb":["Style_FlightClub"],"Nate Robinson":["Style_FlightClub"],"Elgin Baylor":["Style_FlightClub"],
+"Gary Payton":["Style_Lockdown","Style_FloorGeneral"],"Kawhi Leonard":["Style_Lockdown"],
+"Scottie Pippen":["Style_Lockdown","Style_FlightClub"],"Dennis Rodman":["Style_Lockdown"],
+"Rudy Gobert":["Style_Lockdown","Style_PaintBeast"],"Ben Wallace":["Style_Lockdown"],
+"Bruce Bowen":["Style_Lockdown"],"Tony Allen":["Style_Lockdown"],"Shane Battier":["Style_Lockdown"],
+"Dikembe Mutombo":["Style_Lockdown","Style_PaintBeast"],"Alonzo Mourning":["Style_Lockdown","Style_PaintBeast"],
+"Hakeem Olajuwon":["Style_PaintBeast","Style_Lockdown"],"Bill Russell":["Style_Lockdown","Style_PaintBeast"],
+"Tim Duncan":["Style_PaintBeast","Style_Lockdown"],"Kevin Garnett":["Style_Lockdown","Style_PaintBeast"],
+"David Robinson":["Style_PaintBeast","Style_Lockdown"],"Anthony Davis":["Style_PaintBeast","Style_Lockdown"],
+"Dwight Howard":["Style_PaintBeast","Style_Lockdown"],"Draymond Green":["Style_Lockdown","Style_FloorGeneral"],
+"Andre Iguodala":["Style_Lockdown"],"Shawn Marion":["Style_Lockdown"],"Andrei Kirilenko":["Style_Lockdown"],
+"Marc Gasol":["Style_Lockdown","Style_PaintBeast"],"Victor Wembanyama":["Style_Lockdown","Style_PaintBeast"],
+"Magic Johnson":["Style_FloorGeneral"],"John Stockton":["Style_FloorGeneral"],"Chris Paul":["Style_FloorGeneral"],
+"Jason Kidd":["Style_FloorGeneral","Style_Lockdown"],"Luka Doncic":["Style_FloorGeneral","Style_Sharpshooter"],
+"Oscar Robertson":["Style_FloorGeneral"],"Isiah Thomas":["Style_FloorGeneral"],"Walt Frazier":["Style_FloorGeneral","Style_Lockdown"],
+"Jalen Brunson":["Style_FloorGeneral"],"Tyrese Haliburton":["Style_FloorGeneral","Style_Sharpshooter"],
+"Nikola Jokic":["Style_FloorGeneral","Style_PaintBeast"],"James Harden":["Style_FloorGeneral","Style_Sharpshooter"],
+"Shai Gilgeous-Alexander":["Style_FloorGeneral"],"Kyrie Irving":["Style_FloorGeneral"],
+"Shaquille O'Neal":["Style_PaintBeast"],"Wilt Chamberlain":["Style_PaintBeast"],
+"Kareem Abdul-Jabbar":["Style_PaintBeast"],"Giannis Antetokounmpo":["Style_PaintBeast","Style_FlightClub"],
+"Joel Embiid":["Style_PaintBeast"],"Moses Malone":["Style_PaintBeast"],"Karl Malone":["Style_PaintBeast"],
+"Charles Barkley":["Style_PaintBeast"],"Patrick Ewing":["Style_PaintBeast"],"Yao Ming":["Style_PaintBeast"]};
+const DEFAULT_STYLE={PG:["Style_FloorGeneral"],SG:["Style_Sharpshooter"],SF:["Style_FlightClub"],
+PF:["Style_PaintBeast"],C:["Style_PaintBeast"]};
+/* AUDIT OVERRIDES: Style_Slasher (driving-lane finesse) + Style_AnkleBreaker (elite handles),
+   plus identity corrections so tags reflect what each player is KNOWN for */
+Object.assign(STYLE_TAGS,{
+"Dwyane Wade":["Style_Slasher","Style_Lockdown"],"Shai Gilgeous-Alexander":["Style_Slasher","Style_FloorGeneral"],
+"Manu Ginobili":["Style_Slasher"],"Jimmy Butler":["Style_Slasher","Style_Lockdown"],
+"Tony Parker":["Style_Slasher"],"Derrick Rose":["Style_Slasher"],"George Gervin":["Style_Slasher"],
+"Tyrese Maxey":["Style_Slasher","Style_Sharpshooter"],"De'Aaron Fox":["Style_Slasher"],
+"Jaylen Brown":["Style_Slasher"],"DeMar DeRozan":["Style_Slasher"],"Franz Wagner":["Style_Slasher"],
+"Kevin Johnson":["Style_Slasher","Style_FloorGeneral"],"Jalen Brunson":["Style_Slasher","Style_FloorGeneral"],
+"Latrell Sprewell":["Style_Slasher"],
+"Kyrie Irving":["Style_AnkleBreaker","Style_Slasher"],"Allen Iverson":["Style_AnkleBreaker","Style_Slasher"],
+"Tim Hardaway":["Style_AnkleBreaker","Style_FloorGeneral"],"Jason Williams":["Style_AnkleBreaker"],
+"Earl Monroe":["Style_AnkleBreaker"],"Pete Maravich":["Style_AnkleBreaker","Style_FloorGeneral"],
+"Bob Cousy":["Style_AnkleBreaker","Style_FloorGeneral"],"Isiah Thomas":["Style_FloorGeneral","Style_AnkleBreaker"],
+"LaMelo Ball":["Style_AnkleBreaker","Style_FloorGeneral"],"Gilbert Arenas":["Style_Sharpshooter","Style_AnkleBreaker"],
+"Scottie Barnes":["Style_Lockdown"],"Toni Kukoc":["Style_FloorGeneral","Style_Sharpshooter"],
+"Horace Grant":["Style_Lockdown"],"Charles Oakley":["Style_Lockdown"],"Kurt Rambis":["Style_Lockdown"],
+"Robert Horry":["Style_Sharpshooter"],"Matt Bonner":["Style_Sharpshooter"],
+"Rasheed Wallace":["Style_Sharpshooter","Style_PaintBeast"],"Lamar Odom":["Style_FloorGeneral"],
+"Aaron Gordon":["Style_FlightClub"],"John Starks":["Style_Lockdown"],"Doug Christie":["Style_Lockdown"],
+"Gary Payton II":["Style_Lockdown"],"Danny Green":["Style_Sharpshooter","Style_Lockdown"],
+"Brook Lopez":["Style_Sharpshooter","Style_PaintBeast"],"Chet Holmgren":["Style_Lockdown","Style_PaintBeast"],
+"Manute Bol":["Style_Lockdown"],"Shawn Bradley":["Style_Lockdown"],
+"Vlade Divac":["Style_FloorGeneral","Style_PaintBeast"],"Arvydas Sabonis":["Style_FloorGeneral","Style_PaintBeast"],
+"Domantas Sabonis":["Style_FloorGeneral","Style_PaintBeast"],"Michael Porter Jr.":["Style_Sharpshooter"],
+"Jayson Tatum":["Style_Sharpshooter"],"Paul George":["Style_Sharpshooter","Style_Lockdown"],
+"Klay Thompson":["Style_Sharpshooter","Style_Lockdown"],"Rajon Rondo":["Style_FloorGeneral","Style_Lockdown"],
+"Jrue Holiday":["Style_Lockdown","Style_FloorGeneral"],"Mark Price":["Style_Sharpshooter","Style_FloorGeneral"],
+"Chauncey Billups":["Style_Sharpshooter","Style_FloorGeneral"]});
+/* C+D. Historical synergies & rivalries — strict member lists */
+const STORY_TAGS={
+Story_DreamTeam:["Michael Jordan","Magic Johnson","Larry Bird","Charles Barkley","Scottie Pippen",
+  "Patrick Ewing","John Stockton","Karl Malone","Clyde Drexler","Chris Mullin","David Robinson"],
+Story_RedeemTeam:["Kobe Bryant","LeBron James","Dwyane Wade","Carmelo Anthony","Chris Paul",
+  "Chris Bosh","Jason Kidd","Dwight Howard","Deron Williams"],
+Story_Draft_1984:["Michael Jordan","Hakeem Olajuwon","Charles Barkley","John Stockton"],
+Story_Draft_1996:["Kobe Bryant","Allen Iverson","Steve Nash","Ray Allen"],
+Story_Draft_2003:["LeBron James","Dwyane Wade","Carmelo Anthony","Chris Bosh"],
+Story_Draft_2009:["Stephen Curry","James Harden","DeMar DeRozan","Jrue Holiday"],
+Story_Draft_2018:["Luka Doncic","Shai Gilgeous-Alexander","Jalen Brunson"],
+Story_Rival_80s_Classic:["Magic Johnson","Larry Bird"],
+Story_Rival_BadBoys:["Michael Jordan","Isiah Thomas","Dennis Rodman","Bill Laimbeer"],
+Story_Rival_TexasTriad:["Tim Duncan","Dirk Nowitzki"],
+Story_Rival_ModernFinals:["LeBron James","Stephen Curry","Kevin Durant"]};
+const STORIES_BY_NAME={};
+Object.entries(STORY_TAGS).forEach(([tag,names])=>names.forEach(n=>{(STORIES_BY_NAME[n]=STORIES_BY_NAME[n]||[]).push(tag);}));
+/* display names */
+const TAG_LABEL={Era_Classic:"Classic Era",Era_Golden:"Golden Era",Era_Vintage:"Vintage '90s",
+Era_Modern:"2000s Era",Era_Contemporary:"2010s Era",Era_Future:"New School",
+Style_Sharpshooter:"Sharpshooters",Style_FlightClub:"Flight Club",Style_Lockdown:"Lockdown",
+Style_FloorGeneral:"Floor Generals",Style_PaintBeast:"Paint Beasts",
+Style_Slasher:"Slashers",Style_AnkleBreaker:"Ankle Breakers",
+Story_DreamTeam:"Dream Team '92",Story_RedeemTeam:"Redeem Team '08",Story_Draft_1984:"'84 Draft Class",
+Story_Draft_1996:"'96 Draft Class",Story_Draft_2003:"'03 Draft Class",Story_Draft_2009:"'09 Draft Class",
+Story_Draft_2018:"'18 Draft Class",Story_Rival_80s_Classic:"Magic vs Bird",Story_Rival_BadBoys:"Bad Boys Wars",
+Story_Rival_TexasTriad:"Texas Triad",Story_Rival_ModernFinals:"Finals Trilogy"};
+/* stamp every card: exactly 1 era + 1-2 styles + any story tags */
+DB.forEach(p=>{p.tags=[ERA_TAG[p.era],...(STYLE_TAGS[p.name]||DEFAULT_STYLE[p.pos]),...(STORIES_BY_NAME[p.name]||[])];});
+function cardChips(p){ /* stories first, then styles, max 2 shown on the card */
+  const t=p.tags.filter(x=>!x.startsWith("Era_"));
+  t.sort((a,b)=>(a.startsWith("Story_")?0:1)-(b.startsWith("Story_")?0:1));
+  return t.slice(0,2).map(x=>TAG_LABEL[x]).join(" · ");
+}
+const POOLS={};TIER_ORDER.forEach(t=>POOLS[t]=DB.filter(p=>p.tier===t));
+const POOL_90=DB.filter(p=>p.ovr>=90);
+
+/* ================= PACKS ================= */
+const PACKS={
+  standard:{name:"Standard Pack",cls:"p-std",guarTier:null,guarLabel:"No guarantee — pure gamble",
+    odds:{Bronze:.62,Silver:.30,Gold:.07,Elite:.009,Icon:.001}},
+  premium:{name:"Premium Pack",cls:"p-prem",guarTier:"Gold",guarLabel:"Guaranteed at least 1 Gold or better",
+    odds:{Bronze:.10,Silver:.40,Gold:.38,Elite:.10,Icon:.02}},
+  icon:{name:"Icon Pack",cls:"p-icon",guarTier:"Elite",guarLabel:"Guaranteed at least 1 Elite or better",
+    odds:{Gold:.45,Elite:.43,Icon:.12}},
+  rare:{name:"Rare-Pull Pack",cls:"p-icon",guarTier:null,guarLabel:"Every card is rated 90+",
+    odds:{Gold:.40,Elite:.45,Icon:.15}} // Gold here = 90–91 only
+};
+function tierRank(t){return TIER_ORDER.indexOf(t);}
+function rollTier(odds,rng){let r=(rng||Math.random)(),acc=0;
+  for(const t of TIER_ORDER){if(!odds[t])continue;acc+=odds[t];if(r<acc)return t;}
+  // float slack: return best offered tier
+  for(let i=TIER_ORDER.length-1;i>=0;i--)if(odds[TIER_ORDER[i]])return TIER_ORDER[i];
+}
+function pickFrom(arr,rng){return arr[Math.floor((rng||Math.random)()*arr.length)];}
+function packUniverse(packKey){return packKey==="rare"?POOL_90:DB;}
+/* Fisher-Yates shuffle: every pack draws from a freshly randomized copy of the tier pool */
+function fisherYates(arr,rng){
+  const a=arr.slice(),R=rng||Math.random;
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(R()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+const COOLDOWN_WEIGHT=0.25; /* players pulled in the last 2 packs are 4x less likely */
+function weightedPick(pool,recent,rng){
+  const R=rng||Math.random;
+  const wts=pool.map(p=>recent&&recent.has(p.id)?COOLDOWN_WEIGHT:1);
+  let r=R()*wts.reduce((a,b)=>a+b,0);
+  for(let i=0;i<pool.length;i++){r-=wts[i];if(r<0)return pool[i];}
+  return pool[pool.length-1];
+}
+function rollCard(packKey,excl,recent,rng){
+  const t=rollTier(PACKS[packKey].odds,rng);
+  let pool;
+  if(packKey==="rare")pool=t==="Gold"?POOL_90.filter(p=>p.ovr<=91):POOLS[t];
+  else pool=POOLS[t];
+  let open=pool.filter(p=>!excl.has(p.id));
+  if(!open.length)open=packUniverse(packKey).filter(p=>!excl.has(p.id)); // tier exhausted: widen
+  /* tier odds strictly picked the pool; the card comes from a deeply shuffled, cool-down-weighted subset */
+  return weightedPick(fisherYates(open,rng),recent,rng);
+}
+function rollPack(packKey,owned,recent,rng){
+  const pk=PACKS[packKey],rec=recent||new Set();
+  let excl=new Set(owned||[]);
+  /* uniqueness is per CARD (name+team+era = its id): other versions of an owned
+     player stay pullable. Only exact copies are excluded — and once fewer than
+     3 unowned cards remain, exact dupes become pullable and are auto-discarded. */
+  if(packUniverse(packKey).filter(p=>!excl.has(p.id)).length<3)excl=new Set();
+  const cards=[];
+  for(let i=0;i<3;i++){const c=rollCard(packKey,excl,rec,rng);cards.push(c);excl.add(c.id);}
+  if(pk.guarTier&&!cards.some(c=>tierRank(c.tier)>=tierRank(pk.guarTier))){
+    // upgrade the last card to satisfy the guarantee
+    const floor=tierRank(pk.guarTier);
+    excl.delete(cards[2].id);
+    const hi=TIER_ORDER.slice(floor).flatMap(t=>POOLS[t]).filter(p=>!excl.has(p.id));
+    if(hi.length)cards[2]=weightedPick(fisherYates(hi,rng),rec,rng);
+  }
+  return cards;
+}
+
+/* ================= ROSTER / CHEMISTRY / OVR ================= */
+const STARTER_SLOTS=["PG","SG","SF","PF","C"];
+const BENCH_SLOTS=["B1","B2","B3"];
+const ALL_SLOTS=[...STARTER_SLOTS,...BENCH_SLOTS];
+function emptyRoster(){const r={};ALL_SLOTS.forEach(s=>r[s]=null);return r;}
+function slotPos(slot){return STARTER_SLOTS.includes(slot)?slot:"B";}
+function eligible(player,slot){const p=slotPos(slot);return p==="B"||player.positions.includes(p);}
+function rosterHas(roster,pid){return ALL_SLOTS.some(s=>roster[s]===pid);}
+
+function chemistry(roster){
+  const links=[];
+  /* team cores: starters sharing a franchise (strongest link) */
+  const counts={};
+  STARTER_SLOTS.forEach(s=>{const pid=roster[s];if(pid==null)return;
+    const t=DB[pid].team;counts[t]=(counts[t]||0)+1;});
+  let team=0;
+  Object.entries(counts).forEach(([t,n])=>{
+    if(n>=2){const b=(n-1)*1.5;team+=b;links.push({label:t+" Core",n,bonus:b,kind:"team"});}});
+  team=Math.min(6,team);
+  /* tag synergies: scan starters + bench; unique player NAMES per tag so two
+     versions of the same player never self-link */
+  /* STARTERS ONLY: the bench is ignored entirely for chemistry */
+  const groups={};
+  STARTER_SLOTS.forEach(s=>{const pid=roster[s];if(pid==null)return;
+    DB[pid].tags.forEach(t=>{(groups[t]=groups[t]||new Set()).add(DB[pid].name);});});
+  let tag=0;
+  Object.entries(groups).forEach(([t,names])=>{
+    const n=names.size;if(n<2)return;
+    const w=t.startsWith("Story_")?0.5:0.3; /* rare story links pay more than era/style */
+    const b=+((n-1)*w).toFixed(1);
+    tag+=b;links.push({label:TAG_LABEL[t]||t,n,bonus:b,kind:t.startsWith("Story_")?"story":"tag"});});
+  tag=Math.min(5,tag);
+  links.sort((a,b)=>b.bonus-a.bonus);
+  const bonus=+Math.min(10,team+tag).toFixed(1);
+  return {bonus,links};
+}
+function startersFull(roster){return STARTER_SLOTS.every(s=>roster[s]!=null);}
+function teamOVR(roster){
+  /* starting five = 70% of team OVR, bench = 30% */
+  const sv=STARTER_SLOTS.map(s=>roster[s]==null?60:Math.max(60,DB[roster[s]].ovr));
+  const bv=BENCH_SLOTS.map(s=>roster[s]==null?60:Math.max(60,DB[roster[s]].ovr));
+  const base=(sv.reduce((a,b)=>a+b,0)/5)*0.70+(bv.reduce((a,b)=>a+b,0)/3)*0.30;
+  const chem=chemistry(roster);
+  const total=Math.max(60,Math.min(99,Math.round(base+chem.bonus)));
+  /* effective rating drives the win curve: chemistry counts double there,
+     so a lower-OVR team with perfect chem can out-project a chem-less one */
+  const eff=base+chem.bonus*2.2; /* chemistry multiplier: pushes the win curve directly */
+  return {base:Math.round(base),chem,total,eff,ready:startersFull(roster)};
+}
+/* logistic-style win curve on anchor points with cosine easing between them:
+   flat-ish under 75, climbing through the 80s, exploding past 90 */
+const PROJ=[[60,15],[70,26],[75,31],[80,38],[84,46],[87,54],[90,65],[92,70],[95,76],[97,78],[99,80],[103,82]];
+function projection(eff){
+  const e=Math.max(60,Math.min(103,eff));
+  let wins=PROJ[PROJ.length-1][1];
+  for(let i=0;i<PROJ.length-1;i++){const [a,wa]=PROJ[i],[b,wb]=PROJ[i+1];
+    if(e<=b){const t=(e-a)/(b-a),s=(1-Math.cos(Math.PI*t))/2; /* smooth, non-linear */
+      wins=Math.round(wa+(wb-wa)*s);break;}}
+  wins=Math.max(12,Math.min(82,wins));
+  const label=wins<20?"Lottery Team":wins<30?"Rebuilding":wins<40?"Play-In Hopeful":
+    wins<47?"Playoff Team":wins<54?"Homecourt Threat":wins<60?"Contender":
+    wins<66?"Title Favorite":wins<72?"Juggernaut":"Historic Juggernaut";
+  return {wins,losses:82-wins,label};
+}
+
+/* draft option weights (kept generous so drafts feel good) */
+const DRAFT_ODDS={Bronze:.10,Silver:.30,Gold:.49,Elite:.08,Icon:.03};
+const DRAFT_LIMITS={Icon:2,Elite:4}; /* per draft, captain included */
+function draftDowngrade(t,counts){
+  const order=["Icon","Elite","Gold"];
+  let i=order.indexOf(t);
+  while(i>-1&&i<2&&DRAFT_LIMITS[order[i]]&&(counts[order[i]]||0)>=DRAFT_LIMITS[order[i]])i++;
+  return i===-1?t:order[i]||t;
+}
+function draftOptions(takenIds,rng){
+  const opts=[];let guard=0;
+  while(opts.length<5&&guard++<400){
+    const t=rollTier(DRAFT_ODDS,rng);
+    const pool=POOLS[t].filter(p=>!takenIds.includes(p.id)&&!opts.some(o=>o.id===p.id));
+    if(pool.length)opts.push(pickFrom(pool,rng));
+  }
+  return opts;
+}
+/* draft is positionless: best five by OVR start, rest ride the bench */
+function draftArrange(ids){
+  const s=ids.slice().sort((a,b)=>DB[b].ovr-DB[a].ovr);
+  const r=emptyRoster();
+  STARTER_SLOTS.forEach((slot,i)=>r[slot]=s[i]??null);
+  BENCH_SLOTS.forEach((slot,i)=>r[slot]=s[5+i]??null);
+  return r;
+}
+/* CLASSIC MODE: balanced drop curve with hard high-tier ceilings per session */
+const CLASSIC_ODDS={Bronze:.36,Silver:.42,Gold:.17,Elite:.04,Icon:.01};
+const CLASSIC_PREMIUM_ODDS={Silver:.51,Gold:.35,Elite:.11,Icon:.03};
+const CLASSIC_LIMITS={Icon:2,Elite:4}; /* hard caps per classic run */
+function classicDowngrade(t,counts,limits){
+  const L=limits||CLASSIC_LIMITS,order=["Icon","Elite","Gold"];
+  let i=order.indexOf(t);
+  while(i>-1&&i<2&&L[order[i]]&&(counts[order[i]]||0)>=L[order[i]])i++;
+  return i===-1?t:order[i]||t;
+}
+function classicRollPack(owned,counts,recent,packKey,rng){
+  const odds=packKey==="premium"?CLASSIC_PREMIUM_ODDS:CLASSIC_ODDS;
+  const excl=new Set(owned||[]),cards=[];
+  for(let k=0;k<3;k++){
+    let t=classicDowngrade(rollTier(odds,rng),counts);
+    let open=POOLS[t].filter(p=>!excl.has(p.id));
+    if(!open.length)open=DB.filter(p=>!excl.has(p.id));
+    const c=weightedPick(fisherYates(open,rng),recent,rng);
+    cards.push(c);excl.add(c.id);
+    if(tierRank(c.tier)>=tierRank("Elite"))counts[c.tier]=(counts[c.tier]||0)+1;
+  }
+  /* mandatory role-player distribution: every pack carries at least one Silver-or-lower */
+  if(!cards.some(c=>tierRank(c.tier)<=tierRank("Silver"))){
+    const low=[...POOLS.Bronze,...POOLS.Silver].filter(p=>!excl.has(p.id)&&p.id!==cards[2].id);
+    if(low.length){
+      if(tierRank(cards[2].tier)>=tierRank("Elite"))counts[cards[2].tier]--;
+      cards[2]=weightedPick(fisherYates(low,rng),recent,rng);
+    }
+  }
+  return cards;
+}
+/* DRAFT MODE: slot-eligible option sets (5 varied, unique players) */
+function draftOptionsFor(slot,takenIds,counts,rng){
+  const opts=[];let guard=0;
+  while(opts.length<5&&guard++<500){
+    const t=draftDowngrade(rollTier(DRAFT_ODDS,rng),counts||{});
+    const pool=POOLS[t].filter(p=>eligible(p,slot)&&!takenIds.includes(p.id)
+      &&!opts.some(o=>o.id===p.id||o.name===p.name));
+    if(pool.length)opts.push(pickFrom(fisherYates(pool,rng),rng));
+  }
+  return opts;
+}
+/* shared Captain Pack helper (Draft + Classic): 3 distinct players, unique names,
+   not already owned; each rolled Icon 35% / Elite 65% — guaranteed Elite floor */
+function classicCaptainOptions(owned,rng){
+  const r=rng||Math.random,excl=owned||new Set(),out=[],seen=new Set();
+  let guard=0;
+  while(out.length<3&&guard++<400){
+    const t=r()<0.35?"Icon":"Elite";
+    const pool=POOLS[t].filter(p=>!excl.has(p.id)&&!seen.has(p.name));
+    if(pool.length){const p=pickFrom(fisherYates(pool,rng),rng);out.push(p);seen.add(p.name);}
+  }
+  return out;
+}
+function captainOptions(rng){ /* legacy 5-pure-Icon picker — kept, no longer called */
+  const seen=new Set(),out=[];
+  fisherYates(POOLS.Icon,rng).forEach(p=>{if(out.length<5&&!seen.has(p.name)){seen.add(p.name);out.push(p);}});
+  return out;
+}
+/* canonical entry points */
+const calculateTeamOVR=teamOVR;
+const updateProjectedRecord=projection;
+//</LOGIC>
+</script>
+<script>
+/* ================= PERSISTENCE (safe: falls back to memory) ================= */
+const MEM={};
+function sGet(k){try{return JSON.parse(localStorage.getItem(k));}catch(e){return MEM[k]??null;}}
+function sSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){MEM[k]=v;}}
+function sDel(k){try{localStorage.removeItem(k);}catch(e){delete MEM[k];}}
+
+function emptySide(){return {coll:{},roster:emptyRoster()};}
+function emptyClassic(){return {coll:{},roster:emptyRoster(),opened:0,cap:10+Math.floor(Math.random()*3),premiumPacksLeft:3,tierCounts:{},captainUsed:false};}
+let S=sGet("atu-save-v4")||{main:emptySide(),rare:emptySide()};
+let HS=sGet("atu-hs-v4")||{main:{ovr:60,wins:0},rare:{ovr:60,wins:0},draft:{ovr:60,wins:0}};
+HS.classic=HS.classic||{ovr:60,wins:0};
+S.classic=S.classic||emptyClassic();
+S.classic.tierCounts=S.classic.tierCounts||{};
+S.classic.premiumPacksLeft=S.classic.premiumPacksLeft??3;
+S.classic.captainUsed=S.classic.captainUsed??false;
+function save(){sSet("atu-save-v4",S);}
+function saveHS(){sSet("atu-hs-v4",HS);}
+function bump(side){const o=teamOVR(S[side].roster);if(!o.ready)return;
+  const pr=projection(o.eff);
+  if(o.total>HS[side].ovr){HS[side].ovr=o.total;HS[side].wins=pr.wins;saveHS();}}
+
+let screen="landing";       // landing | team | packs | rare | draft | classic
+let lastOVRc=60;
+function sideFor(scr){return scr==="rare"?"rare":scr==="classic"?"classic":"main";}
+let lastOVR={main:60,rare:60,classic:60};
+let D={stage:"idle",done:false,taken:[],roster:emptyRoster(),opts:null,activeSlot:null,lastSlot:null,captain:[]};
+const DRAFT_ORDER=["PG","SG","SF","PF","C","B1","B2","B3"];
+const SLOT_LABEL={PG:"Point Guard",SG:"Shooting Guard",SF:"Small Forward",PF:"Power Forward",C:"Center",B1:"Bench 1",B2:"Bench 2",B3:"Bench 3"};
+
+/* ================= SMALL HELPERS ================= */
+const $=s=>document.querySelector(s);
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;");}
+function initials(n){return n.split(" ").map(w=>w[0]).slice(0,2).join("");}
+function tagRow(lab,tags){return tags.length?`<div class="bk-lab">${lab}</div><div class="bk-val">${tags.map(t=>TAG_LABEL[t]||t).join(" · ")}</div>`:"";}
+function cardHTML(p,attrs,badge){
+  /* front face: completely clean — no chemistry text */
+  const front=`
+  <div class="card t-${p.tier}" ${attrs||""}>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div><div class="ovr">${p.ovr}</div><div class="pos" style="font-size:${p.positions.length>2?7.5:9}px">${p.positions.join("/")}</div></div>
+    </div>
+    <button class="infobtn" onclick="flip3d(event)" title="Chemistry tags">ⓘ</button>
+    <div class="ini">${initials(esc(p.name))}</div>
+    <div class="nm">${esc(p.name)}</div>
+    <div class="meta">${p.team} · ${p.era} · ${p.tier.toUpperCase()}</div>
+    ${badge||""}
+  </div>`;
+  /* back face: matte-black chemistry dossier */
+  const back=`
+  <div class="cardback bk-${p.tier}" onclick="flip3d(event)">
+    <div class="bk-nm">${esc(p.name)}</div>
+    <div class="bk-sub">${p.ovr} OVR · ${p.positions.join("/")} · ${p.team} ${p.era}</div>
+    ${tagRow("Era",p.tags.filter(t=>t.startsWith("Era_")))}
+    ${tagRow("Playstyle",p.tags.filter(t=>t.startsWith("Style_")))}
+    ${tagRow("Storylines",p.tags.filter(t=>t.startsWith("Story_")))}
+    <div class="bk-lab">Card</div><div class="bk-val">${p.tier} tier · ${SLOTNAMES(p)}</div>
+    <div class="bk-flip">↺ tap to flip back</div>
+  </div>`;
+  const core=`<div class="c3d"><div class="c3din">
+    <div class="c3face c3front">${front}</div>
+    <div class="c3face c3back">${back}</div>
+  </div></div>`;
+  return p.tier==="Icon"?`<div class="flame">${core}</div>`:core;}
+function SLOTNAMES(p){return p.positions.length>1?"multi-position":"specialist";}
+function flip3d(e){e.stopPropagation();e.preventDefault();
+  const n=e.target.closest(".c3din");if(n)n.classList.toggle("flipped3");}
+function notice(msg){const n=$("#notice");if(!n)return;n.textContent=msg;
+  clearTimeout(notice.t);notice.t=setTimeout(()=>{if($("#notice"))$("#notice").textContent="";},2600);}
+
+/* ================= NAV ================= */
+function setScreen(s){screen=s;render();window.scrollTo(0,0);}
+function renderTabs(){
+  const bar=$("#tabs");if(!bar)return;
+  let items;
+  if(screen==="landing")items=[];
+  else if(screen==="share")items=[["landing","\u2630 Modes"]];
+  else if(screen==="draft")items=[["landing","☰ Modes"],["draft","Draft"]];
+  else if(screen==="classic")items=[["landing","☰ Modes"],["classic","Classic"]];
+  else items=[["landing","☰ Modes"],["team","My Team"],["packs","Packs"],["rare","Rare Pull"]];
+  bar.innerHTML=items.map(([k,l])=>`<button class="${screen===k?"on":""}" onclick="setScreen('${k}')">${l}</button>`).join("");
+  bar.style.display=items.length?"":"none";
+}
+
+/* ================= HUB (shared by My Team and Rare Pull) ================= */
+function ownedList(side){ // unique owned players not currently slotted, sorted
+  return Object.entries(S[side].coll).filter(([,n])=>n>0)
+    .map(([id])=>DB[+id]).sort((a,b)=>b.ovr-a.ovr||a.name.localeCompare(b.name));
+}
+function slotHTML(side,slot){
+  const pid=S[side].roster[slot],p=slotPos(slot);
+  const dz=`ondragover="dragOver(event,'${slot}')" ondrop="dropOn(event,'${side}','${slot}')"`;
+  if(pid==null)return `<button class="slot slot-${slot}" onclick="openPicker('${side}','${slot}')" ${dz}>
+    <div class="postag">${p==="B"?"BN":p}</div><div>${SLOT_LABEL[slot]}</div>
+    <div style="font-size:8px;letter-spacing:.1em">${p==="B"?"ANY POSITION":p+" ELIGIBLE"}</div>
+    <div style="font-size:8px;color:var(--cyan)">TAP OR DRAG TO FILL</div></button>`;
+  return `<div class="slot-${slot}" style="position:relative" ${dz}>${cardHTML(DB[pid],
+    `onclick="openPicker('${side}','${slot}')" draggable="true" ondragstart="dragStart(event,${pid},'${slot}')" ondragend="dragEnd()"`)}</div>`;
+}
+let DRAG=null;
+function dragStart(e,pid,from){
+  DRAG={pid,from};
+  try{e.dataTransfer.setData("text/plain",String(pid));e.dataTransfer.effectAllowed="move";}catch(_){}
+  const p=DB[pid];
+  e.target.closest(".card")&&e.target.closest(".card").classList.add("dragsrc");
+  ALL_SLOTS.forEach(s=>{const el=$(".slot-"+s);if(!el)return;
+    if(s===from)return;
+    if(eligible(p,s))el.classList.add(el.classList.contains("slot")?"eligible":"droptarget");
+    else el.classList.add("blocked");});
+}
+function dragEnd(){
+  DRAG=null;
+  document.querySelectorAll(".eligible,.droptarget,.blocked,.dragsrc").forEach(el=>
+    el.classList.remove("eligible","droptarget","blocked","dragsrc"));
+}
+function dragOver(e,slot){if(DRAG&&eligible(DB[DRAG.pid],slot))e.preventDefault();}
+function dropOn(e,side,slot){
+  e.preventDefault();if(!DRAG)return;
+  const {pid,from}=DRAG;dragEnd();
+  from==="coll"?moveInto(pid,side,slot,"coll"):moveInto(pid,side,slot,from);
+}
+function collDragOver(e){if(DRAG&&DRAG.from!=="coll")e.preventDefault();}
+function dropToColl(e,side){e.preventDefault();if(!DRAG||DRAG.from==="coll")return;
+  const from=DRAG.from;dragEnd();unslot(side,from);}
+function hubHTML(side){
+  const st=S[side],ovr=teamOVR(st.roster),pr=projection(ovr.eff);
+  const rec=ovr.ready?`${pr.wins}–${pr.losses}`:"—";
+  const lab=ovr.ready?pr.label:"Fill your starting five";
+  const chemHTML=ovr.chem.links.length
+    ?ovr.chem.links.map(l=>`<span class="${l.kind==="story"?"story":"hot"}">${l.label} ×${l.n} → +${l.bonus.toFixed(1)}</span>`).join("")
+    :`<span>No chemistry — link teams, eras, styles, draft classes or rivalries</span>`;
+  const owned=ownedList(side);
+  const cl=S.classic,clLeft=cl.cap-cl.opened;
+  const classicShelf=`
+    <div class="sub" style="letter-spacing:.08em">PACK BUDGET: <b style="color:${clLeft?"var(--gold)":"var(--elite)"}">${cl.opened} / ${cl.cap}</b> opened — mix them however you like</div>
+    ${S.classic.captainUsed?"":`<button class="btn gold" onclick="openClassicCaptain()">Captain Pack — pick your anchor</button>`}
+    <button class="btn primary" ${clLeft?"":"disabled"} onclick="openPack('standard','classic')">Standard Pack${clLeft?" (unlimited)":" — locked"}</button>
+    <button class="btn" style="border-color:var(--elite);color:#ff8aa0" ${clLeft&&cl.premiumPacksLeft>0?"":"disabled"} onclick="openPack('premium','classic')">Premium Pack (${cl.premiumPacksLeft} left)</button>
+    ${clLeft?"":`<div class="sub" style="color:var(--amber)">Budget spent — build your final roster from this static pool.</div>`}`;
+  const packBtn=side==="rare"?`<button class="btn gold" onclick="openPack('rare','rare')">Open Rare-Pull Pack — all cards 90+</button>`
+    :side==="classic"?classicShelf
+    :`<button class="btn primary" onclick="setScreen('packs')">Open Packs</button>`;
+  return `
+  <div class="grid2">
+    <div class="stack">
+      <div class="panel">
+        <div class="scoreboard">
+          <div class="ovrbig" id="ovr-${side}">${ovr.total}<small>TEAM OVR</small></div>
+          <div>
+            <div class="projrow">
+              <div><b>${rec}</b>projected record</div>
+              <div><b>${lab}</b>power label</div>
+              <div><b>+${ovr.chem.bonus.toFixed(1)}</b>chemistry</div>
+            </div>
+            <div class="chemlinks">${chemHTML}</div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="rowhead"><h2>${side==="rare"?"Rare-Pull Challenge":side==="classic"?"Classic Run":"Front Office"}</h2>
+          <span class="sub">Best ${side==="rare"?"challenge":side==="classic"?"classic run":"team"} OVR: <b style="color:var(--gold)">${HS[side].ovr}</b>${HS[side].wins?` (${HS[side].wins} wins)`:""}</span></div>
+        <div class="stack">
+          ${packBtn}
+          <button class="btn" onclick="autoFill('${side}')">Auto-fill best lineup</button>
+          ${side==="classic"?`<button class="btn" onclick="shareRoster('classic')">Share roster</button>`:""}
+          <button class="btn danger" onclick="confirmReset('${side}')">Reset / New Team</button>
+        </div>
+        <div class="notice" id="notice"></div>
+      </div>
+    </div>
+    <div>
+      <div class="court">
+        <svg class="squadweb" aria-hidden="true"></svg>
+        <h3>Starting Five — PG · SG · SF · PF · C</h3>
+        <div class="fiveslots">${["C","PF","SF","SG","PG"].map(s=>slotHTML(side,s)).join("")}</div>
+        <div class="benchlabel">BENCH — ANY POSITION</div>
+        <div class="benchrow">${BENCH_SLOTS.map(s=>slotHTML(side,s)).join("")}</div>
+      </div>
+      <div class="panel" style="margin-top:12px">
+        <div class="rowhead"><h2>Collection</h2><span class="sub">${owned.reduce((a,p)=>a+S[side].coll[p.id],0)} card(s) · tap a court slot to fill it · tap a card to discard</span></div>
+        <div class="coll" ondragover="collDragOver(event)" ondrop="dropToColl(event,'${side}')">${owned.length?owned.map(p=>{
+          const n=S[side].coll[p.id];
+          return cardHTML(p,`onclick="openSheet(${p.id},'${side}')" draggable="true" ondragstart="dragStart(event,${p.id},'coll')" ondragend="dragEnd()"`,n>1?`<div class="cnt">×${n}</div>`:"");
+        }).join(""):`<div class="empty">No cards yet. ${side==="rare"?"Open a Rare-Pull pack above.":side==="classic"?"Open your first pack — the whole run is "+S.classic.cap+" packs.":"Hit Open Packs to start pulling."}</div>`}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ================= ROSTER ACTIONS ================= */
+function openSheet(pid,side){
+  const p=DB[pid];
+  $("#sheet").innerHTML=`<div class="sheetbox"><h3>${esc(p.name)} — ${p.ovr} OVR</h3>
+    <div class="who">${p.positions.join(" / ")} · ${p.team} · ${p.era} · ${p.tier}.
+    Tap a court slot — or drag this card onto one (${p.positions.join(", ")} or bench) — to put this player in your lineup.</div>
+    <button class="btn danger" onclick="discard(${pid},'${side}')">Discard one copy</button>
+    <button class="btn" onclick="closeSheet()">Cancel</button></div>`;
+  $("#sheet").classList.add("show");
+  $("#sheet").onclick=e=>{if(e.target.id==="sheet")closeSheet();};
+}
+function closeSheet(){$("#sheet").classList.remove("show");$("#sheet").innerHTML="";}
+function openPicker(side,slot){
+  const p=slotPos(slot),cur=S[side].roster[slot];
+  const pool=ownedList(side).filter(c=>eligible(c,slot));
+  /* players already in OTHER slots are movable straight into this one */
+  const rostered=ALL_SLOTS.filter(s=>s!==slot&&S[side].roster[s]!=null)
+    .map(s=>({p:DB[S[side].roster[s]],from:s})).filter(x=>eligible(x.p,slot));
+  $("#sheet").innerHTML=`<div class="sheetbox">
+    <h3>${cur!=null?"Swap":"Select"} ${SLOT_LABEL[slot]}${p!=="B"?` (${p})`:""}</h3>
+    <div class="who">${p==="B"?"Any position qualifies for the bench.":`Showing everyone in your collection who can play ${p}.`}
+    ${cur!=null?` Currently: <b style="color:var(--ink)">${esc(DB[cur].name)} ${DB[cur].ovr}</b>.`:""}</div>
+    ${cur!=null?`<button class="btn danger" onclick="unslot('${side}','${slot}');closeSheet()">Remove ${esc(DB[cur].name)}</button>`:""}
+    <div class="pickgrid">${pool.length||rostered.length?
+      pool.map(c=>cardHTML(c,`onclick="pickInto(${c.id},'${side}','${slot}')"`)).join("")
+      +rostered.map(x=>cardHTML(x.p,`onclick="pickMove(${x.p.id},'${side}','${slot}','${x.from}')"`,
+        `<div class="fromtag">AT ${x.from}</div>`)).join("")
+      :`<div class="empty">No eligible cards in your collection${p!=="B"?` for ${p}`:""} — open more packs.</div>`}</div>
+    <button class="btn" onclick="closeSheet()">Cancel</button></div>`;
+  $("#sheet").classList.add("show");
+  $("#sheet").onclick=e=>{if(e.target.id==="sheet")closeSheet();};
+}
+function pickInto(pid,side,slot){place(pid,side,slot);} /* place() closes + rerenders */
+function moveInto(pid,side,slot,from){
+  const p=DB[pid],r=S[side].roster;
+  if(!eligible(p,slot)){notice(`${p.name} plays ${p.positions.join("/")} — can't fill the ${SLOT_LABEL[slot]} slot.`);return false;}
+  if(from==="coll"){
+    if(rosterHas(r,pid)){notice("That exact card is already in your roster.");return false;}
+    if(r[slot]!=null)S[side].coll[r[slot]]=(S[side].coll[r[slot]]||0)+1; // return occupant
+    r[slot]=pid;S[side].coll[pid]--;if(S[side].coll[pid]<=0)delete S[side].coll[pid];
+  }else{
+    if(from===slot)return false;
+    const occ=r[slot];
+    r[from]=null;
+    if(occ!=null){ // swap back if legal, otherwise occupant returns to the collection
+      if(eligible(DB[occ],from))r[from]=occ;
+      else S[side].coll[occ]=(S[side].coll[occ]||0)+1;
+    }
+    r[slot]=pid;
+  }
+  afterRosterChange(side);return true;
+}
+function place(pid,side,slot){if(moveInto(pid,side,slot,"coll"))closeSheet();}
+function pickMove(pid,side,slot,from){if(moveInto(pid,side,slot,from))closeSheet();}
+function unslot(side,slot){
+  const r=S[side].roster,pid=r[slot];if(pid==null)return;
+  r[slot]=null;S[side].coll[pid]=(S[side].coll[pid]||0)+1;afterRosterChange(side);
+}
+function discard(pid,side){
+  S[side].coll[pid]--;if(S[side].coll[pid]<=0)delete S[side].coll[pid];
+  closeSheet();save();render();notice(`Discarded ${DB[pid].name}.`);
+}
+function autoFill(side){
+  const r=S[side].roster;
+  // pool = everything owned + everything slotted, unique ids
+  const pool=new Set(Object.keys(S[side].coll).map(Number));
+  ALL_SLOTS.forEach(s=>{if(r[s]!=null)pool.add(r[s]);});
+  const players=[...pool].map(id=>DB[id]).sort((a,b)=>b.ovr-a.ovr);
+  const fresh=emptyRoster(),used=new Set();
+  ["C","PF","SF","SG","PG"].forEach(s=>{
+    const p=players.find(x=>!used.has(x.id)&&x.positions.includes(s));
+    if(p){fresh[s]=p.id;used.add(p.id);}});
+  BENCH_SLOTS.forEach(s=>{const p=players.find(x=>!used.has(x.id));
+    if(p){fresh[s]=p.id;used.add(p.id);}});
+  // rebuild collection counts: total copies minus the ones slotted
+  const counts={};[...pool].forEach(id=>counts[id]=(S[side].coll[id]||0)+(rosterHas(r,id)?1:0));
+  used.forEach(id=>counts[id]--);
+  S[side].coll={};Object.entries(counts).forEach(([id,n])=>{if(n>0)S[side].coll[id]=n;});
+  S[side].roster=fresh;afterRosterChange(side);notice("Best legal lineup set by OVR.");
+}
+function afterRosterChange(side){
+  const t=teamOVR(S[side].roster).total;
+  bump(side);save();render();
+  if(t>lastOVR[side]){const el=$("#ovr-"+side);if(el){el.classList.add("bump");setTimeout(()=>el.classList.remove("bump"),260);}}
+  lastOVR[side]=t;
+}
+function confirmReset(side){
+  $("#sheet").innerHTML=`<div class="sheetbox"><h3>Start over?</h3>
+    <div class="who">This clears your ${side==="rare"?"Rare-Pull":""} collection and roster. Your best OVR high score is kept.</div>
+    <button class="btn danger" onclick="doReset('${side}')">Yes — reset everything</button>
+    <button class="btn" onclick="closeSheet()">Cancel</button></div>`;
+  $("#sheet").classList.add("show");
+  $("#sheet").onclick=e=>{if(e.target.id==="sheet")closeSheet();};
+}
+function doReset(side){
+  S[side]=side==="classic"?emptyClassic():emptySide();
+  lastOVR[side]=60;save();closeSheet();render();
+  notice(side==="classic"?"New classic run — "+S.classic.cap+" pack budget this time. High score preserved.":"Fresh start. High score preserved.");}
+</script>
+<script>
+/* ================= PACKS SCREEN ================= */
+function oddsHTML(key){
+  return TIER_ORDER.slice().reverse().filter(t=>PACKS[key].odds[t]).map(t=>{
+    const pct=PACKS[key].odds[t]*100,shown=pct<1?pct.toFixed(1):Math.round(pct);
+    const nm=key==="rare"&&t==="Gold"?"Gold 90–91":t;
+    return `<i class="o-${t}">${nm}</i> ${shown}% per card`;
+  }).join("<br>");
+}
+function packsHTML(){
+  const packs=["standard","premium","icon"].map(k=>`
+    <div class="pack ${PACKS[k].cls}">
+      <h3>${PACKS[k].name}</h3>
+      <div class="guar">${PACKS[k].guarLabel}</div>
+      <div class="odds">${oddsHTML(k)}</div>
+      <button class="btn ${k==="icon"?"gold":"primary"}" onclick="openPack('${k}','main')">Open — 3 cards · free</button>
+    </div>`).join("");
+  return `<div class="panel" style="margin-bottom:12px">
+      <div class="rowhead"><h2>Pack Shelf</h2><span class="sub">Unlimited free opens · pulls go straight to your collection · chase the 99s</span></div>
+    </div>
+    <div class="packs">${packs}</div>
+    <div class="notice" id="notice"></div>`;
+}
+
+/* ================= REVEAL OVERLAY ================= */
+const SUSPENSE={Bronze:350,Silver:500,Gold:900,Elite:1500,Icon:2200};
+let REV=null; // {cards, side, packKey, flipped:[]}
+let RECENT=sGet("atu-recent-v1")||[]; // ids from the last 2 packs, persisted across resets
+function recentSet(){return new Set(RECENT.flat());}
+function noteRecent(cards){RECENT.push(cards.map(c=>c.id));RECENT=RECENT.slice(-2);sSet("atu-recent-v1",RECENT);}
+function ownedIds(side){
+  const ids=new Set(Object.keys(S[side].coll).map(Number));
+  ALL_SLOTS.forEach(s=>{if(S[side].roster[s]!=null)ids.add(S[side].roster[s]);});
+  return ids;
+}
+function openPack(packKey,side){
+  if(side==="classic"){
+    const cl=S.classic;
+    if(cl.opened>=cl.cap){notice("Pack budget spent — "+cl.cap+" total. Build your roster from what you pulled.");return;}
+    if(packKey==="premium"){if(cl.premiumPacksLeft<=0){notice("Premium pack budget spent — 3 per classic run.");return;}cl.premiumPacksLeft--;}
+    const cards=classicRollPack(ownedIds("classic"),cl.tierCounts,recentSet(),packKey);
+    noteRecent(cards);cl.opened++;
+    cards.forEach(c=>{cl.coll[c.id]=(cl.coll[c.id]||0)+1;});
+    save();
+    REV={cards,side:"classic",packKey,dupes:[false,false,false],flipped:[false,false,false],busy:false};
+    renderReveal();return;
+  }
+  const owned=ownedIds(side);
+  const cards=rollPack(packKey,owned,recentSet());
+  if(!cards)return;
+  noteRecent(cards);
+  const dupes=cards.map(c=>owned.has(c.id)); /* exact same card already owned */
+  cards.forEach((c,i)=>{if(!dupes[i])S[side].coll[c.id]=(S[side].coll[c.id]||0)+1;});
+  save();
+  REV={cards,side,packKey,flipped:[false,false,false],busy:false,dupes};
+  renderReveal();
+}
+function renderReveal(){
+  const o=$("#overlay");
+  if(!REV){o.classList.remove("show");o.innerHTML="";render();return;}
+  const allDone=REV.flipped.every(Boolean);
+  o.innerHTML=`
+    <h2>${PACKS[REV.packKey].name}${REV.side==="classic"?` — ${S.classic.opened} / ${S.classic.cap}`:""}</h2>
+    <div class="pullmsg" id="pullmsg"></div>
+    <div class="revealrow">${REV.cards.map((c,i)=>`
+      <div class="rslot"><div class="flip ${REV.flipped[i]?"flipped":""}" id="flip${i}">
+        <div class="face back g-${c.tier}" onclick="flipCard(${i})">
+          <div class="bball"></div><span>TAP TO<br>REVEAL</span>
+        </div>
+        <div class="face front">${cardHTML(c)}${REV.dupes&&REV.dupes[i]?`<div class="dupetag">EXACT DUPLICATE<br>AUTO-DISCARDED</div>`:""}</div>
+      </div></div>`).join("")}
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+      ${allDone?`${REV.side==="classic"&&S.classic.opened>=S.classic.cap?"":`<button class="btn primary" onclick="openPack('${REV.packKey}','${REV.side}')">Open another</button>`}
+                 <button class="btn" onclick="closeReveal()">Done — to my team</button>`
+               :`<button class="btn" onclick="flipAll()">Reveal all</button>`}
+    </div>`;
+  o.classList.add("show");
+}
+function flipCard(i){
+  if(!REV||REV.flipped[i]||REV.busy)return;
+  REV.busy=true;
+  const c=REV.cards[i],el=$("#flip"+i),back=el.querySelector(".back");
+  back.classList.add("charging"); // tier-colored glow ramps up before the resolve
+  setTimeout(()=>{
+    el.classList.add("flipped");REV.flipped[i]=true;REV.busy=false;
+    if(c.tier==="Icon"){flashFX();setTimeout(flashFX,450);confetti(160,PAL.icon);
+      pullMsg("★ ICON PULL — "+c.name.toUpperCase()+" ★","icon");bigReveal(c);}
+    else if(c.tier==="Elite"){flashFX();confetti(110,PAL.elite);
+      pullMsg("★ ELITE PULL — "+c.name.toUpperCase()+" ★","elite");}
+    if(REV.flipped.every(Boolean))renderReveal();
+  },SUSPENSE[c.tier]);
+}
+function flipAll(){[0,1,2].forEach((i,k)=>setTimeout(()=>{REV&&(REV.busy=false,flipCard(i));},k*250));}
+function closeReveal(){const side=REV.side;REV=null;renderReveal();setScreen(side==="rare"?"rare":side==="classic"?"classic":"team");}
+function pullMsg(t,cls){const m=$("#pullmsg");if(m){m.textContent=t;m.className="pullmsg "+(cls||"");}}
+function bigReveal(c){ // icon pops out front-and-center, spins in huge
+  const old=$("#bigreveal");if(old)old.remove();
+  const d=document.createElement("div");d.id="bigreveal";
+  d.innerHTML=`<div class="xlwrap">${cardHTML(c)}</div><div class="tapnote">TAP TO CONTINUE</div>`;
+  const close=()=>{d.remove();clearTimeout(t);};
+  d.onclick=close;const t=setTimeout(close,3400);
+  document.body.appendChild(d);
+}
+function flashFX(){const f=$("#flashfx");f.classList.remove("go");void f.offsetWidth;f.classList.add("go");}
+const PAL={icon:["#ff7ac8","#ffffff","#ffd7ef","#ffb3e6","#fff"],
+  elite:["#ff4d6d","#ff8aa0","#ffffff","#ff2447","#ffd0d9"]};
+function confetti(n,palette){
+  const colors=palette||["#ffc53d","#fff3c9","#ff4d6d","#35d6ff","#c7cedb"];
+  for(let i=0;i<n;i++){const d=document.createElement("div");d.className="confetti";
+    d.style.left=Math.random()*100+"vw";d.style.background=colors[i%colors.length];
+    d.style.animationDuration=(1.6+Math.random()*1.6)+"s";d.style.animationDelay=Math.random()*.4+"s";
+    document.body.appendChild(d);setTimeout(()=>d.remove(),3600);}
+}
+
+/* ================= DRAFT MODE ================= */
+function startDraft(){
+  D={stage:"captain",captain:classicCaptainOptions(new Set()),roster:emptyRoster(),taken:[],opts:null,slotOpts:{},activeSlot:null,lastSlot:null,done:false,tierCounts:{}};
+  render();
+}
+function pickCaptain(pid){
+  const p=DB[pid];
+  D.tierCounts[p.tier]=(D.tierCounts[p.tier]||0)+1; /* Icon captain spends an Icon slot */
+  D.roster[p.pos]=pid;D.taken.push(pid);D.lastSlot=p.pos;D.stage="picking";
+  render();
+}
+function draftSlotTap(slot){
+  if(D.stage!=="picking")return;
+  if(D.roster[slot]!=null){
+    if(D.done){openDraftSwap(slot);return;} /* final board: rearrange freely */
+    notice("Draft picks are locked in — fill the empty slots.");return;}
+  D.activeSlot=slot;
+  D.slotOpts[slot]=D.slotOpts[slot]||draftOptionsFor(slot,D.taken,D.tierCounts); /* cached: no re-roll via Cancel */
+  D.opts=D.slotOpts[slot];
+  render();
+}
+function draftCapHit(tier){return DRAFT_LIMITS[tier]&&(D.tierCounts[tier]||0)>=DRAFT_LIMITS[tier];}
+function draftPickInto(pid){
+  const slot=D.activeSlot;if(!slot||D.roster[slot]!=null)return;
+  if(D.taken.includes(pid)){notice(DB[pid].name+" is already on your board.");return;}
+  const p=DB[pid];
+  if(draftCapHit(p.tier)){notice(p.tier+" cap reached ("+DRAFT_LIMITS[p.tier]+" per draft).");return;}
+  if(DRAFT_LIMITS[p.tier])D.tierCounts[p.tier]=(D.tierCounts[p.tier]||0)+1;
+  D.roster[slot]=pid;D.taken.push(pid);D.lastSlot=slot;D.activeSlot=null;D.opts=null;
+  if(ALL_SLOTS.every(s=>D.roster[s]!=null)){
+    D.done=true; /* stay on the court \u2014 no summary screen */
+    const o=teamOVR(D.roster),pr=projection(o.eff);
+    if(o.total>HS.draft.ovr){HS.draft.ovr=o.total;HS.draft.wins=pr.wins;saveHS();}
+    confetti(80);
+  }
+  render(); /* re-render snaps the card in + relights the chemistry web */
+}
+/* post-completion rearrangement: tap any player, then send them to any slot
+   they're eligible for. The player currently in the destination drops into the
+   tapped player's old slot. Starter slots need a position match; the bench takes
+   anyone \u2014 so moving a starter down is always legal, and moving a bench player up
+   is allowed into any starter slot their position fits. */
+function openDraftSwap(slot){
+  const cur=DB[D.roster[slot]];
+  const fromBench=BENCH_SLOTS.includes(slot);
+  /* starter destinations this player legally fits (bench order is meaningless, so
+     bench isn't listed slot-by-slot \u2014 it's one "Move to bench" action below) */
+  const starterDests=STARTER_SLOTS.filter(s2=>s2!==slot&&eligible(cur,s2));
+  const rows=starterDests.map(s2=>{
+    const occ=DB[D.roster[s2]];
+    return `<button class="btn gold" onclick="doDraftSwap('${slot}','${s2}')">
+      Start at ${SLOT_LABEL[s2]}
+      <span style="color:var(--dim)">(swaps with ${esc(occ.name)} ${occ.ovr})</span></button>`;
+  }).join("");
+  /* single bench action for a starter: send to any open bench spot, else the last one */
+  let benchRow="";
+  if(!fromBench){
+    const target=BENCH_SLOTS.find(s2=>D.roster[s2]==null)
+      ?? BENCH_SLOTS.reduce((lo,s2)=>DB[D.roster[s2]].ovr<DB[D.roster[lo]].ovr?s2:lo,BENCH_SLOTS[0]);
+    const occ=D.roster[target]!=null?DB[D.roster[target]]:null;
+    benchRow=`<button class="btn" onclick="doDraftSwap('${slot}','${target}')">
+      Move to bench${occ?` <span style="color:var(--dim)">(swaps with ${esc(occ.name)} ${occ.ovr})</span>`:""}</button>`;
+  }
+  const any=rows||benchRow;
+  const none=any?"":`<div class="who" style="color:var(--dim)">No other legal slots \u2014 ${esc(cur.name)} only fits ${cur.positions.join("/")}.</div>`;
+  $("#sheet").innerHTML=`<div class="sheetbox"><h3>Move \u00b7 ${esc(cur.name)} ${cur.ovr}</h3>
+    <div class="who">${fromBench?"On the bench":"Starting at "+SLOT_LABEL[slot]}. Send them where you want \u2014 whoever's there trades places.</div>
+    ${rows}${benchRow}${none}<button class="btn" onclick="closeSheet()">Cancel</button></div>`;
+  $("#sheet").classList.add("show");
+  $("#sheet").onclick=e=>{if(e.target.id==="sheet")closeSheet();};
+}
+function doDraftSwap(a,b){
+  const pa=DB[D.roster[a]],pb=DB[D.roster[b]];
+  /* legal if the moving player fits the destination and the displaced player fits
+     the vacated slot (bench always fits, so moving up from bench is fine) */
+  if(!eligible(pa,b)||!eligible(pb,a)){notice("Those positions don't fit.");return;}
+  [D.roster[a],D.roster[b]]=[D.roster[b],D.roster[a]];
+  D.lastSlot=b;closeSheet();
+  const o=teamOVR(D.roster),pr=projection(o.eff);
+  if(o.total>HS.draft.ovr){HS.draft.ovr=o.total;HS.draft.wins=pr.wins;saveHS();}
+  render();
+  notice(esc(pa.name)+" \u2192 "+SLOT_LABEL[b]+".");
+}
+function draftSlotHTML(slot){
+  const pid=D.roster[slot],p=slotPos(slot);
+  if(pid==null)return `<button class="slot slot-${slot} ${D.activeSlot===slot?"eligible":""}" onclick="draftSlotTap('${slot}')">
+    <div class="postag">${p==="B"?"BN":p}</div><div>${SLOT_LABEL[slot]}</div>
+    <div style="font-size:8px;color:var(--cyan)">TAP TO DRAFT</div></button>`;
+  const tappable=D.done; /* after the draft, any card can be moved */
+  return `<div class="slot-${slot}" style="position:relative${tappable?";cursor:pointer":""}" ${tappable?`onclick="draftSlotTap('${slot}')"`:""}><div class="${D.lastSlot===slot?"snapin":""}">${cardHTML(DB[pid])}</div>${tappable?`<div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:8px;letter-spacing:.15em;color:var(--cyan);pointer-events:none">TAP TO MOVE</div>`:""}</div>`;
+}
+function draftHTML(){
+  if(D.stage==="captain"){
+    return `<div class="result"><h2 class="disp" style="font-size:22px;color:var(--dim)">Choosing your captain…</h2></div>`;
+  }
+  if(D.stage!=="picking")return `<div class="result">
+      <h2 class="disp" style="font-size:30px">Draft Mode</h2>
+      <p style="color:var(--dim);font-size:13px;max-width:420px">Pick an Icon captain, then tap each empty slot on the
+      court to reveal five eligible players. Lock in all eight and chase the best draft OVR.</p>
+      <div class="sub" style="color:var(--dim);font-size:12px">Best draft: <b style="color:var(--gold)">${HS.draft.ovr} OVR</b>${HS.draft.wins?` (${HS.draft.wins} wins)`:""}</div>
+      <button class="btn primary" onclick="startDraft()">Start draft</button></div>`;
+  const ovr=teamOVR(D.roster),pr=projection(ovr.eff);
+  const filled=ALL_SLOTS.filter(s=>D.roster[s]!=null).length;
+  return `
+  <div class="panel" style="margin-bottom:12px"><div class="scoreboard">
+    <div class="ovrbig">${ovr.total}<small>TEAM OVR</small></div>
+    <div><div class="projrow">
+      <div><b>${ovr.ready?pr.wins+"–"+pr.losses:"—"}</b>projected record</div>
+      <div><b>${D.done?"8 / 8 — FINAL":filled+" / 8"}</b>picks locked</div>
+      <div><b>+${ovr.chem.bonus.toFixed(1)}</b>chemistry</div></div>
+      <div class="chemlinks">${ovr.chem.links.length?ovr.chem.links.map(l=>`<span class="${l.kind==="story"?"story":"hot"}">${l.label} ×${l.n} → +${l.bonus.toFixed(1)}</span>`).join(""):`<span>Tap an empty slot to draft — links light the blue web</span>`}</div>
+    </div></div></div>
+  <div class="court">
+    <svg class="squadweb" aria-hidden="true"></svg>
+    <h3>Tap an empty slot — PG · SG · SF · PF · C</h3>
+    <div class="fiveslots">${["C","PF","SF","SG","PG"].map(s=>draftSlotHTML(s)).join("")}</div>
+    <div class="benchlabel">BENCH — ANY POSITION</div>
+    <div class="benchrow">${BENCH_SLOTS.map(s=>draftSlotHTML(s)).join("")}</div>
+  </div>
+  ${D.done?`<div style="display:flex;gap:10px;justify-content:center;margin-top:12px">
+    <button class="btn" onclick="shareRoster('draft')">Share roster</button>
+      <button class="btn primary" onclick="startDraft()">Draft again</button>
+    <button class="btn" onclick="setScreen('landing')">Exit to modes</button></div>
+  <div class="sub" style="text-align:center;color:var(--cyan);font-size:11px;margin-top:8px">Final board — tap any player (starter or bench) to move them into any slot they fit.</div>`:""}
+  <div class="notice" id="notice" style="margin-top:10px"></div>
+  `;
+}
+/* ================= ROOT RENDER ================= */
+function landingHTML(){
+  const modes=[
+    ["team","Sandbox Mode","The open playground — unlimited Standard, Premium and Icon packs, a 230+ card all-time collection, drag-and-drop lineups, and the 90+-only Rare Pull challenge. Zero restrictions.",Math.max(HS.main.ovr,HS.rare.ovr),"ENTER SANDBOX","primary"],
+    ["draft","Draft Mode","Choose one of three Icon or Elite anchors, then tap each court slot to pick from five eligible players. Hard caps (2 Icons, 4 Elites) keep it earned — lock all eight, then rearrange for the perfect fit.",HS.draft.ovr,"START DRAFTING","gold"],
+    ["classic","Classic Mode","The restricted run: a 10–12 pack budget (Premium ×3), one free Captain Pack, and strict Icon/Elite caps. When it locks, squeeze an 82–0 season out of exactly what you pulled.",HS.classic.ovr,"PLAY CLASSIC",""]
+  ];
+  return `<div class="modes">
+    <div class="modehero"><h2 class="disp" style="font-size:26px">Choose your mode</h2>
+    <p style="color:var(--dim);font-size:12px;letter-spacing:.08em">THREE WAYS TO CHASE A 99</p></div>
+    ${modes.map(([scr,name,blurb,best,cta,cls])=>`
+    <div class="modecard" onclick="setScreen('${scr}')">
+      <h3>${name}</h3>
+      <p>${blurb}</p>
+      <div class="modebest">BEST OVR <b>${best}</b></div>
+      <button class="btn ${cls}">${cta}</button>
+    </div>`).join("")}
+  </div>`;
+}
+/* ---- share roster (Draft + Classic) ---- */
+let SHARED=null;
+function buildShareURL(modeKey,roster){
+  /* scan the 8 active board slots, compress card IDs into one query string */
+  const ids=ALL_SLOTS.map(s=>roster[s]==null?"x":roster[s]).join(",");
+  return location.origin+location.pathname+"?share="+modeKey+":"+ids;
+}
+function parseShare(){
+  /* new ?share= format, with legacy #s= links still honored */
+  let m=/[?&]share=(draft|classic):([0-9x,]+)/.exec(location.search);
+  if(!m)m=/#s=(draft|classic)\.([0-9x-]+)/.exec(location.hash);
+  if(!m)return null;
+  const parts=m[2].split(/[,-]/);
+  if(parts.length!==ALL_SLOTS.length)return null;
+  const roster=emptyRoster();let any=false;
+  for(let i=0;i<ALL_SLOTS.length;i++){
+    if(parts[i]==="x")continue;
+    const id=+parts[i];
+    if(!Number.isInteger(id)||id<0||id>=DB.length)return null;
+    roster[ALL_SLOTS[i]]=id;any=true;
+  }
+  return any?{mode:m[1],roster}:null;
+}
+function copyText(t){
+  try{navigator.clipboard.writeText(t);notice("Share link copied — paste it anywhere.");return;}catch(e){}
+  $("#sheet").innerHTML=`<div class="sheetbox"><h3>Share your squad</h3>
+    <div class="who">Copy this link — anyone who opens it sees your roster.</div>
+    <input readonly value="${t}" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);font-size:11px" onclick="this.select()">
+    <button class="btn" onclick="closeSheet()">Done</button></div>`;
+  $("#sheet").classList.add("show");
+  $("#sheet").onclick=e=>{if(e.target.id==="sheet")closeSheet();};
+}
+function shareRoster(modeKey){
+  const roster=modeKey==="draft"?D.roster:S.classic.roster;
+  if(!startersFull(roster)){notice("Fill your starting five before sharing.");return;}
+  const url=buildShareURL(modeKey,roster);
+  copyText(url); /* copy the exact custom URL to the clipboard on press */
+}
+function shareSlotHTML(roster,slot){
+  const pid=roster[slot],p=slotPos(slot);
+  if(pid==null)return `<div class="slot slot-${slot}"><div class="postag">${p==="B"?"BN":p}</div><div>${SLOT_LABEL[slot]}</div></div>`;
+  return `<div class="slot-${slot}" style="position:relative">${cardHTML(DB[pid])}</div>`;
+}
+function shareHTML(){
+  const r=SHARED.roster,ovr=teamOVR(r),pr=projection(ovr.eff);
+  return `
+  <div class="panel" style="margin-bottom:12px">
+    <div class="rowhead"><h2>Shared ${SHARED.mode==="draft"?"Draft":"Classic"} Squad</h2>
+      <span class="sub">someone sent you their lineup — think you can beat it?</span></div>
+    <div class="scoreboard">
+      <div class="ovrbig">${ovr.total}<small>TEAM OVR</small></div>
+      <div><div class="projrow">
+        <div><b>${ovr.ready?pr.wins+"\u2013"+pr.losses:"\u2014"}</b>projected record</div>
+        <div><b>${ovr.ready?pr.label:"incomplete five"}</b>power label</div>
+        <div><b>+${ovr.chem.bonus.toFixed(1)}</b>chemistry</div></div>
+        <div class="chemlinks">${ovr.chem.links.map(l=>`<span class="${l.kind==="story"?"story":"hot"}">${l.label} ×${l.n} → +${l.bonus.toFixed(1)}</span>`).join("")||"<span>No chemistry links</span>"}</div>
+      </div></div>
+  </div>
+  <div class="court">
+    <svg class="squadweb" aria-hidden="true"></svg>
+    <h3>Starting Five — PG · SG · SF · PF · C</h3>
+    <div class="fiveslots">${["C","PF","SF","SG","PG"].map(s=>shareSlotHTML(r,s)).join("")}</div>
+    <div class="benchlabel">BENCH — ANY POSITION</div>
+    <div class="benchrow">${BENCH_SLOTS.map(s=>shareSlotHTML(r,s)).join("")}</div>
+  </div>
+  <div style="display:flex;gap:10px;justify-content:center;margin-top:14px">
+    <button class="btn primary" onclick="history.replaceState(null,'',location.pathname);SHARED=null;setScreen('landing')" >Build your own squad</button>
+    <button class="btn" onclick="copyText(location.href.includes('share=')?location.href:buildShareURL(SHARED.mode,SHARED.roster))">Re-share this squad</button>
+  </div>`;
+}
+let CC=null; /* classic captain options while the overlay is open */
+function openClassicCaptain(){
+  if(S.classic.captainUsed)return;
+  CC=classicCaptainOptions(ownedIds("classic"));
+  render();
+}
+function classicPickCaptain(pid){
+  const p=DB[pid],cl=S.classic;
+  cl.coll[pid]=(cl.coll[pid]||0)+1;
+  cl.captainUsed=true;
+  cl.tierCounts[p.tier]=(cl.tierCounts[p.tier]||0)+1; /* an Icon captain consumes an Icon slot */
+  CC=null;save();render();
+  notice(p.name+" anchors the run — build around them.");
+}
+function renderDraftOverlay(){
+  const o=$("#draftoverlay");if(!o)return;
+  const classicCaptain=screen==="classic"&&CC;
+  const active=(screen==="draft"&&(D.stage==="captain"||(D.stage==="picking"&&D.activeSlot)))||classicCaptain;
+  if(!active){o.classList.remove("show");o.innerHTML="";return;}
+  const stagger=(p,i,click)=>`<div class="${p.tier==="Icon"?"spindrop":"dropin"}" style="animation-delay:${(i*0.22).toFixed(2)}s">${cardHTML(p,click)}</div>`;
+  if(classicCaptain){
+    o.innerHTML=`<h2 style="color:#ffc4e6">Captain Pack</h2>
+      <div class="sub2">Three anchors, one choice. Free head-start — but an Icon captain uses one of your two Icon slots.</div>
+      <div class="captainwrap">${CC.map((p,i)=>stagger(p,i,`onclick="classicPickCaptain(${p.id})"`)).join("")}</div>`;
+  }else if(D.stage==="captain"){
+    o.innerHTML=`<h2 style="color:#ffc4e6">Captain Pack</h2>
+      <div class="sub2">Three anchors, one choice. Your captain locks in at their natural position.</div>
+      <div class="captainwrap">${D.captain.map((p,i)=>stagger(p,i,`onclick="pickCaptain(${p.id})"`)).join("")}</div>`;
+  }else{
+    o.innerHTML=`<h2 style="color:var(--cyan)">Drafting ${SLOT_LABEL[D.activeSlot]}</h2>
+      <div class="sub2">Five eligible players — tap one to snap them into the slot.</div>
+      <div class="captainwrap">${D.opts.map((p,i)=>(D.taken.includes(p.id)||draftCapHit(p.tier))
+        ?`<div class="${p.tier==="Icon"?"spindrop":"dropin"}" style="animation-delay:${(i*0.22).toFixed(2)}s;opacity:.35;pointer-events:none">${cardHTML(p)}</div>`
+        :stagger(p,i,`onclick="draftPickInto(${p.id})"`)).join("")}</div>
+      <button class="btn" style="margin:6px 0 18px" onclick="D.activeSlot=null;D.opts=null;render()">Cancel</button>`;
+  }
+  o.classList.add("show");
+}
+function showPrivacy(){
+  const o=$("#policyoverlay");
+  o.innerHTML=`<div class="policybox">
+    <h2>Privacy Policy</h2>
+    <div class="p-date">All-Time Ultimate · effective with this version of the app</div>
+
+    <h3>1. Overview</h3>
+    <p>All-Time Ultimate is a browser-based game. This policy explains what information is and isn't
+    handled when you play, and how advertising and analytics technologies may operate on this site.</p>
+
+    <h3>2. Your game data stays on your device</h3>
+    <p>Your collections, rosters, pack history, and high scores are saved locally on your device using
+    your browser's LocalStorage. <b>No personal server data is harvested</b> — game progress is never
+    uploaded, and there are no accounts or sign-ups. Clearing your browser's site data (or using the
+    in-game Reset) permanently deletes it.</p>
+
+    <h3>3. Analytics &amp; device identifiers</h3>
+    <p>To understand aggregate usage and improve the game, this site may collect basic device
+    identifiers and use cookies or similar technologies for analytics — such as browser type, device
+    category, approximate region, and pages visited. This information is aggregated and is not used to
+    personally identify you.</p>
+
+    <h3>4. Third-party advertising</h3>
+    <p>This site may integrate third-party advertising partners, such as Google AdSense and gaming ad
+    networks. <b>Third-party vendors, including Google, use cookies to serve ads based on your prior
+    visits to this website and other websites across the internet.</b> Google's use of advertising
+    cookies enables it and its partners to serve personalized ads to you.</p>
+    <p>You may opt out of personalized advertising by visiting Google's Ads Settings
+    (adssettings.google.com) or www.aboutads.info/choices.</p>
+
+    <h3>5. Cookies &amp; your choices</h3>
+    <p>You can control or delete cookies through your browser settings. Blocking cookies does not
+    affect your saved game progress, which lives in LocalStorage, not cookies.</p>
+
+    <h3>6. Children</h3>
+    <p>This site does not knowingly collect personal information from children. Game progress is stored
+    only on the device, and no personal data is requested from any player.</p>
+
+    <h3>7. Sharing features</h3>
+    <p>Share links encode only the card IDs of a lineup. They contain no personal information.</p>
+
+    <h3>8. Changes to this policy</h3>
+    <p>This policy ships with the app and is updated alongside it. Material changes will be reflected
+    on this page.</p>
+
+    <div class="p-note">Fan-made project. Player and team names are used for identification only. Not
+    affiliated with, sponsored, or endorsed by the NBA, its teams, or its players.</div>
+    <button class="btn primary" onclick="closePrivacy()">Close</button>
+  </div>`;
+  o.classList.add("show");
+  o.onclick=e=>{if(e.target.id==="policyoverlay")closePrivacy();};
+}
+function closePrivacy(){const o=$("#policyoverlay");o.classList.remove("show");o.innerHTML="";}
+function render(){
+  renderTabs();
+  renderDraftOverlay();
+  (window.requestAnimationFrame||setTimeout)(()=>drawSquadWeb());
+  const app=$("#app");
+  const best=Math.max(HS.main.ovr,HS.rare.ovr,HS.draft.ovr);
+  app.innerHTML=`
+    <header class="top">
+      <div class="logo">All-Time <em>Ultimate</em><small>NBA PACK OPENER · SANDBOX</small></div>
+      <div class="hs">BEST TEAM OVR<br><b>${best}</b></div>
+    </header>
+    ${screen==="landing"?landingHTML():screen==="share"?shareHTML():screen==="team"?hubHTML("main"):screen==="packs"?packsHTML()
+      :screen==="draft"?draftHTML():screen==="classic"?hubHTML("classic"):hubHTML("rare")}
+    <footer class="foot">
+      <button onclick="showPrivacy()">Privacy Policy</button>
+      <span>·</span><span>Fan-made sandbox — not affiliated with or endorsed by the NBA, its teams, or players.</span>
+    </footer>`;
+}
+/* neon squad web: blue lines between starters sharing a chemistry tag or team core */
+function pairLinked(a,b){
+  if(a.name===b.name)return false; /* two versions of one player never link */
+  return a.team===b.team||a.tags.some(t=>b.tags.includes(t));
+}
+function drawSquadWeb(){
+  const svg=$(".squadweb");if(!svg)return;
+  const court=svg.closest(".court"),cr=court.getBoundingClientRect();
+  if(cr.width)svg.setAttribute("viewBox",`0 0 ${cr.width} ${cr.height}`);
+  const roster=screen==="draft"?D.roster:screen==="share"&&SHARED?SHARED.roster:S[sideFor(screen)].roster;
+  const pts={};
+  STARTER_SLOTS.forEach(s=>{const el=court.querySelector(".slot-"+s);if(!el)return;
+    const r=el.getBoundingClientRect();
+    pts[s]={x:r.left-cr.left+r.width/2,y:r.top-cr.top+r.height/2};});
+  let grey="",blue="";
+  for(let i=0;i<STARTER_SLOTS.length;i++)for(let j=i+1;j<STARTER_SLOTS.length;j++){
+    const A=STARTER_SLOTS[i],B=STARTER_SLOTS[j],p1=pts[A],p2=pts[B];
+    if(!p1||!p2)continue;
+    const seg=(cls,st)=>`<line x1="${p1.x.toFixed(1)}" y1="${p1.y.toFixed(1)}" x2="${p2.x.toFixed(1)}" y2="${p2.y.toFixed(1)}" ${st}/>`;
+    grey+=seg("g",'stroke="#6b6b74" stroke-width="1.5" opacity="0.22"'); /* cool-grey web, always present */
+    if(roster[A]!=null&&roster[B]!=null&&pairLinked(DB[roster[A]],DB[roster[B]]))
+      blue+=seg("b",'stroke="#00f3ff" stroke-width="3" opacity="0.8" style="filter:drop-shadow(0 0 5px #00f3ff)"');
+  }
+  svg.innerHTML=grey+blue;
+}
+window.addEventListener("resize",()=>drawSquadWeb());
+function initArena(){
+  const a=$("#arena");if(!a)return;
+  const cols=["#ffffff","#9fe8ff","#ffc4e6","#ffe9a3"];
+  for(let i=0;i<26;i++){const s=document.createElement("div");s.className="spark";
+    const sz=(1.5+Math.random()*2.5).toFixed(1);
+    s.style.width=s.style.height=sz+"px";
+    s.style.left=Math.random()*100+"%";s.style.top=Math.random()*100+"%";
+    s.style.background=cols[i%cols.length];
+    s.style.animationDuration=(2.2+Math.random()*4)+"s";
+    s.style.animationDelay=(Math.random()*5)+"s";
+    a.appendChild(s);}
+}
+initArena();
+/* init check: a ?share= link bypasses the normal game start and renders the saved roster */
+const __sh=parseShare();
+if(__sh){SHARED=__sh;screen="share";}
+render();
+</script>
+</body>
+</html>
