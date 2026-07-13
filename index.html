@@ -70,7 +70,11 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .btn:disabled{opacity:.4;cursor:not-allowed}
 
 /* ============ SCOREBOARD (team OVR / chem / projection) ============ */
-.scoreboard{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center}
+.scoreboard{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center}
+@media(max-width:820px){.scoreboard{grid-template-columns:auto 1fr}
+  .chemlegend{grid-column:1/-1;border-left:none;border-top:1px solid rgba(255,255,255,.08);padding:10px 0 0;min-width:0;
+    display:grid;grid-template-columns:1fr 1fr;gap:6px 14px}
+  .chemlegend .clg-h{grid-column:1/-1}}
 .ovrbig{font-family:var(--disp);font-size:64px;line-height:1;color:var(--gold);text-shadow:0 0 24px rgba(255,197,61,.35);min-width:110px;text-align:center;transition:transform .25s}
 .ovrbig.bump{transform:scale(1.18)}
 .ovrbig small{display:block;font-size:10px;letter-spacing:.3em;color:var(--dim);font-family:var(--body);margin-top:2px}
@@ -78,8 +82,36 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .projrow b{display:block;color:var(--ink);font-size:15px;font-family:var(--disp);letter-spacing:.05em}
 .chemlinks{margin-top:6px;font-size:11px;color:var(--dim);display:flex;gap:6px;flex-wrap:wrap}
 .chemlinks span{background:var(--panel2);border:1px solid var(--line);padding:2px 8px;border-radius:20px}
+:root{--ck-team:#ffc53d;--ck-story:#ff7ac8;--ck-era:#35d6ff;--ck-style:#39ff9c}
+/* chem web segments: icon-rim style bloom, strength ascends with rank */
+.squadweb .wl{stroke-linecap:round;animation:webpulse var(--ws,2s) ease-in-out infinite}
+.wl-style{stroke-width:2.6;--wo:.6;--wo2:.78;--ws:2.6s;
+  filter:drop-shadow(0 0 3px var(--ck-style))}
+.wl-era{stroke-width:2.8;--wo:.66;--wo2:.85;--ws:2.2s;
+  filter:drop-shadow(0 0 4px var(--ck-era)) drop-shadow(0 0 9px rgba(53,214,255,.45))}
+.wl-story{stroke-width:3.4;--wo:.75;--wo2:.95;--ws:1.7s;
+  filter:drop-shadow(0 0 6px var(--ck-story)) drop-shadow(0 0 14px rgba(255,122,200,.65))}
+.wl-team{stroke-width:4;--wo:.82;--wo2:1;--ws:1.3s;
+  filter:drop-shadow(0 0 7px var(--ck-team)) drop-shadow(0 0 18px rgba(255,197,61,.75)) drop-shadow(0 0 30px rgba(255,197,61,.35))}
+@keyframes webpulse{0%,100%{opacity:var(--wo,.8)}50%{opacity:var(--wo2,1)}}
 .chemlinks span.hot{border-color:var(--amber);color:var(--amber)}
 .chemlinks span.story{border-color:#ff7ac8;color:#ffb3e0}
+.chemlinks span.ck-team{border-color:var(--ck-team);color:var(--ck-team)}
+.chemlinks span.ck-story{border-color:var(--ck-story);color:#ffb3e0}
+.chemlinks span.ck-era{border-color:var(--ck-era);color:#8ee6ff}
+.chemlinks span.ck-style{border-color:var(--ck-style);color:#8fffc8}
+.chemlegend{border-left:1px solid rgba(255,255,255,.08);padding-left:14px;display:flex;flex-direction:column;gap:6px;min-width:200px}
+.clg-h{font-size:9px;letter-spacing:.28em;color:var(--dim)}
+.clg{display:flex;gap:8px;align-items:flex-start}
+.clg i{width:16px;height:3px;border-radius:2px;margin-top:5px;flex:0 0 auto}
+.clg.ck-team i{background:var(--ck-team);box-shadow:0 0 10px var(--ck-team),0 0 3px var(--ck-team)}
+.clg.ck-story i{background:var(--ck-story);box-shadow:0 0 7px var(--ck-story)}
+.clg.ck-era i{background:var(--ck-era);box-shadow:0 0 4px var(--ck-era)}
+.clg.ck-style i{background:var(--ck-style);box-shadow:0 0 2.5px var(--ck-style)}
+.clg b{font-size:10.5px;display:block;letter-spacing:.04em}
+.clg.ck-team b{color:var(--ck-team)}.clg.ck-story b{color:var(--ck-story)}
+.clg.ck-era b{color:var(--ck-era)}.clg.ck-style b{color:var(--ck-style)}
+.clg span{font-size:8.5px;color:var(--dim);line-height:1.35;display:block}
 
 /* ============ COURT ROSTER ============ */
 .court{position:relative;border:1px solid rgba(255,255,255,.09);border-radius:14px;overflow:hidden;
@@ -778,7 +810,8 @@ function chemistry(roster){
     const n=names.size;if(n<2)return;
     const w=t.startsWith("Story_")?0.5:0.3; /* rare story links pay more than era/style */
     const b=+((n-1)*w).toFixed(1);
-    tag+=b;links.push({label:TAG_LABEL[t]||t,n,bonus:b,kind:t.startsWith("Story_")?"story":"tag"});});
+    tag+=b;links.push({label:TAG_LABEL[t]||t,n,bonus:b,
+      kind:t.startsWith("Story_")?"story":t.startsWith("Era_")?"era":"style"});});
   tag=Math.min(5,tag);
   links.sort((a,b)=>b.bonus-a.bonus);
   const bonus=+Math.min(10,team+tag).toFixed(1);
@@ -1032,7 +1065,7 @@ function hubHTML(side){
   const rec=ovr.ready?`${pr.wins}–${pr.losses}`:"—";
   const lab=ovr.ready?pr.label:"Fill your starting five";
   const chemHTML=ovr.chem.links.length
-    ?ovr.chem.links.map(l=>`<span class="${l.kind==="story"?"story":"hot"}">${l.label} ×${l.n} → +${l.bonus.toFixed(1)}</span>`).join("")
+    ?ovr.chem.links.map(l=>`<span class="${"ck-"+l.kind}">${l.label} ×${l.n} → +${l.bonus.toFixed(1)}</span>`).join("")
     :`<span>No chemistry — link teams, eras, styles, draft classes or rivalries</span>`;
   const owned=ownedList(side);
   const cl=S.classic,clLeft=cl.cap-cl.opened;
@@ -1058,6 +1091,13 @@ function hubHTML(side){
               <div><b>+${ovr.chem.bonus.toFixed(1)}</b>chemistry</div>
             </div>
             <div class="chemlinks">${chemHTML}</div>
+          </div>
+          <div class="chemlegend">
+            <div class="clg-h">CHEMISTRY RANKS</div>
+            <div class="clg ck-team"><i></i><div><b>Team Core</b><span>same-franchise starters · +1.5 each</span></div></div>
+            <div class="clg ck-story"><i></i><div><b>Storylines</b><span>rivalries · USA teams · draft classes · +0.5</span></div></div>
+            <div class="clg ck-era"><i></i><div><b>Era</b><span>same generation · +0.3</span></div></div>
+            <div class="clg ck-style"><i></i><div><b>Playstyle</b><span>shared archetype · +0.3</span></div></div>
           </div>
         </div>
       </div>
@@ -1416,7 +1456,14 @@ function draftHTML(){
       <div><b>${ovr.ready?pr.wins+"–"+pr.losses:"—"}</b>projected record</div>
       <div><b>${D.done?"8 / 8 — FINAL":filled+" / 8"}</b>picks locked</div>
       <div><b>+${ovr.chem.bonus.toFixed(1)}</b>chemistry</div></div>
-      <div class="chemlinks">${ovr.chem.links.length?ovr.chem.links.map(l=>`<span class="${l.kind==="story"?"story":"hot"}">${l.label} ×${l.n} → +${l.bonus.toFixed(1)}</span>`).join(""):`<span>Tap an empty slot to draft — links light the blue web</span>`}</div>
+      <div class="chemlinks">${ovr.chem.links.length?ovr.chem.links.map(l=>`<span class="${"ck-"+l.kind}">${l.label} ×${l.n} → +${l.bonus.toFixed(1)}</span>`).join(""):`<span>Tap an empty slot to draft — links light the web in their colors</span>`}</div>
+    </div>
+    <div class="chemlegend">
+      <div class="clg-h">CHEMISTRY RANKS</div>
+      <div class="clg ck-team"><i></i><div><b>Team Core</b><span>same-franchise starters · +1.5 each</span></div></div>
+      <div class="clg ck-story"><i></i><div><b>Storylines</b><span>rivalries · USA teams · draft classes · +0.5</span></div></div>
+      <div class="clg ck-era"><i></i><div><b>Era</b><span>same generation · +0.3</span></div></div>
+      <div class="clg ck-style"><i></i><div><b>Playstyle</b><span>shared archetype · +0.3</span></div></div>
     </div></div></div>
   <div class="court">
     <svg class="squadweb" aria-hidden="true"></svg>
@@ -1507,7 +1554,7 @@ function shareHTML(){
         <div><b>${ovr.ready?pr.wins+"\u2013"+pr.losses:"\u2014"}</b>projected record</div>
         <div><b>${ovr.ready?pr.label:"incomplete five"}</b>power label</div>
         <div><b>+${ovr.chem.bonus.toFixed(1)}</b>chemistry</div></div>
-        <div class="chemlinks">${ovr.chem.links.map(l=>`<span class="${l.kind==="story"?"story":"hot"}">${l.label} ×${l.n} → +${l.bonus.toFixed(1)}</span>`).join("")||"<span>No chemistry links</span>"}</div>
+        <div class="chemlinks">${ovr.chem.links.map(l=>`<span class="${"ck-"+l.kind}">${l.label} ×${l.n} → +${l.bonus.toFixed(1)}</span>`).join("")||"<span>No chemistry links</span>"}</div>
       </div></div>
   </div>
   <div class="court">
@@ -1632,10 +1679,23 @@ function render(){
     </footer>`;
 }
 /* neon squad web: blue lines between starters sharing a chemistry tag or team core */
-function pairLinked(a,b){
-  if(a.name===b.name)return false; /* two versions of one player never link */
-  return a.team===b.team||a.tags.some(t=>b.tags.includes(t));
+const WEB_COLORS={team:"#ffc53d",story:"#ff7ac8",era:"#35d6ff",style:"#39ff9c"};
+/* glow strength ascends with chemistry rank */
+/* layered stroke bloom per rank — painted directly into the web (no CSS filters,
+   which iOS Safari drops on SVG children). Widest soft halo → mid glow → crisp core,
+   ascending strength by rank, same soft-rim feel as the Icon cards. */
+/* uniform neon bloom for all lit segments (Icon-rim style, per-link color)
+   via SVG-native feGaussianBlur — renders on every browser incl. iOS Safari. */
+function pairLinkKind(a,b){ /* strongest shared chemistry between two starters */
+  if(a.name===b.name)return null; /* two versions of one player never link */
+  if(a.team===b.team)return "team";
+  let era=false,style=false;
+  for(const t of a.tags){if(!b.tags.includes(t))continue;
+    if(t.startsWith("Story_"))return "story";
+    if(t.startsWith("Era_"))era=true;else style=true;}
+  return era?"era":style?"style":null;
 }
+function pairLinked(a,b){return !!pairLinkKind(a,b);}
 function drawSquadWeb(){
   const svg=$(".squadweb");if(!svg)return;
   const court=svg.closest(".court"),cr=court.getBoundingClientRect();
@@ -1645,16 +1705,24 @@ function drawSquadWeb(){
   STARTER_SLOTS.forEach(s=>{const el=court.querySelector(".slot-"+s);if(!el)return;
     const r=el.getBoundingClientRect();
     pts[s]={x:r.left-cr.left+r.width/2,y:r.top-cr.top+r.height/2};});
+  const fw=(cr.width||600),fh=(cr.height||400);
+  const defs=`<defs><filter id="webneon" filterUnits="userSpaceOnUse" x="-60" y="-60" width="${(fw+120).toFixed(0)}" height="${(fh+120).toFixed(0)}">
+    <feGaussianBlur in="SourceGraphic" stdDeviation="4.5" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter></defs>`;
   let grey="",blue="";
   for(let i=0;i<STARTER_SLOTS.length;i++)for(let j=i+1;j<STARTER_SLOTS.length;j++){
     const A=STARTER_SLOTS[i],B=STARTER_SLOTS[j],p1=pts[A],p2=pts[B];
     if(!p1||!p2)continue;
     const seg=(cls,st)=>`<line x1="${p1.x.toFixed(1)}" y1="${p1.y.toFixed(1)}" x2="${p2.x.toFixed(1)}" y2="${p2.y.toFixed(1)}" ${st}/>`;
     grey+=seg("g",'stroke="#6b6b74" stroke-width="1.5" opacity="0.22"'); /* cool-grey web, always present */
-    if(roster[A]!=null&&roster[B]!=null&&pairLinked(DB[roster[A]],DB[roster[B]]))
-      blue+=seg("b",'stroke="#00f3ff" stroke-width="3" opacity="0.8" style="filter:drop-shadow(0 0 5px #00f3ff)"');
+    if(roster[A]!=null&&roster[B]!=null){
+      const k=pairLinkKind(DB[roster[A]],DB[roster[B]]);
+      if(k){const c=WEB_COLORS[k];
+        blue+=seg("core-"+k,`class="core-${k}" stroke="${c}" stroke-width="3" opacity="0.9" stroke-linecap="round" filter="url(#webneon)"`);}
+    }
   }
-  svg.innerHTML=grey+blue;
+  svg.innerHTML=defs+grey+blue;
 }
 window.addEventListener("resize",()=>drawSquadWeb());
 function initArena(){
