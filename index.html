@@ -78,6 +78,7 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .ovrbig{font-family:var(--disp);font-size:64px;line-height:1;color:var(--gold);text-shadow:0 0 24px rgba(255,197,61,.35);min-width:110px;text-align:center;transition:transform .25s}
 .ovrbig.bump{transform:scale(1.18)}
 .ovrbig small{display:block;font-size:10px;letter-spacing:.3em;color:var(--dim);font-family:var(--body);margin-top:2px}
+.ovrbig small.exact{color:var(--gold);letter-spacing:.14em;font-size:11.5px;margin-top:4px;text-shadow:0 0 8px rgba(255,197,61,.45)}
 .projrow{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--dim)}
 .projrow b{display:block;color:var(--ink);font-size:15px;font-family:var(--disp);letter-spacing:.05em}
 .chemlinks{margin-top:6px;font-size:11px;color:var(--dim);display:flex;gap:6px;flex-wrap:wrap}
@@ -1083,7 +1084,7 @@ function hubHTML(side){
     <div class="stack">
       <div class="panel">
         <div class="scoreboard">
-          <div class="ovrbig" id="ovr-${side}">${ovr.total}<small>TEAM OVR</small></div>
+          <div class="ovrbig" id="ovr-${side}">${ovr.total}<small>TEAM OVR</small><small class="exact">${ovr.ready?ovr.eff.toFixed(1)+" EXACT":"—"}</small></div>
           <div>
             <div class="projrow">
               <div><b>${rec}</b>projected record</div>
@@ -1451,7 +1452,7 @@ function draftHTML(){
   const filled=ALL_SLOTS.filter(s=>D.roster[s]!=null).length;
   return `
   <div class="panel" style="margin-bottom:12px"><div class="scoreboard">
-    <div class="ovrbig">${ovr.total}<small>TEAM OVR</small></div>
+    <div class="ovrbig">${ovr.total}<small>TEAM OVR</small><small class="exact">${ovr.ready?ovr.eff.toFixed(1)+" EXACT":"—"}</small></div>
     <div><div class="projrow">
       <div><b>${ovr.ready?pr.wins+"–"+pr.losses:"—"}</b>projected record</div>
       <div><b>${D.done?"8 / 8 — FINAL":filled+" / 8"}</b>picks locked</div>
@@ -1570,7 +1571,7 @@ function drawDraftCanvas(){
       let rg=c.createRadialGradient(540,700,60,540,700,620);
       rg.addColorStop(0,"rgba(53,214,255,.07)");rg.addColorStop(1,"rgba(0,0,0,0)");
       c.fillStyle=rg;c.fillRect(0,0,1080,1350);
-      c.beginPath();c.arc(540,700,300,0,7);c.strokeStyle="rgba(80,200,140,.10)";c.lineWidth=2;c.stroke();
+      c.beginPath();c.arc(540,772,318,0,7);c.strokeStyle="rgba(80,200,140,.10)";c.lineWidth=2;c.stroke();
       /* header */
       c.textAlign="center";
       c.font="900 74px "+IMG_FONT;
@@ -1580,16 +1581,17 @@ function drawDraftCanvas(){
       c.fillStyle="#ffc53d";c.fillText("ULTIMATE",x0+w1,108);
       c.textAlign="center";c.fillStyle="#8a8a94";c.font="26px Arial";
       c.fillText("D R A F T   S Q U A D",540,152);
-      /* scoreboard */
+      /* scoreboard — compact, ends above the pentagon */
       const o=teamOVR(D.roster),pr=projection(o.eff);
-      c.textAlign="right";c.fillStyle="#ffc53d";c.font="900 128px "+IMG_FONT;
-      c.fillText(o.total,430,318);
-      c.textAlign="left";c.fillStyle="#8a8a94";c.font="22px Arial";c.fillText("TEAM OVR",300,346);
-      c.fillStyle="#f2f2f5";c.font="700 42px Arial";c.fillText("projected "+pr.wins+"\u2013"+pr.losses,470,242);
-      c.fillStyle="#f2a93b";c.font="700 36px Arial";c.fillText("+"+o.chem.bonus.toFixed(1)+" chemistry",470,292);
-      c.fillStyle="#ff7ac8";c.font="700 32px Arial";c.fillText(pr.label,470,340);
-      /* pentagon web + starters */
-      const CTR={x:540,y:700},R=235,ANG={C:-90,SF:-18,PG:54,SG:126,PF:198},pos={};
+      c.textAlign="right";c.fillStyle="#ffc53d";c.font="900 118px "+IMG_FONT;
+      c.fillText(o.total,452,308);
+      c.font="700 26px Arial";c.fillText(o.eff.toFixed(1)+" EXACT",452,344);
+      c.textAlign="left";c.fillStyle="#8a8a94";c.font="20px Arial";c.fillText("TEAM OVR",240,344);
+      c.fillStyle="#f2f2f5";c.font="700 40px Arial";c.fillText("projected "+pr.wins+"\u2013"+pr.losses,486,236);
+      c.fillStyle="#f2a93b";c.font="700 34px Arial";c.fillText("+"+o.chem.bonus.toFixed(1)+" chemistry",486,284);
+      c.fillStyle="#ff7ac8";c.font="700 30px Arial";c.fillText(pr.label,486,330);
+      /* pentagon web + starters — wider ring, smaller cards: no overlap */
+      const CTR={x:540,y:772},R=252,ANG={C:-90,SF:-18,PG:54,SG:126,PF:198},pos={};
       Object.entries(ANG).forEach(([s,a])=>{const r=a*Math.PI/180;
         pos[s]={x:CTR.x+R*Math.cos(r),y:CTR.y+R*Math.sin(r)};});
       const SL=["C","PF","SF","SG","PG"];
@@ -1603,16 +1605,16 @@ function drawDraftCanvas(){
           c.globalAlpha=.55;c.lineWidth=6;c.stroke();
           c.shadowBlur=0;c.globalAlpha=.95;c.lineWidth=3;c.stroke();c.restore();}
       }
-      SL.forEach(s=>imgCard(DB[D.roster[s]],pos[s].x,pos[s].y,178,258));
+      SL.forEach(s=>imgCard(DB[D.roster[s]],pos[s].x,pos[s].y,160,232));
       /* bench */
-      c.textAlign="center";c.fillStyle="#8a8a94";c.font="22px Arial";
-      c.fillText("B E N C H",540,1056);
-      BENCH_SLOTS.forEach((s,i)=>imgCard(DB[D.roster[s]],289+75+i*(150+26),1072+109,150,218));
+      c.textAlign="center";c.fillStyle="#8a8a94";c.font="21px Arial";
+      c.fillText("B E N C H",540,1116);
+      BENCH_SLOTS.forEach((s,i)=>imgCard(DB[D.roster[s]],311+72+i*(144+27),1132+91,144,182));
       /* footer */
       c.strokeStyle="rgba(255,255,255,.10)";c.lineWidth=1;
-      c.beginPath();c.moveTo(80,1302);c.lineTo(1000,1302);c.stroke();
-      c.fillStyle="#ffc53d";c.font="700 27px Arial";
-      c.fillText("PLAY AT "+((location.host||"ALL-TIME ULTIMATE").toUpperCase()),540,1336);
+      c.beginPath();c.moveTo(80,1320);c.lineTo(1000,1320);c.stroke();
+      c.fillStyle="#ffc53d";c.font="700 26px Arial";
+      c.fillText("PLAY AT "+((location.host||"ALL-TIME ULTIMATE").toUpperCase()),540,1344);
       if(cv.toBlob)cv.toBlob(b=>res(b),"image/png");
       else res(null);
     }catch(e){res(null);}
@@ -1653,7 +1655,7 @@ function shareHTML(){
     <div class="rowhead"><h2>Shared ${SHARED.mode==="draft"?"Draft":"Classic"} Squad</h2>
       <span class="sub">someone sent you their lineup — think you can beat it?</span></div>
     <div class="scoreboard">
-      <div class="ovrbig">${ovr.total}<small>TEAM OVR</small></div>
+      <div class="ovrbig">${ovr.total}<small>TEAM OVR</small><small class="exact">${ovr.ready?ovr.eff.toFixed(1)+" EXACT":"—"}</small></div>
       <div><div class="projrow">
         <div><b>${ovr.ready?pr.wins+"\u2013"+pr.losses:"\u2014"}</b>projected record</div>
         <div><b>${ovr.ready?pr.label:"incomplete five"}</b>power label</div>
