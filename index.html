@@ -1609,13 +1609,13 @@ function drawDraftCanvas(){
       SL.forEach(s=>imgCard(DB[D.roster[s]],pos[s].x,pos[s].y,160,232));
       /* bench */
       c.textAlign="center";c.fillStyle="#8a8a94";c.font="21px Arial";
-      c.fillText("B E N C H",540,1116);
-      BENCH_SLOTS.forEach((s,i)=>imgCard(DB[D.roster[s]],311+72+i*(144+27),1132+91,144,182));
+      c.fillText("B E N C H",540,1102);
+      BENCH_SLOTS.forEach((s,i)=>imgCard(DB[D.roster[s]],273+72+i*(144+51),1206,144,176));
       /* footer */
       c.strokeStyle="rgba(255,255,255,.10)";c.lineWidth=1;
-      c.beginPath();c.moveTo(80,1320);c.lineTo(1000,1320);c.stroke();
+      c.beginPath();c.moveTo(80,1314);c.lineTo(1000,1314);c.stroke();
       c.fillStyle="#ffc53d";c.font="700 26px Arial";
-      c.fillText("PLAY AT "+((location.host||"ALL-TIME ULTIMATE").toUpperCase()),540,1344);
+      c.fillText("PLAY AT "+((location.host||"ALL-TIME ULTIMATE").toUpperCase()),540,1340);
       if(cv.toBlob)cv.toBlob(b=>res(b),"image/png");
       else res(null);
     }catch(e){res(null);}
