@@ -83,13 +83,15 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .projrow b{display:block;color:var(--ink);font-size:15px;font-family:var(--disp);letter-spacing:.05em}
 .chemlinks{margin-top:6px;font-size:11px;color:var(--dim);display:flex;gap:6px;flex-wrap:wrap}
 .chemlinks span{background:var(--panel2);border:1px solid var(--line);padding:2px 8px;border-radius:20px}
-:root{--ck-team:#ffc53d;--ck-story:#ff7ac8;--ck-era:#35d6ff;--ck-style:#39ff9c}
+:root{--ck-team:#ffc53d;--ck-iconic:#b58cff;--ck-story:#ff7ac8;--ck-era:#35d6ff;--ck-style:#39ff9c}
 /* chem web segments: icon-rim style bloom, strength ascends with rank */
 .squadweb .wl{stroke-linecap:round;animation:webpulse var(--ws,2s) ease-in-out infinite}
 .wl-style{stroke-width:2.6;--wo:.6;--wo2:.78;--ws:2.6s;
   filter:drop-shadow(0 0 3px var(--ck-style))}
 .wl-era{stroke-width:2.8;--wo:.66;--wo2:.85;--ws:2.2s;
   filter:drop-shadow(0 0 4px var(--ck-era)) drop-shadow(0 0 9px rgba(53,214,255,.45))}
+.wl-iconic{stroke-width:3.7;--wo:.79;--wo2:.98;--ws:1.5s;
+  filter:drop-shadow(0 0 6px var(--ck-iconic)) drop-shadow(0 0 16px rgba(181,140,255,.70))}
 .wl-story{stroke-width:3.4;--wo:.75;--wo2:.95;--ws:1.7s;
   filter:drop-shadow(0 0 6px var(--ck-story)) drop-shadow(0 0 14px rgba(255,122,200,.65))}
 .wl-team{stroke-width:4;--wo:.82;--wo2:1;--ws:1.3s;
@@ -98,6 +100,7 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .chemlinks span.hot{border-color:var(--amber);color:var(--amber)}
 .chemlinks span.story{border-color:#ff7ac8;color:#ffb3e0}
 .chemlinks span.ck-team{border-color:var(--ck-team);color:var(--ck-team)}
+.chemlinks span.ck-iconic{border-color:var(--ck-iconic);color:#d8c7ff}
 .chemlinks span.ck-story{border-color:var(--ck-story);color:#ffb3e0}
 .chemlinks span.ck-era{border-color:var(--ck-era);color:#8ee6ff}
 .chemlinks span.ck-style{border-color:var(--ck-style);color:#8fffc8}
@@ -106,12 +109,13 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .clg{display:flex;gap:8px;align-items:flex-start}
 .clg i{width:16px;height:3px;border-radius:2px;margin-top:5px;flex:0 0 auto}
 .clg.ck-team i{background:var(--ck-team);box-shadow:0 0 10px var(--ck-team),0 0 3px var(--ck-team)}
+.clg.ck-iconic i{background:var(--ck-iconic);box-shadow:0 0 9px var(--ck-iconic)}
 .clg.ck-story i{background:var(--ck-story);box-shadow:0 0 7px var(--ck-story)}
 .clg.ck-era i{background:var(--ck-era);box-shadow:0 0 4px var(--ck-era)}
 .clg.ck-style i{background:var(--ck-style);box-shadow:0 0 2.5px var(--ck-style)}
 .clg b{font-size:10.5px;display:block;letter-spacing:.04em}
-.clg.ck-team b{color:var(--ck-team)}.clg.ck-story b{color:var(--ck-story)}
-.clg.ck-era b{color:var(--ck-era)}.clg.ck-style b{color:var(--ck-style)}
+.clg.ck-team b{color:var(--ck-team)}.clg.ck-iconic b{color:var(--ck-iconic)}
+.clg.ck-story b{color:var(--ck-story)}.clg.ck-era b{color:var(--ck-era)}.clg.ck-style b{color:var(--ck-style)}
 .clg span{font-size:8.5px;color:var(--dim);line-height:1.35;display:block}
 
 /* ============ COURT ROSTER ============ */
@@ -557,7 +561,25 @@ const P=[
 ["Chris Bosh","PF",88,"TOR","00s"],
 ["Dennis Rodman","PF",88,"CHI","90s"],
 ["Jimmy Butler","SF",90,"CHI","10s"],
-["Damian Lillard","PG",92,"MIL","20s"]
+["Damian Lillard","PG",92,"MIL","20s"],
+// —— ICONIC CHEMISTRY ADDITIONS: appended so every existing card ID/save stays stable ——
+["Baron Davis","PG",89,"GSW","00s"],
+["Blake Griffin","PF",91,"LAC","10s"],
+["David West","PF",85,"IND","10s"],
+["Glenn Robinson","SF",89,"MIL","90s"],
+["Jamaal Wilkes","SF",87,"LAL","80s"],
+["Jason Richardson","SG",85,"GSW","00s"],
+["Jason Terry","SG",86,"DAL","00s"],
+["Josh Howard","SF",83,"DAL","00s"],
+["Kenyon Martin","PF",84,"BKN","00s"],
+["Kevin Love","PF",89,"CLE","10s"],
+["Maurice Cheeks","PG",88,"PHI","80s"],
+["Mike Bibby","PG",86,"SAC","00s"],
+["Mike Conley","PG",86,"MEM","10s"],
+["Richard Jefferson","SF",85,"BKN","00s"],
+["Roy Hibbert","C",85,"IND","10s"],
+["Sam Jones","SG",90,"BOS","60s"],
+["Tommy Heinsohn","PF",88,"BOS","50s"]
 ];
 
 const TIER_ORDER=["Bronze","Silver","Gold","Elite","Icon"];
@@ -605,7 +627,12 @@ const POS_EXTRA={
 "Steve Kerr":["SG"],"John Paxson":["SG"],"Patty Mills":["SG"],"Shaun Livingston":["SG"],
 "Nate Robinson":["SG"],"Jeremy Lin":["SG"],"Tony Allen":["SF"],"Danny Green":["SF"],
 "Bruce Bowen":["SG"],"Michael Cooper":["SF","PG"],"Doug Christie":["SF"],"Gary Payton II":["PG"],
-"JR Smith":["SF"],"Bonzi Wells":["SF"],"Shane Battier":["PF"],"Duncan Robinson":["SG"]};
+"JR Smith":["SF"],"Bonzi Wells":["SF"],"Shane Battier":["PF"],"Duncan Robinson":["SG"],
+"Baron Davis":["SG"],"Blake Griffin":["C"],"David West":["C"],"Glenn Robinson":["PF"],
+"Jamaal Wilkes":["PF"],"Jason Richardson":["SF"],"Jason Terry":["PG"],"Josh Howard":["PF","SG"],
+"Kenyon Martin":["C"],"Kevin Love":["C"],"Maurice Cheeks":["SG"],"Mike Bibby":["SG"],
+"Mike Conley":["SG"],"Richard Jefferson":["SG","PF"],"Roy Hibbert":["PF"],"Sam Jones":["SF"],
+"Tommy Heinsohn":["C"]};
 const DB=P.map((p,i)=>({id:i,name:p[0],pos:p[1],ovr:p[2],team:p[3],era:"'"+p[4],
   positions:[...new Set([p[1],...(POS_EXTRA[p[0]]||[])])],tier:tierOf(p[2])}));
 /* ============ UNIVERSAL chemistryTags SYSTEM ============ */
@@ -699,6 +726,27 @@ Story_Rival_TexasTriad:["Tim Duncan","Dirk Nowitzki"],
 Story_Rival_ModernFinals:["LeBron James","Stephen Curry","Kevin Durant"]};
 const STORIES_BY_NAME={};
 Object.entries(STORY_TAGS).forEach(([tag,names])=>names.forEach(n=>{(STORIES_BY_NAME[n]=STORIES_BY_NAME[n]||[]).push(tag);}));
+
+/* E. Iconic duos & trios — card team/era does not matter; names do.
+   Balance rule: chemistry is a per-player rate × group size. A player can power
+   only one iconic group at a time, so an active trio automatically replaces its
+   nested duo and overlapping dynasty combinations never multiply out of control. */
+const ICONIC_BUCKETS=[
+  {level:"Championship",rate:0.5,groups:[["Michael Jordan","Scottie Pippen"],["Shaquille O'Neal","Kobe Bryant"],["Magic Johnson","Kareem Abdul-Jabbar"],["Stephen Curry","Klay Thompson"],["LeBron James","Dwyane Wade"],["Larry Bird","Kevin McHale"],["Bill Russell","Bob Cousy"],["Kobe Bryant","Pau Gasol"],["Tim Duncan","David Robinson"],["Tim Duncan","Tony Parker"],["LeBron James","Anthony Davis"],["LeBron James","Kyrie Irving"],["Kevin Durant","Stephen Curry"],["Hakeem Olajuwon","Clyde Drexler"],["Julius Erving","Moses Malone"],["Isiah Thomas","Joe Dumars"],["Jerry West","Wilt Chamberlain"],["Walt Frazier","Earl Monroe"],["Oscar Robertson","Kareem Abdul-Jabbar"],["Nikola Jokic","Jamal Murray"],["Giannis Antetokounmpo","Khris Middleton"],["Jayson Tatum","Jaylen Brown"],["Tim Duncan","Tony Parker","Manu Ginobili"],["Michael Jordan","Scottie Pippen","Dennis Rodman"],["Michael Jordan","Scottie Pippen","Horace Grant"],["Larry Bird","Kevin McHale","Robert Parish"],["Magic Johnson","Kareem Abdul-Jabbar","James Worthy"],["Magic Johnson","Kareem Abdul-Jabbar","Jamaal Wilkes"],["Stephen Curry","Klay Thompson","Draymond Green"],["Stephen Curry","Kevin Durant","Klay Thompson"],["Stephen Curry","Kevin Durant","Draymond Green"],["LeBron James","Dwyane Wade","Chris Bosh"],["Bill Russell","Sam Jones","John Havlicek"],["Bill Russell","Bob Cousy","Tommy Heinsohn"],["Isiah Thomas","Joe Dumars","Dennis Rodman"]]},
+  {level:"Finals",rate:0.4,groups:[["John Stockton","Karl Malone"],["Jerry West","Elgin Baylor"],["Gary Payton","Shawn Kemp"],["Penny Hardaway","Shaquille O'Neal"],["Steve Nash","Amar'e Stoudemire"],["Chris Paul","Blake Griffin"],["James Harden","Chris Paul"],["Kevin Durant","Russell Westbrook"],["Luka Doncic","Kyrie Irving"],["DeMar DeRozan","Kyle Lowry"],["Chris Webber","Mike Bibby"],["Baron Davis","Jason Richardson"],["Mike Conley","Marc Gasol"],["Kevin Garnett","Paul Pierce","Ray Allen"],["LeBron James","Kyrie Irving","Kevin Love"],["Wilt Chamberlain","Jerry West","Elgin Baylor"],["Moses Malone","Julius Erving","Maurice Cheeks"],["Walt Frazier","Earl Monroe","Willis Reed"],["Ben Wallace","Chauncey Billups","Rip Hamilton"],["Jason Kidd","Richard Jefferson","Kenyon Martin"],["Dirk Nowitzki","Jason Terry","Josh Howard"],["Jimmy Butler","Bam Adebayo","Tyler Herro"]]},
+  {level:"All-Star",rate:0.3,groups:[["Kevin Durant","Russell Westbrook","James Harden"],["Kevin Durant","Kyrie Irving","James Harden"],["Chris Webber","Vlade Divac","Mike Bibby"],["Steve Nash","Amar'e Stoudemire","Shawn Marion"],["Tim Hardaway","Mitch Richmond","Chris Mullin"],["Ray Allen","Glenn Robinson","Sam Cassell"],["Paul George","Roy Hibbert","David West"]]}
+];
+function iconicShortName(n){return n.split(" ").slice(-1)[0];}
+const ICONIC_GROUPS=ICONIC_BUCKETS.flatMap((b,bi)=>b.groups.map((members,gi)=>({
+  members,rate:b.rate,level:b.level,order:bi*100+gi,
+  label:members.map(iconicShortName).join(" · ")
+})));
+const ICONICS_BY_NAME={};
+ICONIC_GROUPS.forEach(g=>g.members.forEach(n=>{(ICONICS_BY_NAME[n]=ICONICS_BY_NAME[n]||[]).push(g);}));
+const ICONIC_PAIR_KEYS=new Set();
+ICONIC_GROUPS.forEach(g=>{for(let i=0;i<g.members.length;i++)for(let j=i+1;j<g.members.length;j++)
+  ICONIC_PAIR_KEYS.add([g.members[i],g.members[j]].sort().join("|"));});
+
 /* display names */
 const TAG_LABEL={Era_Classic:"Classic Era",Era_Golden:"Golden Era",Era_Vintage:"Vintage '90s",
 Era_Modern:"2000s Era",Era_Contemporary:"2010s Era",Era_Future:"New School",
@@ -710,7 +758,10 @@ Story_Draft_1996:"'96 Draft Class",Story_Draft_2003:"'03 Draft Class",Story_Draf
 Story_Draft_2018:"'18 Draft Class",Story_Rival_80s_Classic:"Magic vs Bird",Story_Rival_BadBoys:"Bad Boys Wars",
 Story_Rival_TexasTriad:"Texas Triad",Story_Rival_ModernFinals:"Finals Trilogy"};
 /* stamp every card: exactly 1 era + 1-2 styles + any story tags */
-DB.forEach(p=>{p.tags=[ERA_TAG[p.era],...(STYLE_TAGS[p.name]||DEFAULT_STYLE[p.pos]),...(STORIES_BY_NAME[p.name]||[])];});
+DB.forEach(p=>{
+  p.tags=[ERA_TAG[p.era],...(STYLE_TAGS[p.name]||DEFAULT_STYLE[p.pos]),...(STORIES_BY_NAME[p.name]||[])];
+  p.iconics=ICONICS_BY_NAME[p.name]||[];
+});
 function cardChips(p){ /* stories first, then styles, max 2 shown on the card */
   const t=p.tags.filter(x=>!x.startsWith("Era_"));
   t.sort((a,b)=>(a.startsWith("Story_")?0:1)-(b.startsWith("Story_")?0:1));
@@ -752,8 +803,9 @@ const COOLDOWN_WEIGHT=0.25; /* legacy flat cooldown — kept for compat; engine 
    has cycled. All state persisted; nothing else in the app touches it. */
 let PACK_NO=0,PULL_AT={},TIER_DECKS=null; /* hydrated from storage in the app script; safe defaults here */
 function deckRefill(t){TIER_DECKS[t]=POOLS[t].map(p=>p.id);}
-function decksReady(){if(!TIER_DECKS||!Array.isArray(TIER_DECKS.Elite)||!Array.isArray(TIER_DECKS.Icon)){
-  TIER_DECKS={};deckRefill("Elite");deckRefill("Icon");}}
+function decksReady(){ /* every tier deals as a shuffled deck; old two-deck saves get patched */
+  if(!TIER_DECKS)TIER_DECKS={};
+  TIER_ORDER.forEach(t=>{if(!Array.isArray(TIER_DECKS[t]))deckRefill(t);});}
 function persistRand(){if(typeof sSet!=="function")return;
   sSet("atu-packno-v1",PACK_NO);sSet("atu-pullhist-v1",PULL_AT);sSet("atu-decks-v1",TIER_DECKS);}
 function pullWeight(id){
@@ -765,12 +817,10 @@ function pullWeight(id){
 function pickPlayer(pool,rng){
   if(!pool.length)return null;
   decksReady();
+  TIER_ORDER.forEach(t=>{if(TIER_DECKS[t]&&!TIER_DECKS[t].length)deckRefill(t);}); /* true full cycle: reshuffle */
   const inDeck=p=>{const d=TIER_DECKS[p.tier];return !d||d.includes(p.id);};
   let cands=pool.filter(inDeck);
-  if(!cands.length){ /* every candidate's deck is spent: the tier has cycled — reshuffle */
-    new Set(pool.map(p=>p.tier)).forEach(t=>{if(TIER_DECKS[t])deckRefill(t);});
-    cands=pool.filter(inDeck);
-  }
+  if(!cands.length)cands=pool; /* position-constrained subset spent: borrow, but never reset the tier's cycle */
   const R=rng||Math.random,wts=cands.map(p=>pullWeight(p.id));
   let r=R()*wts.reduce((a,b)=>a+b,0),pick=cands[cands.length-1];
   for(let i=0;i<cands.length;i++){r-=wts[i];if(r<0){pick=cands[i];break;}}
@@ -830,6 +880,24 @@ function slotPos(slot){return STARTER_SLOTS.includes(slot)?slot:"B";}
 function eligible(player,slot){const p=slotPos(slot);return p==="B"||player.positions.includes(p);}
 function rosterHas(roster,pid){return ALL_SLOTS.some(s=>roster[s]===pid);}
 
+function iconicChemistry(roster){
+  const names=new Set();
+  STARTER_SLOTS.forEach(s=>{const pid=roster[s];if(pid!=null)names.add(DB[pid].name);});
+  /* Trio first, then higher rate. Once a player is used, another iconic group
+     cannot reuse them — this is the hard anti-stacking rule. */
+  const active=ICONIC_GROUPS.filter(g=>g.members.every(n=>names.has(n)))
+    .sort((a,b)=>b.members.length-a.members.length||b.rate-a.rate||a.order-b.order);
+  const used=new Set(),links=[];
+  let bonus=0;
+  active.forEach(g=>{
+    if(g.members.some(n=>used.has(n)))return;
+    g.members.forEach(n=>used.add(n));
+    const b=+(g.rate*g.members.length).toFixed(1);
+    bonus+=b;
+    links.push({label:"Iconic: "+g.label,n:g.members.length,bonus:b,kind:"iconic"});
+  });
+  return {bonus:+Math.min(3,bonus).toFixed(1),links};
+}
 function chemistry(roster){
   const links=[];
   /* team cores: starters sharing a franchise (strongest link) */
@@ -840,22 +908,27 @@ function chemistry(roster){
   Object.entries(counts).forEach(([t,n])=>{
     if(n>=2){const b=(n-1)*1.5;team+=b;links.push({label:t+" Core",n,bonus:b,kind:"team"});}});
   team=Math.min(6,team);
-  /* tag synergies: scan starters + bench; unique player NAMES per tag so two
-     versions of the same player never self-link */
-  /* STARTERS ONLY: the bench is ignored entirely for chemistry */
+
+  /* Iconic links ignore card team/era. Each player may count once, so a trio
+     replaces its duo instead of paying both bonuses. */
+  const iconic=iconicChemistry(roster);
+  links.push(...iconic.links);
+
+  /* Generic tag synergies are deliberately capped lower now that iconic cores
+     exist. Unique player NAMES prevent two versions of one player self-linking. */
   const groups={};
   STARTER_SLOTS.forEach(s=>{const pid=roster[s];if(pid==null)return;
     DB[pid].tags.forEach(t=>{(groups[t]=groups[t]||new Set()).add(DB[pid].name);});});
   let tag=0;
   Object.entries(groups).forEach(([t,names])=>{
     const n=names.size;if(n<2)return;
-    const w=t.startsWith("Story_")?0.5:0.3; /* rare story links pay more than era/style */
+    const w=t.startsWith("Story_")?0.5:0.3;
     const b=+((n-1)*w).toFixed(1);
     tag+=b;links.push({label:TAG_LABEL[t]||t,n,bonus:b,
       kind:t.startsWith("Story_")?"story":t.startsWith("Era_")?"era":"style"});});
-  tag=Math.min(5,tag);
+  tag=Math.min(4,tag);
   links.sort((a,b)=>b.bonus-a.bonus);
-  const bonus=+Math.min(10,team+tag).toFixed(1);
+  const bonus=+Math.min(10,team+iconic.bonus+tag).toFixed(1);
   return {bonus,links};
 }
 function startersFull(roster){return STARTER_SLOTS.every(s=>roster[s]!=null);}
@@ -949,25 +1022,29 @@ function classicRollPack(owned,counts,recent,packKey,rng){
 }
 /* DRAFT MODE: slot-eligible option sets (5 varied, unique players) */
 function draftOptionsFor(slot,takenIds,counts,rng){
+  PACK_NO++; /* each board ages the pull-memory like a pack */
   const opts=[];let guard=0;
   while(opts.length<5&&guard++<500){
     const t=draftDowngrade(rollTier(DRAFT_ODDS,rng),counts||{});
     const pool=POOLS[t].filter(p=>eligible(p,slot)&&!takenIds.includes(p.id)
       &&!opts.some(o=>o.id===p.id||o.name===p.name));
-    if(pool.length)opts.push(pickFrom(fisherYates(pool,rng),rng));
+    if(pool.length)opts.push(pickPlayer(pool,rng));
   }
+  persistRand();
   return opts;
 }
 /* shared Captain Pack helper (Draft + Classic): 3 distinct players, unique names,
    not already owned; each rolled Icon 35% / Elite 65% — guaranteed Elite floor */
 function classicCaptainOptions(owned,rng){
+  PACK_NO++;
   const r=rng||Math.random,excl=owned||new Set(),out=[],seen=new Set();
   let guard=0;
   while(out.length<3&&guard++<400){
     const t=r()<0.35?"Icon":"Elite";
     const pool=POOLS[t].filter(p=>!excl.has(p.id)&&!seen.has(p.name));
-    if(pool.length){const p=pickFrom(fisherYates(pool,rng),rng);out.push(p);seen.add(p.name);}
+    if(pool.length){const p=pickPlayer(pool,rng);out.push(p);seen.add(p.name);}
   }
+  persistRand();
   return out;
 }
 function captainOptions(rng){ /* legacy 5-pure-Icon picker — kept, no longer called */
@@ -1036,6 +1113,7 @@ function cardHTML(p,attrs,badge){
     ${tagRow("Era",p.tags.filter(t=>t.startsWith("Era_")))}
     ${tagRow("Playstyle",p.tags.filter(t=>t.startsWith("Style_")))}
     ${tagRow("Storylines",p.tags.filter(t=>t.startsWith("Story_")))}
+    ${tagRow("Iconic cores",p.iconics.slice(0,2).map(g=>g.label).concat(p.iconics.length>2?["+"+(p.iconics.length-2)+" more"]:[]))}
     <div class="bk-lab">Card</div><div class="bk-val">${p.tier} tier · ${SLOTNAMES(p)}</div>
     <div class="bk-flip">↺ tap to flip back</div>
   </div>`;
@@ -1110,7 +1188,7 @@ function hubHTML(side){
   const lab=ovr.ready?pr.label:"Fill your starting five";
   const chemHTML=ovr.chem.links.length
     ?ovr.chem.links.map(l=>`<span class="${"ck-"+l.kind}">${l.label} ×${l.n} → +${l.bonus.toFixed(1)}</span>`).join("")
-    :`<span>No chemistry — link teams, eras, styles, draft classes or rivalries</span>`;
+    :`<span>No chemistry — link teams, iconic duos/trios, eras, styles, draft classes or rivalries</span>`;
   const owned=ownedList(side);
   const cl=S.classic,clLeft=cl.cap-cl.opened;
   const classicShelf=`
@@ -1139,6 +1217,7 @@ function hubHTML(side){
           <div class="chemlegend">
             <div class="clg-h">CHEMISTRY RANKS</div>
             <div class="clg ck-team"><i></i><div><b>Team Core</b><span>same-franchise starters · +1.5 each</span></div></div>
+            <div class="clg ck-iconic"><i></i><div><b>Iconic Duo / Trio</b><span>full historical core · +0.3–0.5 per player · strongest overlap only</span></div></div>
             <div class="clg ck-story"><i></i><div><b>Storylines</b><span>rivalries · USA teams · draft classes · +0.5</span></div></div>
             <div class="clg ck-era"><i></i><div><b>Era</b><span>same generation · +0.3</span></div></div>
             <div class="clg ck-style"><i></i><div><b>Playstyle</b><span>shared archetype · +0.3</span></div></div>
@@ -1308,7 +1387,7 @@ try{
   PACK_NO=sGet("atu-packno-v1")||0;
   PULL_AT=sGet("atu-pullhist-v1")||{};
   const dk=sGet("atu-decks-v1");
-  if(dk&&Array.isArray(dk.Elite)&&Array.isArray(dk.Icon))TIER_DECKS=dk;
+  if(dk&&typeof dk==="object")TIER_DECKS=dk; /* decksReady() patches any missing tiers */
 }catch(e){}
 function recentSet(){return new Set(RECENT.flat());}
 function noteRecent(cards){RECENT.push(cards.map(c=>c.id));RECENT=RECENT.slice(-2);sSet("atu-recent-v1",RECENT);}
@@ -1512,6 +1591,7 @@ function draftHTML(){
     <div class="chemlegend">
       <div class="clg-h">CHEMISTRY RANKS</div>
       <div class="clg ck-team"><i></i><div><b>Team Core</b><span>same-franchise starters · +1.5 each</span></div></div>
+      <div class="clg ck-iconic"><i></i><div><b>Iconic Duo / Trio</b><span>full historical core · +0.3–0.5 per player · strongest overlap only</span></div></div>
       <div class="clg ck-story"><i></i><div><b>Storylines</b><span>rivalries · USA teams · draft classes · +0.5</span></div></div>
       <div class="clg ck-era"><i></i><div><b>Era</b><span>same generation · +0.3</span></div></div>
       <div class="clg ck-style"><i></i><div><b>Playstyle</b><span>shared archetype · +0.3</span></div></div>
@@ -1836,7 +1916,7 @@ function render(){
     </footer>`;
 }
 /* neon squad web: blue lines between starters sharing a chemistry tag or team core */
-const WEB_COLORS={team:"#ffc53d",story:"#ff7ac8",era:"#35d6ff",style:"#39ff9c"};
+const WEB_COLORS={team:"#ffc53d",iconic:"#b58cff",story:"#ff7ac8",era:"#35d6ff",style:"#39ff9c"};
 /* glow strength ascends with chemistry rank */
 /* layered stroke bloom per rank — painted directly into the web (no CSS filters,
    which iOS Safari drops on SVG children). Widest soft halo → mid glow → crisp core,
@@ -1846,6 +1926,7 @@ const WEB_COLORS={team:"#ffc53d",story:"#ff7ac8",era:"#35d6ff",style:"#39ff9c"};
 function pairLinkKind(a,b){ /* strongest shared chemistry between two starters */
   if(a.name===b.name)return null; /* two versions of one player never link */
   if(a.team===b.team)return "team";
+  if(ICONIC_PAIR_KEYS.has([a.name,b.name].sort().join("|")))return "iconic";
   let era=false,style=false;
   for(const t of a.tags){if(!b.tags.includes(t))continue;
     if(t.startsWith("Story_"))return "story";
