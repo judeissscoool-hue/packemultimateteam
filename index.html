@@ -579,7 +579,11 @@ const P=[
 ["Richard Jefferson","SF",85,"BKN","00s"],
 ["Roy Hibbert","C",85,"IND","10s"],
 ["Sam Jones","SG",90,"BOS","60s"],
-["Tommy Heinsohn","PF",88,"BOS","50s"]
+["Tommy Heinsohn","PF",88,"BOS","50s"],
+// —— ICONIC CHEMISTRY ADDITIONS v28: appended to preserve every earlier card ID ——
+["Paul Millsap","PF",86,"ATL","10s"],
+["Al Horford","C",88,"ATL","10s"],
+["Stephen Jackson","SF",84,"GSW","00s"]
 ];
 
 const TIER_ORDER=["Bronze","Silver","Gold","Elite","Icon"];
@@ -632,7 +636,8 @@ const POS_EXTRA={
 "Jamaal Wilkes":["PF"],"Jason Richardson":["SF"],"Jason Terry":["PG"],"Josh Howard":["PF","SG"],
 "Kenyon Martin":["C"],"Kevin Love":["C"],"Maurice Cheeks":["SG"],"Mike Bibby":["SG"],
 "Mike Conley":["SG"],"Richard Jefferson":["SG","PF"],"Roy Hibbert":["PF"],"Sam Jones":["SF"],
-"Tommy Heinsohn":["C"]};
+"Tommy Heinsohn":["C"],"Paul Millsap":["SF","C"],"Al Horford":["PF"],
+"Stephen Jackson":["SG"]};
 const DB=P.map((p,i)=>({id:i,name:p[0],pos:p[1],ovr:p[2],team:p[3],era:"'"+p[4],
   positions:[...new Set([p[1],...(POS_EXTRA[p[0]]||[])])],tier:tierOf(p[2])}));
 /* ============ UNIVERSAL chemistryTags SYSTEM ============ */
@@ -732,9 +737,9 @@ Object.entries(STORY_TAGS).forEach(([tag,names])=>names.forEach(n=>{(STORIES_BY_
    only one iconic group at a time, so an active trio automatically replaces its
    nested duo and overlapping dynasty combinations never multiply out of control. */
 const ICONIC_BUCKETS=[
-  {level:"Championship",rate:0.5,groups:[["Michael Jordan","Scottie Pippen"],["Shaquille O'Neal","Kobe Bryant"],["Magic Johnson","Kareem Abdul-Jabbar"],["Stephen Curry","Klay Thompson"],["LeBron James","Dwyane Wade"],["Larry Bird","Kevin McHale"],["Bill Russell","Bob Cousy"],["Kobe Bryant","Pau Gasol"],["Tim Duncan","David Robinson"],["Tim Duncan","Tony Parker"],["LeBron James","Anthony Davis"],["LeBron James","Kyrie Irving"],["Kevin Durant","Stephen Curry"],["Hakeem Olajuwon","Clyde Drexler"],["Julius Erving","Moses Malone"],["Isiah Thomas","Joe Dumars"],["Jerry West","Wilt Chamberlain"],["Walt Frazier","Earl Monroe"],["Oscar Robertson","Kareem Abdul-Jabbar"],["Nikola Jokic","Jamal Murray"],["Giannis Antetokounmpo","Khris Middleton"],["Jayson Tatum","Jaylen Brown"],["Tim Duncan","Tony Parker","Manu Ginobili"],["Michael Jordan","Scottie Pippen","Dennis Rodman"],["Michael Jordan","Scottie Pippen","Horace Grant"],["Larry Bird","Kevin McHale","Robert Parish"],["Magic Johnson","Kareem Abdul-Jabbar","James Worthy"],["Magic Johnson","Kareem Abdul-Jabbar","Jamaal Wilkes"],["Stephen Curry","Klay Thompson","Draymond Green"],["Stephen Curry","Kevin Durant","Klay Thompson"],["Stephen Curry","Kevin Durant","Draymond Green"],["LeBron James","Dwyane Wade","Chris Bosh"],["Bill Russell","Sam Jones","John Havlicek"],["Bill Russell","Bob Cousy","Tommy Heinsohn"],["Isiah Thomas","Joe Dumars","Dennis Rodman"]]},
-  {level:"Finals",rate:0.4,groups:[["John Stockton","Karl Malone"],["Jerry West","Elgin Baylor"],["Gary Payton","Shawn Kemp"],["Penny Hardaway","Shaquille O'Neal"],["Steve Nash","Amar'e Stoudemire"],["Chris Paul","Blake Griffin"],["James Harden","Chris Paul"],["Kevin Durant","Russell Westbrook"],["Luka Doncic","Kyrie Irving"],["DeMar DeRozan","Kyle Lowry"],["Chris Webber","Mike Bibby"],["Baron Davis","Jason Richardson"],["Mike Conley","Marc Gasol"],["Kevin Garnett","Paul Pierce","Ray Allen"],["LeBron James","Kyrie Irving","Kevin Love"],["Wilt Chamberlain","Jerry West","Elgin Baylor"],["Moses Malone","Julius Erving","Maurice Cheeks"],["Walt Frazier","Earl Monroe","Willis Reed"],["Ben Wallace","Chauncey Billups","Rip Hamilton"],["Jason Kidd","Richard Jefferson","Kenyon Martin"],["Dirk Nowitzki","Jason Terry","Josh Howard"],["Jimmy Butler","Bam Adebayo","Tyler Herro"]]},
-  {level:"All-Star",rate:0.3,groups:[["Kevin Durant","Russell Westbrook","James Harden"],["Kevin Durant","Kyrie Irving","James Harden"],["Chris Webber","Vlade Divac","Mike Bibby"],["Steve Nash","Amar'e Stoudemire","Shawn Marion"],["Tim Hardaway","Mitch Richmond","Chris Mullin"],["Ray Allen","Glenn Robinson","Sam Cassell"],["Paul George","Roy Hibbert","David West"]]}
+  {level:"Championship",rate:0.5,groups:[["Michael Jordan","Scottie Pippen"],["Shaquille O'Neal","Kobe Bryant"],["Magic Johnson","Kareem Abdul-Jabbar"],["Stephen Curry","Klay Thompson"],["LeBron James","Dwyane Wade"],["Larry Bird","Kevin McHale"],["Bill Russell","Bob Cousy"],["Kobe Bryant","Pau Gasol"],["Tim Duncan","David Robinson"],["Tim Duncan","Tony Parker"],["LeBron James","Anthony Davis"],["LeBron James","Kyrie Irving"],["Kevin Durant","Stephen Curry"],["Hakeem Olajuwon","Clyde Drexler"],["Julius Erving","Moses Malone"],["Isiah Thomas","Joe Dumars"],["Jerry West","Wilt Chamberlain"],["Walt Frazier","Earl Monroe"],["Oscar Robertson","Kareem Abdul-Jabbar"],["Nikola Jokic","Jamal Murray"],["Giannis Antetokounmpo","Khris Middleton"],["Jayson Tatum","Jaylen Brown"],["Shaquille O'Neal","Dwyane Wade"],["Tim Duncan","Tony Parker","Manu Ginobili"],["Michael Jordan","Scottie Pippen","Dennis Rodman"],["Michael Jordan","Scottie Pippen","Horace Grant"],["Larry Bird","Kevin McHale","Robert Parish"],["Magic Johnson","Kareem Abdul-Jabbar","James Worthy"],["Magic Johnson","Kareem Abdul-Jabbar","Jamaal Wilkes"],["Stephen Curry","Klay Thompson","Draymond Green"],["Stephen Curry","Kevin Durant","Klay Thompson"],["Stephen Curry","Kevin Durant","Draymond Green"],["LeBron James","Dwyane Wade","Chris Bosh"],["Bill Russell","Sam Jones","John Havlicek"],["Bill Russell","Bob Cousy","Tommy Heinsohn"],["Isiah Thomas","Joe Dumars","Dennis Rodman"]]},
+  {level:"Finals",rate:0.4,groups:[["John Stockton","Karl Malone"],["Jerry West","Elgin Baylor"],["Gary Payton","Shawn Kemp"],["Penny Hardaway","Shaquille O'Neal"],["Steve Nash","Amar'e Stoudemire"],["Chris Paul","Blake Griffin"],["James Harden","Chris Paul"],["Kevin Durant","Russell Westbrook"],["Luka Doncic","Kyrie Irving"],["DeMar DeRozan","Kyle Lowry"],["Chris Webber","Mike Bibby"],["Allen Iverson","Dikembe Mutombo"],["Alonzo Mourning","Tim Hardaway"],["Chris Webber","Peja Stojakovic"],["Paul Millsap","Al Horford"],["Zach Randolph","Marc Gasol"],["Mike Conley","Marc Gasol"],["Kevin Garnett","Paul Pierce","Ray Allen"],["LeBron James","Kyrie Irving","Kevin Love"],["Wilt Chamberlain","Jerry West","Elgin Baylor"],["Moses Malone","Julius Erving","Maurice Cheeks"],["Walt Frazier","Earl Monroe","Willis Reed"],["Ben Wallace","Chauncey Billups","Rip Hamilton"],["Jason Kidd","Richard Jefferson","Kenyon Martin"],["Dirk Nowitzki","Jason Terry","Josh Howard"],["Jimmy Butler","Bam Adebayo","Tyler Herro"],["Ben Wallace","Rasheed Wallace","Chauncey Billups"],["Patrick Ewing","John Starks","Charles Oakley"]]},
+  {level:"All-Star",rate:0.3,groups:[["Kevin Durant","Russell Westbrook","James Harden"],["Kevin Durant","Kyrie Irving","James Harden"],["Chris Webber","Vlade Divac","Mike Bibby"],["Steve Nash","Amar'e Stoudemire","Shawn Marion"],["Tim Hardaway","Mitch Richmond","Chris Mullin"],["Ray Allen","Glenn Robinson","Sam Cassell"],["Paul George","Roy Hibbert","David West"],["Baron Davis","Jason Richardson","Stephen Jackson"]]}
 ];
 function iconicShortName(n){return n.split(" ").slice(-1)[0];}
 const ICONIC_GROUPS=ICONIC_BUCKETS.flatMap((b,bi)=>b.groups.map((members,gi)=>({
@@ -880,23 +885,37 @@ function slotPos(slot){return STARTER_SLOTS.includes(slot)?slot:"B";}
 function eligible(player,slot){const p=slotPos(slot);return p==="B"||player.positions.includes(p);}
 function rosterHas(roster,pid){return ALL_SLOTS.some(s=>roster[s]===pid);}
 
-function iconicChemistry(roster){
+function activeIconicGroups(roster){
   const names=new Set();
   STARTER_SLOTS.forEach(s=>{const pid=roster[s];if(pid!=null)names.add(DB[pid].name);});
   /* Trio first, then higher rate. Once a player is used, another iconic group
-     cannot reuse them — this is the hard anti-stacking rule. */
-  const active=ICONIC_GROUPS.filter(g=>g.members.every(n=>names.has(n)))
+     cannot reuse them — this is the hard anti-stacking rule. Team and era are
+     deliberately absent here: every card variant matches by player name only. */
+  const candidates=ICONIC_GROUPS.filter(g=>g.members.every(n=>names.has(n)))
     .sort((a,b)=>b.members.length-a.members.length||b.rate-a.rate||a.order-b.order);
-  const used=new Set(),links=[];
-  let bonus=0;
-  active.forEach(g=>{
+  const used=new Set(),selected=[];
+  candidates.forEach(g=>{
     if(g.members.some(n=>used.has(n)))return;
     g.members.forEach(n=>used.add(n));
+    selected.push(g);
+  });
+  return selected;
+}
+function activeIconicPairKeys(roster){
+  const keys=new Set();
+  activeIconicGroups(roster).forEach(g=>{for(let i=0;i<g.members.length;i++)for(let j=i+1;j<g.members.length;j++)
+    keys.add([g.members[i],g.members[j]].sort().join("|"));});
+  return keys;
+}
+function iconicChemistry(roster){
+  const groups=activeIconicGroups(roster),links=[];
+  let bonus=0;
+  groups.forEach(g=>{
     const b=+(g.rate*g.members.length).toFixed(1);
     bonus+=b;
     links.push({label:"Iconic: "+g.label,n:g.members.length,bonus:b,kind:"iconic"});
   });
-  return {bonus:+Math.min(3,bonus).toFixed(1),links};
+  return {bonus:+Math.min(3,bonus).toFixed(1),links,groups};
 }
 function chemistry(roster){
   const links=[];
@@ -1725,12 +1744,12 @@ function drawDraftCanvas(){
       const CTR={x:540,y:772},R=252,ANG={C:-90,SF:-18,PG:54,SG:126,PF:198},pos={};
       Object.entries(ANG).forEach(([s,a])=>{const r=a*Math.PI/180;
         pos[s]={x:CTR.x+R*Math.cos(r),y:CTR.y+R*Math.sin(r)};});
-      const SL=["C","PF","SF","SG","PG"];
+      const SL=["C","PF","SF","SG","PG"],activeIconicPairs=activeIconicPairKeys(D.roster);
       for(let i=0;i<5;i++)for(let j=i+1;j<5;j++){
         const A=SL[i],B=SL[j];
         c.beginPath();c.moveTo(pos[A].x,pos[A].y);c.lineTo(pos[B].x,pos[B].y);
         c.strokeStyle="rgba(107,107,116,.18)";c.lineWidth=2;c.shadowBlur=0;c.stroke();
-        const k=pairLinkKind(DB[D.roster[A]],DB[D.roster[B]]);
+        const k=pairLinkKind(DB[D.roster[A]],DB[D.roster[B]],activeIconicPairs);
         if(k){const col=WEB_COLORS[k];
           c.save();c.shadowColor=col;c.shadowBlur=22;c.strokeStyle=col;
           c.globalAlpha=.55;c.lineWidth=6;c.stroke();
@@ -1923,10 +1942,11 @@ const WEB_COLORS={team:"#ffc53d",iconic:"#b58cff",story:"#ff7ac8",era:"#35d6ff",
    ascending strength by rank, same soft-rim feel as the Icon cards. */
 /* uniform neon bloom for all lit segments (Icon-rim style, per-link color)
    via SVG-native feGaussianBlur — renders on every browser incl. iOS Safari. */
-function pairLinkKind(a,b){ /* strongest shared chemistry between two starters */
+function pairLinkKind(a,b,activeIconicPairs=null){ /* strongest shared chemistry between two starters */
   if(a.name===b.name)return null; /* two versions of one player never link */
   if(a.team===b.team)return "team";
-  if(ICONIC_PAIR_KEYS.has([a.name,b.name].sort().join("|")))return "iconic";
+  const pair=[a.name,b.name].sort().join("|");
+  if(activeIconicPairs&&activeIconicPairs.has(pair))return "iconic";
   let era=false,style=false;
   for(const t of a.tags){if(!b.tags.includes(t))continue;
     if(t.startsWith("Story_"))return "story";
@@ -1939,6 +1959,7 @@ function drawSquadWeb(){
   const court=svg.closest(".court"),cr=court.getBoundingClientRect();
   if(cr.width)svg.setAttribute("viewBox",`0 0 ${cr.width} ${cr.height}`);
   const roster=screen==="draft"?D.roster:screen==="share"&&SHARED?SHARED.roster:S[sideFor(screen)].roster;
+  const activeIconicPairs=activeIconicPairKeys(roster);
   const pts={};
   STARTER_SLOTS.forEach(s=>{const el=court.querySelector(".slot-"+s);if(!el)return;
     const r=el.getBoundingClientRect();
@@ -1955,7 +1976,7 @@ function drawSquadWeb(){
     const seg=(cls,st)=>`<line x1="${p1.x.toFixed(1)}" y1="${p1.y.toFixed(1)}" x2="${p2.x.toFixed(1)}" y2="${p2.y.toFixed(1)}" ${st}/>`;
     grey+=seg("g",'stroke="#6b6b74" stroke-width="1.5" opacity="0.22"'); /* cool-grey web, always present */
     if(roster[A]!=null&&roster[B]!=null){
-      const k=pairLinkKind(DB[roster[A]],DB[roster[B]]);
+      const k=pairLinkKind(DB[roster[A]],DB[roster[B]],activeIconicPairs);
       if(k){const c=WEB_COLORS[k];
         blue+=seg("core-"+k,`class="core-${k}" stroke="${c}" stroke-width="3" opacity="0.9" stroke-linecap="round" filter="url(#webneon)"`);}
     }
