@@ -1014,8 +1014,8 @@ function renderTabs(){
   let items;
   if(screen==="landing")items=[];
   else if(screen==="share")items=[["landing","\u2630 Modes"]];
-  else if(screen==="draft")items=[["landing","☰ Modes"],["draft","Draft"]];
-  else if(screen==="classic")items=[["landing","☰ Modes"],["classic","Classic"]];
+  else if(screen==="draft")items=[["landing","☰ Modes"],["draft","Classic Draft"]];
+  else if(screen==="classic")items=[["landing","☰ Modes"],["classic","Pack Mode"]];
   else items=[["landing","☰ Modes"],["team","My Team"],["packs","Packs"],["rare","Rare Pull"]];
   bar.innerHTML=items.map(([k,l])=>`<button class="${screen===k?"on":""}" onclick="setScreen('${k}')">${l}</button>`).join("");
   bar.style.display=items.length?"":"none";
@@ -1084,7 +1084,7 @@ function hubHTML(side){
     <div class="stack">
       <div class="panel">
         <div class="scoreboard">
-          <div class="ovrbig" id="ovr-${side}">${ovr.total}<small>TEAM OVR</small><small class="exact">${ovr.ready?ovr.eff.toFixed(1)+" EXACT":"—"}</small></div>
+          <div class="ovrbig" id="ovr-${side}">${ovr.total}<small>TEAM OVR</small><small class="exact">${ovr.ready?ovr.eff.toFixed(1)+" OVR WITH CHEM":"—"}</small></div>
           <div>
             <div class="projrow">
               <div><b>${rec}</b>projected record</div>
@@ -1103,8 +1103,8 @@ function hubHTML(side){
         </div>
       </div>
       <div class="panel">
-        <div class="rowhead"><h2>${side==="rare"?"Rare-Pull Challenge":side==="classic"?"Classic Run":"Front Office"}</h2>
-          <span class="sub">Best ${side==="rare"?"challenge":side==="classic"?"classic run":"team"} OVR: <b style="color:var(--gold)">${HS[side].ovr}</b>${HS[side].wins?` (${HS[side].wins} wins)`:""}</span></div>
+        <div class="rowhead"><h2>${side==="rare"?"Rare-Pull Challenge":side==="classic"?"Pack Mode Run":"Front Office"}</h2>
+          <span class="sub">Best ${side==="rare"?"challenge":side==="classic"?"Pack Mode run":"team"} OVR: <b style="color:var(--gold)">${HS[side].ovr}</b>${HS[side].wins?` (${HS[side].wins} wins)`:""}</span></div>
         <div class="stack">
           ${packBtn}
           <button class="btn" onclick="autoFill('${side}')">Auto-fill best lineup</button>
@@ -1230,7 +1230,7 @@ function confirmReset(side){
 function doReset(side){
   S[side]=side==="classic"?emptyClassic():emptySide();
   lastOVR[side]=60;save();closeSheet();render();
-  notice(side==="classic"?"New classic run — "+S.classic.cap+" pack budget this time. High score preserved.":"Fresh start. High score preserved.");}
+  notice(side==="classic"?"New Pack Mode run — "+S.classic.cap+" pack budget this time. High score preserved.":"Fresh start. High score preserved.");}
 </script>
 <script>
 /* ================= PACKS SCREEN ================= */
@@ -1271,7 +1271,7 @@ function openPack(packKey,side){
   if(side==="classic"){
     const cl=S.classic;
     if(cl.opened>=cl.cap){notice("Pack budget spent — "+cl.cap+" total. Build your roster from what you pulled.");return;}
-    if(packKey==="premium"){if(cl.premiumPacksLeft<=0){notice("Premium pack budget spent — 3 per classic run.");return;}cl.premiumPacksLeft--;}
+    if(packKey==="premium"){if(cl.premiumPacksLeft<=0){notice("Premium pack budget spent — 3 per run.");return;}cl.premiumPacksLeft--;}
     const cards=classicRollPack(ownedIds("classic"),cl.tierCounts,recentSet(),packKey);
     noteRecent(cards);cl.opened++;
     cards.forEach(c=>{cl.coll[c.id]=(cl.coll[c.id]||0)+1;});
@@ -1443,7 +1443,7 @@ function draftHTML(){
     return `<div class="result"><h2 class="disp" style="font-size:22px;color:var(--dim)">Choosing your captain…</h2></div>`;
   }
   if(D.stage!=="picking")return `<div class="result">
-      <h2 class="disp" style="font-size:30px">Draft Mode</h2>
+      <h2 class="disp" style="font-size:30px">Classic Draft</h2>
       <p style="color:var(--dim);font-size:13px;max-width:420px">Pick an Icon captain, then tap each empty slot on the
       court to reveal five eligible players. Lock in all eight and chase the best draft OVR.</p>
       <div class="sub" style="color:var(--dim);font-size:12px">Best draft: <b style="color:var(--gold)">${HS.draft.ovr} OVR</b>${HS.draft.wins?` (${HS.draft.wins} wins)`:""}</div>
@@ -1452,7 +1452,7 @@ function draftHTML(){
   const filled=ALL_SLOTS.filter(s=>D.roster[s]!=null).length;
   return `
   <div class="panel" style="margin-bottom:12px"><div class="scoreboard">
-    <div class="ovrbig">${ovr.total}<small>TEAM OVR</small><small class="exact">${ovr.ready?ovr.eff.toFixed(1)+" EXACT":"—"}</small></div>
+    <div class="ovrbig">${ovr.total}<small>TEAM OVR</small><small class="exact">${ovr.ready?ovr.eff.toFixed(1)+" OVR WITH CHEM":"—"}</small></div>
     <div><div class="projrow">
       <div><b>${ovr.ready?pr.wins+"–"+pr.losses:"—"}</b>projected record</div>
       <div><b>${D.done?"8 / 8 — FINAL":filled+" / 8"}</b>picks locked</div>
@@ -1485,9 +1485,8 @@ function draftHTML(){
 /* ================= ROOT RENDER ================= */
 function landingHTML(){
   const modes=[
-    ["team","Sandbox Mode","The open playground — unlimited Standard, Premium and Icon packs, a 230+ card all-time collection, drag-and-drop lineups, and the 90+-only Rare Pull challenge. Zero restrictions.",Math.max(HS.main.ovr,HS.rare.ovr),"ENTER SANDBOX","primary"],
-    ["draft","Draft Mode","Choose one of three Icon or Elite anchors, then tap each court slot to pick from five eligible players. Hard caps (2 Icons, 4 Elites) keep it earned — lock all eight, then rearrange for the perfect fit.",HS.draft.ovr,"START DRAFTING","gold"],
-    ["classic","Classic Mode","The restricted run: a 10–12 pack budget (Premium ×3), one free Captain Pack, and strict Icon/Elite caps. When it locks, squeeze an 82–0 season out of exactly what you pulled.",HS.classic.ovr,"PLAY CLASSIC",""]
+    ["draft","Classic Draft","Choose one of three Icon or Elite anchors, then tap each court slot to pick from five eligible players. Hard caps (2 Icons, 4 Elites) keep it earned — lock all eight, then rearrange for the perfect fit.",HS.draft.ovr,"START DRAFTING","gold"],
+    ["classic","Pack Mode","A 10–12 pack budget (Premium ×3), one free Captain Pack, and strict Icon/Elite caps. When it locks, squeeze an 82–0 season out of exactly what you pulled.",HS.classic.ovr,"OPEN PACKS","primary"]
   ];
   return `<div class="modes">
     <div class="modehero"><h2 class="disp" style="font-size:26px">Choose your mode</h2>
@@ -1580,13 +1579,12 @@ function drawDraftCanvas(){
       c.fillStyle="#f2f2f5";c.fillText("ALL-TIME ",x0,108);
       c.fillStyle="#ffc53d";c.fillText("ULTIMATE",x0+w1,108);
       c.textAlign="center";c.fillStyle="#8a8a94";c.font="26px Arial";
-      c.fillText("D R A F T   S Q U A D",540,152);
+      c.fillText("C L A S S I C   D R A F T",540,152);
       /* scoreboard — compact, ends above the pentagon */
       const o=teamOVR(D.roster),pr=projection(o.eff);
       c.textAlign="right";c.fillStyle="#ffc53d";c.font="900 118px "+IMG_FONT;
       c.fillText(o.total,452,308);
-      c.font="700 26px Arial";c.fillText(o.eff.toFixed(1)+" EXACT",452,344);
-      c.textAlign="left";c.fillStyle="#8a8a94";c.font="20px Arial";c.fillText("TEAM OVR",240,344);
+      c.font="700 26px Arial";c.fillText(o.eff.toFixed(1)+" OVR WITH CHEM",452,344);
       c.fillStyle="#f2f2f5";c.font="700 40px Arial";c.fillText("projected "+pr.wins+"\u2013"+pr.losses,486,236);
       c.fillStyle="#f2a93b";c.font="700 34px Arial";c.fillText("+"+o.chem.bonus.toFixed(1)+" chemistry",486,284);
       c.fillStyle="#ff7ac8";c.font="700 30px Arial";c.fillText(pr.label,486,330);
@@ -1627,7 +1625,7 @@ async function shareDraftImage(){
   if(!blob){notice("Couldn't render the image on this browser.");return;}
   const file=new File([blob],"all-time-ultimate-draft.png",{type:"image/png"});
   if(navigator.canShare&&navigator.canShare({files:[file]})){
-    try{await navigator.share({files:[file],title:"All-Time Ultimate",text:"My draft squad \u2014 beat it:"});return;}catch(e){}
+    try{await navigator.share({files:[file],title:"All-Time Ultimate",text:"My Classic Draft squad — beat it:"});return;}catch(e){}
   }
   try{await navigator.clipboard.write([new ClipboardItem({"image/png":blob})]);
     notice("Squad image copied \u2014 paste it anywhere.");return;}catch(e){}
@@ -1652,10 +1650,10 @@ function shareHTML(){
   const r=SHARED.roster,ovr=teamOVR(r),pr=projection(ovr.eff);
   return `
   <div class="panel" style="margin-bottom:12px">
-    <div class="rowhead"><h2>Shared ${SHARED.mode==="draft"?"Draft":"Classic"} Squad</h2>
+    <div class="rowhead"><h2>Shared ${SHARED.mode==="draft"?"Classic Draft":"Pack Mode"} Squad</h2>
       <span class="sub">someone sent you their lineup — think you can beat it?</span></div>
     <div class="scoreboard">
-      <div class="ovrbig">${ovr.total}<small>TEAM OVR</small><small class="exact">${ovr.ready?ovr.eff.toFixed(1)+" EXACT":"—"}</small></div>
+      <div class="ovrbig">${ovr.total}<small>TEAM OVR</small><small class="exact">${ovr.ready?ovr.eff.toFixed(1)+" OVR WITH CHEM":"—"}</small></div>
       <div><div class="projrow">
         <div><b>${ovr.ready?pr.wins+"\u2013"+pr.losses:"\u2014"}</b>projected record</div>
         <div><b>${ovr.ready?pr.label:"incomplete five"}</b>power label</div>
@@ -1774,7 +1772,7 @@ function render(){
   const best=Math.max(HS.main.ovr,HS.rare.ovr,HS.draft.ovr);
   app.innerHTML=`
     <header class="top">
-      <div class="logo">All-Time <em>Ultimate</em><small>NBA PACK OPENER · SANDBOX</small></div>
+      <div class="logo">All-Time <em>Ultimate</em><small>NBA PACK OPENER</small></div>
       <div class="hs">BEST TEAM OVR<br><b>${best}</b></div>
     </header>
     ${screen==="landing"?landingHTML():screen==="share"?shareHTML():screen==="team"?hubHTML("main"):screen==="packs"?packsHTML()
