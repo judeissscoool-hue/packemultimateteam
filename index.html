@@ -1628,7 +1628,7 @@ async function shareDraftImage(){
   if(!blob){notice("Couldn't render the image on this browser.");return;}
   const file=new File([blob],"all-time-ultimate-draft.png",{type:"image/png"});
   if(navigator.canShare&&navigator.canShare({files:[file]})){
-    try{await navigator.share({files:[file],title:"All-Time Ultimate",text:"My Classic Draft squad — beat it:"});return;}catch(e){}
+    try{await navigator.share({files:[file],title:"All-Time Ultimate",text:"my squad - beat it:\nPackEmUltimateTeam.com"});return;}catch(e){}
   }
   try{await navigator.clipboard.write([new ClipboardItem({"image/png":blob})]);
     notice("Squad image copied \u2014 paste it anywhere.");return;}catch(e){}
