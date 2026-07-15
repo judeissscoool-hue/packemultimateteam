@@ -1061,21 +1061,86 @@ function classicRollPack(owned,counts,recent,packKey,rng){
   persistRand();
   return cards;
 }
-/* DRAFT MODE: slot-eligible option sets (5 varied, unique players) */
-function draftOptionsFor(slot,takenIds,counts,rng){
-  PACK_NO++; /* each board ages the pull-memory like a pack */
-  const opts=[];let guard=0;
+/* DRAFT MODE: independent, name-balanced randomizer.
+   Why this is separate from packs:
+   - pack pull history/decks are persisted on the device and were leaking into Draft;
+   - players with 2–3 card variants otherwise received 2–3 lottery tickets;
+   - multi-position players otherwise appeared on far more slot boards.
+   Draft now chooses a PLAYER NAME first, then one eligible card version. Persistent
+   exposure counts + a strong recent-session cooldown keep long-run appearances even,
+   while a current-draft soft block avoids showing the same unpicked name repeatedly. */
+const DRAFT_FAIR_KEY="atu-draft-fair-v1";
+let DRAFT_FAIR_SESSION=0,DRAFT_NAME_SHOWN={},DRAFT_NAME_LAST={},DRAFT_CARD_SHOWN={};
+function persistDraftFair(){if(typeof sSet!=="function")return;
+  sSet(DRAFT_FAIR_KEY,{session:DRAFT_FAIR_SESSION,shown:DRAFT_NAME_SHOWN,last:DRAFT_NAME_LAST,cards:DRAFT_CARD_SHOWN});}
+function beginDraftFairSession(){
+  DRAFT_FAIR_SESSION++;
+  /* bounded memory: preserve relative fairness without letting counters grow forever */
+  if(DRAFT_FAIR_SESSION%100===0){
+    Object.keys(DRAFT_NAME_SHOWN).forEach(n=>DRAFT_NAME_SHOWN[n]=Math.floor(DRAFT_NAME_SHOWN[n]*0.75));
+    Object.keys(DRAFT_CARD_SHOWN).forEach(id=>DRAFT_CARD_SHOWN[id]=Math.floor(DRAFT_CARD_SHOWN[id]*0.75));
+  }
+  persistDraftFair();
+}
+function draftRecencyWeight(name){
+  const last=DRAFT_NAME_LAST[name];
+  if(last===undefined)return 1;
+  const age=DRAFT_FAIR_SESSION-last;
+  return age<=0?0.001:age===1?0.025:age===2?0.10:age===3?0.28:age===4?0.55:age===5?0.80:1;
+}
+function weightedIndex(weights,rng){
+  const R=rng||Math.random,total=weights.reduce((a,b)=>a+b,0);
+  if(!(total>0))return Math.floor(R()*weights.length);
+  let r=R()*total;
+  for(let i=0;i<weights.length;i++){r-=weights[i];if(r<0)return i;}
+  return weights.length-1;
+}
+function draftFairPick(pool,hardBlocked,softBlocked,rng){
+  if(!pool.length)return null;
+  const R=rng||Math.random,byName={};
+  pool.forEach(p=>(byName[p.name]=byName[p.name]||[]).push(p));
+  const hard=hardBlocked||new Set(),soft=softBlocked||new Set();
+  let names=Object.keys(byName).filter(n=>!hard.has(n)&&!soft.has(n));
+  if(!names.length)names=Object.keys(byName).filter(n=>!hard.has(n)); /* only repeat if the tier/slot forces it */
+  if(!names.length)return null;
+  const minShown=Math.min(...names.map(n=>DRAFT_NAME_SHOWN[n]||0));
+  const weights=names.map(n=>{
+    const gap=(DRAFT_NAME_SHOWN[n]||0)-minShown;
+    return Math.pow(0.32,gap)*draftRecencyWeight(n);
+  });
+  const name=names[weightedIndex(weights,R)],versions=byName[name];
+  const minCard=Math.min(...versions.map(p=>DRAFT_CARD_SHOWN[p.id]||0));
+  const fairest=versions.filter(p=>(DRAFT_CARD_SHOWN[p.id]||0)<=minCard);
+  const card=fairest[Math.floor(R()*fairest.length)];
+  DRAFT_NAME_SHOWN[name]=(DRAFT_NAME_SHOWN[name]||0)+1;
+  DRAFT_NAME_LAST[name]=DRAFT_FAIR_SESSION;
+  DRAFT_CARD_SHOWN[card.id]=(DRAFT_CARD_SHOWN[card.id]||0)+1;
+  return card;
+}
+function draftOptionsFor(slot,takenIds,counts,seenNames,rng){
+  const opts=[],hard=new Set((takenIds||[]).map(id=>DB[id].name));
+  const soft=new Set(seenNames||[]);let guard=0;
   while(opts.length<5&&guard++<500){
     const t=draftDowngrade(rollTier(DRAFT_ODDS,rng),counts||{});
-    const pool=POOLS[t].filter(p=>eligible(p,slot)&&!takenIds.includes(p.id)
-      &&!opts.some(o=>o.id===p.id||o.name===p.name));
-    if(pool.length)opts.push(pickPlayer(pool,rng));
+    const pool=POOLS[t].filter(p=>eligible(p,slot));
+    const boardHard=new Set([...hard,...opts.map(o=>o.name)]);
+    const p=draftFairPick(pool,boardHard,soft,rng);
+    if(p){opts.push(p);soft.add(p.name);}
   }
-  persistRand();
+  persistDraftFair();
   return opts;
 }
-/* shared Captain Pack helper (Draft + Classic): 3 distinct players, unique names,
-   not already owned; each rolled Icon 35% / Elite 65% — guaranteed Elite floor */
+function draftCaptainOptions(rng){
+  const R=rng||Math.random,out=[],hard=new Set(),soft=new Set();let guard=0;
+  while(out.length<3&&guard++<400){
+    const t=R()<0.35?"Icon":"Elite";
+    const p=draftFairPick(POOLS[t],hard,soft,R);
+    if(p){out.push(p);hard.add(p.name);soft.add(p.name);}
+  }
+  persistDraftFair();
+  return out;
+}
+/* shared Captain Pack helper for Pack Mode: retains pack pull-memory behaviour. */
 function classicCaptainOptions(owned,rng){
   PACK_NO++;
   const r=rng||Math.random,excl=owned||new Set(),out=[],seen=new Set();
@@ -1124,7 +1189,7 @@ let screen="landing";       // landing | team | packs | rare | draft | classic
 let lastOVRc=60;
 function sideFor(scr){return scr==="rare"?"rare":scr==="classic"?"classic":"main";}
 let lastOVR={main:60,rare:60,classic:60};
-let D={stage:"idle",done:false,taken:[],roster:emptyRoster(),opts:null,activeSlot:null,lastSlot:null,captain:[]};
+let D={stage:"idle",done:false,taken:[],roster:emptyRoster(),opts:null,activeSlot:null,lastSlot:null,captain:[],offeredNames:[]};
 const DRAFT_ORDER=["PG","SG","SF","PF","C","B1","B2","B3"];
 const SLOT_LABEL={PG:"Point Guard",SG:"Shooting Guard",SF:"Small Forward",PF:"Power Forward",C:"Center",B1:"Bench 1",B2:"Bench 2",B3:"Bench 3"};
 
@@ -1429,6 +1494,13 @@ try{
   NAME_PULL_AT=sGet("atu-namehist-v2")||{};
   const dk=sGet("atu-decks-v2");
   if(dk&&typeof dk==="object")TIER_DECKS=dk; /* reconcileDeck() folds in any new cards */
+  const df=sGet(DRAFT_FAIR_KEY);
+  if(df&&typeof df==="object"){
+    DRAFT_FAIR_SESSION=Number.isFinite(df.session)?df.session:0;
+    DRAFT_NAME_SHOWN=df.shown&&typeof df.shown==="object"?df.shown:{};
+    DRAFT_NAME_LAST=df.last&&typeof df.last==="object"?df.last:{};
+    DRAFT_CARD_SHOWN=df.cards&&typeof df.cards==="object"?df.cards:{};
+  }
 }catch(e){}
 function recentSet(){return new Set(RECENT.flat());}
 function noteRecent(cards){RECENT.push(cards.map(c=>c.id));RECENT=RECENT.slice(-2);sSet("atu-recent-v1",RECENT);}
@@ -1519,7 +1591,9 @@ function confetti(n,palette){
 
 /* ================= DRAFT MODE ================= */
 function startDraft(){
-  D={stage:"captain",captain:classicCaptainOptions(new Set()),roster:emptyRoster(),taken:[],opts:null,slotOpts:{},activeSlot:null,lastSlot:null,done:false,tierCounts:{}};
+  beginDraftFairSession();
+  const captain=draftCaptainOptions();
+  D={stage:"captain",captain,roster:emptyRoster(),taken:[],opts:null,slotOpts:{},activeSlot:null,lastSlot:null,done:false,tierCounts:{},offeredNames:captain.map(p=>p.name)};
   render();
 }
 function pickCaptain(pid){
@@ -1534,15 +1608,18 @@ function draftSlotTap(slot){
     if(D.done){openDraftSwap(slot);return;} /* final board: rearrange freely */
     notice("Draft picks are locked in — fill the empty slots.");return;}
   D.activeSlot=slot;
-  D.slotOpts[slot]=D.slotOpts[slot]||draftOptionsFor(slot,D.taken,D.tierCounts); /* cached: no re-roll via Cancel */
+  if(!D.slotOpts[slot]){
+    D.slotOpts[slot]=draftOptionsFor(slot,D.taken,D.tierCounts,D.offeredNames); /* cached: no re-roll via Cancel */
+    D.offeredNames=[...new Set([...(D.offeredNames||[]),...D.slotOpts[slot].map(p=>p.name)])];
+  }
   D.opts=D.slotOpts[slot];
   render();
 }
 function draftCapHit(tier){return DRAFT_LIMITS[tier]&&(D.tierCounts[tier]||0)>=DRAFT_LIMITS[tier];}
 function draftPickInto(pid){
   const slot=D.activeSlot;if(!slot||D.roster[slot]!=null)return;
-  if(D.taken.includes(pid)){notice(DB[pid].name+" is already on your board.");return;}
   const p=DB[pid];
+  if(D.taken.some(id=>DB[id].name===p.name)){notice(p.name+" is already on your board.");return;}
   if(draftCapHit(p.tier)){notice(p.tier+" cap reached ("+DRAFT_LIMITS[p.tier]+" per draft).");return;}
   if(DRAFT_LIMITS[p.tier])D.tierCounts[p.tier]=(D.tierCounts[p.tier]||0)+1;
   D.roster[slot]=pid;D.taken.push(pid);D.lastSlot=slot;D.activeSlot=null;D.opts=null;
