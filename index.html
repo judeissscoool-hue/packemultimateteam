@@ -83,15 +83,13 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .projrow b{display:block;color:var(--ink);font-size:15px;font-family:var(--disp);letter-spacing:.05em}
 .chemlinks{margin-top:6px;font-size:11px;color:var(--dim);display:flex;gap:6px;flex-wrap:wrap}
 .chemlinks span{background:var(--panel2);border:1px solid var(--line);padding:2px 8px;border-radius:20px}
-:root{--ck-team:#ffc53d;--ck-iconic:#b58cff;--ck-story:#ff7ac8;--ck-era:#35d6ff;--ck-style:#39ff9c}
+:root{--ck-team:#ffc53d;--ck-duo:#ff4d6d;--ck-story:#ff7ac8;--ck-era:#35d6ff;--ck-style:#39ff9c}
 /* chem web segments: icon-rim style bloom, strength ascends with rank */
 .squadweb .wl{stroke-linecap:round;animation:webpulse var(--ws,2s) ease-in-out infinite}
 .wl-style{stroke-width:2.6;--wo:.6;--wo2:.78;--ws:2.6s;
   filter:drop-shadow(0 0 3px var(--ck-style))}
 .wl-era{stroke-width:2.8;--wo:.66;--wo2:.85;--ws:2.2s;
   filter:drop-shadow(0 0 4px var(--ck-era)) drop-shadow(0 0 9px rgba(53,214,255,.45))}
-.wl-iconic{stroke-width:3.7;--wo:.79;--wo2:.98;--ws:1.5s;
-  filter:drop-shadow(0 0 6px var(--ck-iconic)) drop-shadow(0 0 16px rgba(181,140,255,.70))}
 .wl-story{stroke-width:3.4;--wo:.75;--wo2:.95;--ws:1.7s;
   filter:drop-shadow(0 0 6px var(--ck-story)) drop-shadow(0 0 14px rgba(255,122,200,.65))}
 .wl-team{stroke-width:4;--wo:.82;--wo2:1;--ws:1.3s;
@@ -100,7 +98,7 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .chemlinks span.hot{border-color:var(--amber);color:var(--amber)}
 .chemlinks span.story{border-color:#ff7ac8;color:#ffb3e0}
 .chemlinks span.ck-team{border-color:var(--ck-team);color:var(--ck-team)}
-.chemlinks span.ck-iconic{border-color:var(--ck-iconic);color:#d8c7ff}
+.chemlinks span.ck-duo{border-color:var(--ck-duo);color:#ff98a8}
 .chemlinks span.ck-story{border-color:var(--ck-story);color:#ffb3e0}
 .chemlinks span.ck-era{border-color:var(--ck-era);color:#8ee6ff}
 .chemlinks span.ck-style{border-color:var(--ck-style);color:#8fffc8}
@@ -109,13 +107,12 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .clg{display:flex;gap:8px;align-items:flex-start}
 .clg i{width:16px;height:3px;border-radius:2px;margin-top:5px;flex:0 0 auto}
 .clg.ck-team i{background:var(--ck-team);box-shadow:0 0 10px var(--ck-team),0 0 3px var(--ck-team)}
-.clg.ck-iconic i{background:var(--ck-iconic);box-shadow:0 0 9px var(--ck-iconic)}
 .clg.ck-story i{background:var(--ck-story);box-shadow:0 0 7px var(--ck-story)}
 .clg.ck-era i{background:var(--ck-era);box-shadow:0 0 4px var(--ck-era)}
 .clg.ck-style i{background:var(--ck-style);box-shadow:0 0 2.5px var(--ck-style)}
 .clg b{font-size:10.5px;display:block;letter-spacing:.04em}
-.clg.ck-team b{color:var(--ck-team)}.clg.ck-iconic b{color:var(--ck-iconic)}
-.clg.ck-story b{color:var(--ck-story)}.clg.ck-era b{color:var(--ck-era)}.clg.ck-style b{color:var(--ck-style)}
+.clg.ck-team b{color:var(--ck-team)}.clg.ck-duo b{color:var(--ck-duo)}.clg.ck-story b{color:var(--ck-story)}
+.clg.ck-era b{color:var(--ck-era)}.clg.ck-style b{color:var(--ck-style)}
 .clg span{font-size:8.5px;color:var(--dim);line-height:1.35;display:block}
 
 /* ============ COURT ROSTER ============ */
@@ -478,6 +475,16 @@ const P=[
 ["Rasheed Wallace","PF",85,"DET","00s"],["Deron Williams","PG",85,"UTA","00s"],
 ["Rajon Rondo","PG",85,"BOS","10s"],["Jrue Holiday","PG",85,"MIL","20s"],
 ["Glen Rice","SF",85,"CHA","90s"],["Kyle Lowry","PG",85,"TOR","10s"],
+// —— DUO/TRIO COMPLETIONS (bond partners) ——
+["Blake Griffin","PF",85,"LAC","10s"],["Sam Jones","SG",85,"BOS","60s"],
+["Kevin Love","PF",84,"CLE","10s"],["Mike Conley","PG",83,"MEM","10s"],
+["Baron Davis","PG",82,"GSW","00s"],["Tommy Heinsohn","PF",81,"BOS","60s"],
+["Richard Hamilton","SG",81,"DET","00s"],["Glenn Robinson","SF",81,"MIL","90s"],
+["Maurice Cheeks","PG",80,"PHI","80s"],["David West","PF",80,"IND","10s"],
+["Mike Bibby","PG",79,"SAC","00s"],["Jason Richardson","SG",79,"GSW","00s"],
+["Jamaal Wilkes","SF",79,"LAL","80s"],["Jason Terry","SG",79,"DAL","00s"],
+["Roy Hibbert","C",78,"IND","10s"],["Kenyon Martin","PF",78,"BKN","00s"],
+["Richard Jefferson","SF",78,"BKN","00s"],["Josh Howard","SF",77,"DAL","00s"],
 ["Larry Johnson","PF",85,"CHA","90s"],["Bradley Beal","SG",85,"WAS","10s"],
 ["LaMelo Ball","PG",85,"CHA","20s"],["Scottie Barnes","SF",85,"TOR","20s"],
 ["Franz Wagner","SF",85,"ORL","20s"],["Arvydas Sabonis","C",85,"POR","90s"],
@@ -561,29 +568,7 @@ const P=[
 ["Chris Bosh","PF",88,"TOR","00s"],
 ["Dennis Rodman","PF",88,"CHI","90s"],
 ["Jimmy Butler","SF",90,"CHI","10s"],
-["Damian Lillard","PG",92,"MIL","20s"],
-// —— ICONIC CHEMISTRY ADDITIONS: appended so every existing card ID/save stays stable ——
-["Baron Davis","PG",89,"GSW","00s"],
-["Blake Griffin","PF",91,"LAC","10s"],
-["David West","PF",85,"IND","10s"],
-["Glenn Robinson","SF",89,"MIL","90s"],
-["Jamaal Wilkes","SF",87,"LAL","80s"],
-["Jason Richardson","SG",85,"GSW","00s"],
-["Jason Terry","SG",86,"DAL","00s"],
-["Josh Howard","SF",83,"DAL","00s"],
-["Kenyon Martin","PF",84,"BKN","00s"],
-["Kevin Love","PF",89,"CLE","10s"],
-["Maurice Cheeks","PG",88,"PHI","80s"],
-["Mike Bibby","PG",86,"SAC","00s"],
-["Mike Conley","PG",86,"MEM","10s"],
-["Richard Jefferson","SF",85,"BKN","00s"],
-["Roy Hibbert","C",85,"IND","10s"],
-["Sam Jones","SG",90,"BOS","60s"],
-["Tommy Heinsohn","PF",88,"BOS","50s"],
-// —— ICONIC CHEMISTRY ADDITIONS v28: appended to preserve every earlier card ID ——
-["Paul Millsap","PF",86,"ATL","10s"],
-["Al Horford","C",88,"ATL","10s"],
-["Stephen Jackson","SF",84,"GSW","00s"]
+["Damian Lillard","PG",92,"MIL","20s"]
 ];
 
 const TIER_ORDER=["Bronze","Silver","Gold","Elite","Icon"];
@@ -631,13 +616,7 @@ const POS_EXTRA={
 "Steve Kerr":["SG"],"John Paxson":["SG"],"Patty Mills":["SG"],"Shaun Livingston":["SG"],
 "Nate Robinson":["SG"],"Jeremy Lin":["SG"],"Tony Allen":["SF"],"Danny Green":["SF"],
 "Bruce Bowen":["SG"],"Michael Cooper":["SF","PG"],"Doug Christie":["SF"],"Gary Payton II":["PG"],
-"JR Smith":["SF"],"Bonzi Wells":["SF"],"Shane Battier":["PF"],"Duncan Robinson":["SG"],
-"Baron Davis":["SG"],"Blake Griffin":["C"],"David West":["C"],"Glenn Robinson":["PF"],
-"Jamaal Wilkes":["PF"],"Jason Richardson":["SF"],"Jason Terry":["PG"],"Josh Howard":["PF","SG"],
-"Kenyon Martin":["C"],"Kevin Love":["C"],"Maurice Cheeks":["SG"],"Mike Bibby":["SG"],
-"Mike Conley":["SG"],"Richard Jefferson":["SG","PF"],"Roy Hibbert":["PF"],"Sam Jones":["SF"],
-"Tommy Heinsohn":["C"],"Paul Millsap":["SF","C"],"Al Horford":["PF"],
-"Stephen Jackson":["SG"]};
+"JR Smith":["SF"],"Bonzi Wells":["SF"],"Shane Battier":["PF"],"Duncan Robinson":["SG"]};
 const DB=P.map((p,i)=>({id:i,name:p[0],pos:p[1],ovr:p[2],team:p[3],era:"'"+p[4],
   positions:[...new Set([p[1],...(POS_EXTRA[p[0]]||[])])],tier:tierOf(p[2])}));
 /* ============ UNIVERSAL chemistryTags SYSTEM ============ */
@@ -731,27 +710,6 @@ Story_Rival_TexasTriad:["Tim Duncan","Dirk Nowitzki"],
 Story_Rival_ModernFinals:["LeBron James","Stephen Curry","Kevin Durant"]};
 const STORIES_BY_NAME={};
 Object.entries(STORY_TAGS).forEach(([tag,names])=>names.forEach(n=>{(STORIES_BY_NAME[n]=STORIES_BY_NAME[n]||[]).push(tag);}));
-
-/* E. Iconic duos & trios — card team/era does not matter; names do.
-   Balance rule: chemistry is a per-player rate × group size. A player can power
-   only one iconic group at a time, so an active trio automatically replaces its
-   nested duo and overlapping dynasty combinations never multiply out of control. */
-const ICONIC_BUCKETS=[
-  {level:"Championship",rate:0.5,groups:[["Michael Jordan","Scottie Pippen"],["Shaquille O'Neal","Kobe Bryant"],["Magic Johnson","Kareem Abdul-Jabbar"],["Stephen Curry","Klay Thompson"],["LeBron James","Dwyane Wade"],["Larry Bird","Kevin McHale"],["Bill Russell","Bob Cousy"],["Kobe Bryant","Pau Gasol"],["Tim Duncan","David Robinson"],["Tim Duncan","Tony Parker"],["LeBron James","Anthony Davis"],["LeBron James","Kyrie Irving"],["Kevin Durant","Stephen Curry"],["Hakeem Olajuwon","Clyde Drexler"],["Julius Erving","Moses Malone"],["Isiah Thomas","Joe Dumars"],["Jerry West","Wilt Chamberlain"],["Walt Frazier","Earl Monroe"],["Oscar Robertson","Kareem Abdul-Jabbar"],["Nikola Jokic","Jamal Murray"],["Giannis Antetokounmpo","Khris Middleton"],["Jayson Tatum","Jaylen Brown"],["Shaquille O'Neal","Dwyane Wade"],["Tim Duncan","Tony Parker","Manu Ginobili"],["Michael Jordan","Scottie Pippen","Dennis Rodman"],["Michael Jordan","Scottie Pippen","Horace Grant"],["Larry Bird","Kevin McHale","Robert Parish"],["Magic Johnson","Kareem Abdul-Jabbar","James Worthy"],["Magic Johnson","Kareem Abdul-Jabbar","Jamaal Wilkes"],["Stephen Curry","Klay Thompson","Draymond Green"],["Stephen Curry","Kevin Durant","Klay Thompson"],["Stephen Curry","Kevin Durant","Draymond Green"],["LeBron James","Dwyane Wade","Chris Bosh"],["Bill Russell","Sam Jones","John Havlicek"],["Bill Russell","Bob Cousy","Tommy Heinsohn"],["Isiah Thomas","Joe Dumars","Dennis Rodman"]]},
-  {level:"Finals",rate:0.4,groups:[["John Stockton","Karl Malone"],["Jerry West","Elgin Baylor"],["Gary Payton","Shawn Kemp"],["Penny Hardaway","Shaquille O'Neal"],["Steve Nash","Amar'e Stoudemire"],["Chris Paul","Blake Griffin"],["James Harden","Chris Paul"],["Kevin Durant","Russell Westbrook"],["Luka Doncic","Kyrie Irving"],["DeMar DeRozan","Kyle Lowry"],["Chris Webber","Mike Bibby"],["Allen Iverson","Dikembe Mutombo"],["Alonzo Mourning","Tim Hardaway"],["Chris Webber","Peja Stojakovic"],["Paul Millsap","Al Horford"],["Zach Randolph","Marc Gasol"],["Mike Conley","Marc Gasol"],["Kevin Garnett","Paul Pierce","Ray Allen"],["LeBron James","Kyrie Irving","Kevin Love"],["Wilt Chamberlain","Jerry West","Elgin Baylor"],["Moses Malone","Julius Erving","Maurice Cheeks"],["Walt Frazier","Earl Monroe","Willis Reed"],["Ben Wallace","Chauncey Billups","Rip Hamilton"],["Jason Kidd","Richard Jefferson","Kenyon Martin"],["Dirk Nowitzki","Jason Terry","Josh Howard"],["Jimmy Butler","Bam Adebayo","Tyler Herro"],["Ben Wallace","Rasheed Wallace","Chauncey Billups"],["Patrick Ewing","John Starks","Charles Oakley"]]},
-  {level:"All-Star",rate:0.3,groups:[["Kevin Durant","Russell Westbrook","James Harden"],["Kevin Durant","Kyrie Irving","James Harden"],["Chris Webber","Vlade Divac","Mike Bibby"],["Steve Nash","Amar'e Stoudemire","Shawn Marion"],["Tim Hardaway","Mitch Richmond","Chris Mullin"],["Ray Allen","Glenn Robinson","Sam Cassell"],["Paul George","Roy Hibbert","David West"],["Baron Davis","Jason Richardson","Stephen Jackson"]]}
-];
-function iconicShortName(n){return n.split(" ").slice(-1)[0];}
-const ICONIC_GROUPS=ICONIC_BUCKETS.flatMap((b,bi)=>b.groups.map((members,gi)=>({
-  members,rate:b.rate,level:b.level,order:bi*100+gi,
-  label:members.map(iconicShortName).join(" · ")
-})));
-const ICONICS_BY_NAME={};
-ICONIC_GROUPS.forEach(g=>g.members.forEach(n=>{(ICONICS_BY_NAME[n]=ICONICS_BY_NAME[n]||[]).push(g);}));
-const ICONIC_PAIR_KEYS=new Set();
-ICONIC_GROUPS.forEach(g=>{for(let i=0;i<g.members.length;i++)for(let j=i+1;j<g.members.length;j++)
-  ICONIC_PAIR_KEYS.add([g.members[i],g.members[j]].sort().join("|"));});
-
 /* display names */
 const TAG_LABEL={Era_Classic:"Classic Era",Era_Golden:"Golden Era",Era_Vintage:"Vintage '90s",
 Era_Modern:"2000s Era",Era_Contemporary:"2010s Era",Era_Future:"New School",
@@ -763,10 +721,7 @@ Story_Draft_1996:"'96 Draft Class",Story_Draft_2003:"'03 Draft Class",Story_Draf
 Story_Draft_2018:"'18 Draft Class",Story_Rival_80s_Classic:"Magic vs Bird",Story_Rival_BadBoys:"Bad Boys Wars",
 Story_Rival_TexasTriad:"Texas Triad",Story_Rival_ModernFinals:"Finals Trilogy"};
 /* stamp every card: exactly 1 era + 1-2 styles + any story tags */
-DB.forEach(p=>{
-  p.tags=[ERA_TAG[p.era],...(STYLE_TAGS[p.name]||DEFAULT_STYLE[p.pos]),...(STORIES_BY_NAME[p.name]||[])];
-  p.iconics=ICONICS_BY_NAME[p.name]||[];
-});
+DB.forEach(p=>{p.tags=[ERA_TAG[p.era],...(STYLE_TAGS[p.name]||DEFAULT_STYLE[p.pos]),...(STORIES_BY_NAME[p.name]||[])];});
 function cardChips(p){ /* stories first, then styles, max 2 shown on the card */
   const t=p.tags.filter(x=>!x.startsWith("Era_"));
   t.sort((a,b)=>(a.startsWith("Story_")?0:1)-(b.startsWith("Story_")?0:1));
@@ -800,91 +755,86 @@ function fisherYates(arr,rng){
   for(let i=a.length-1;i>0;i--){const j=Math.floor(R()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
   return a;
 }
-const COOLDOWN_WEIGHT=0.25;
-/* ---- probability-stable shuffle-bag randomizer ----
-   Tier is rolled first and never changed because a collection has grown.
-   Player selection then uses a shuffled bag for that tier, so every exact card
-   appears once per cycle before any exact card repeats. Newly added cards are
-   reconciled into saved bags immediately. A separate name cooldown suppresses
-   back-to-back variants of the same star. */
-const LEGACY_TIER_COUNTS={Bronze:27,Silver:29,Gold:81,Elite:51,Icon:45};
-let PACK_NO=0,PULL_AT={},NAME_PULL_AT={},TIER_DECKS=null;
-function rand01(){
-  try{if(globalThis.crypto&&crypto.getRandomValues){const a=new Uint32Array(1);crypto.getRandomValues(a);return a[0]/4294967296;}}
-  catch(e){}
-  return Math.random();
-}
-function shuffleInPlace(a,rng){const R=rng||rand01;for(let i=a.length-1;i>0;i--){const j=Math.floor(R()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
-function deckRefill(t,rng){TIER_DECKS[t]=shuffleInPlace(POOLS[t].map(p=>p.id),rng);}
-function reconcileDeck(t,rng){
-  const valid=new Set(POOLS[t].map(p=>p.id));
-  let d=Array.isArray(TIER_DECKS[t])?TIER_DECKS[t].filter((id,i,a)=>valid.has(id)&&a.indexOf(id)===i):[];
-  const present=new Set(d),missing=[...valid].filter(id=>!present.has(id));
-  if(missing.length){shuffleInPlace(missing,rng);d.push(...missing);shuffleInPlace(d,rng);}
-  TIER_DECKS[t]=d;
-}
-function decksReady(rng){if(!TIER_DECKS)TIER_DECKS={};TIER_ORDER.forEach(t=>reconcileDeck(t,rng));}
+const COOLDOWN_WEIGHT=0.25; /* legacy flat cooldown — kept for compat; engine now uses pull-memory below */
+/* ---- pull-memory randomizer (self-contained) ----
+   PULL_AT[id] = pack number the player was last pulled; PACK_NO ticks once per opened pack.
+   pullWeight: near-zero if pulled within the last pack, decaying smoothly back to full
+   odds over ~9 packs. TIER_DECKS: Elite/Icon players can't repeat until the whole tier
+   has cycled. All state persisted; nothing else in the app touches it. */
+let PACK_NO=0,PULL_AT={},TIER_DECKS=null; /* hydrated from storage in the app script; safe defaults here */
+function deckRefill(t){TIER_DECKS[t]=POOLS[t].map(p=>p.id);}
+function decksReady(){ /* every tier deals as a shuffled deck; old saves get patched */
+  if(!TIER_DECKS)TIER_DECKS={};
+  TIER_ORDER.forEach(t=>{
+    if(!Array.isArray(TIER_DECKS[t])){deckRefill(t);return;}
+    /* inject any newly-added cards into an existing (partial) deck so they appear promptly,
+       instead of waiting for the whole deck to cycle (ported from v29's diagnosis) */
+    const known=new Set(TIER_DECKS[t]),dealt=new Set(Object.keys(PULL_AT).map(Number));
+    POOLS[t].forEach(p=>{if(!known.has(p.id)&&!dealt.has(p.id))TIER_DECKS[t].push(p.id);});
+  });}
 function persistRand(){if(typeof sSet!=="function")return;
-  sSet("atu-packno-v2",PACK_NO);sSet("atu-pullhist-v2",PULL_AT);sSet("atu-namehist-v2",NAME_PULL_AT);sSet("atu-decks-v2",TIER_DECKS);}
-function pullWeight(p){
-  const idAt=PULL_AT[p.id],nameAt=NAME_PULL_AT[p.name];let w=1;
-  if(idAt!==undefined){const age=PACK_NO-idAt;w*=age<=1?0.01:Math.max(0.08,Math.min(1,(age-1)/6));}
-  if(nameAt!==undefined){const age=PACK_NO-nameAt;w*=age<=1?0.02:age===2?0.18:age===3?0.45:age===4?0.72:1;}
-  return w;
+  sSet("atu-packno-v1",PACK_NO);sSet("atu-pullhist-v1",PULL_AT);sSet("atu-decks-v1",TIER_DECKS);}
+function pullWeight(id){
+  const at=PULL_AT[id];if(at===undefined)return 1;
+  const age=PACK_NO-at;
+  if(age<=1)return 0.02;
+  return Math.max(0.02,Math.min(1,Math.pow((age-1)/8,1.4)));
 }
 function pickPlayer(pool,rng){
   if(!pool.length)return null;
-  const R=rng||rand01;decksReady(R);
-  const tier=pool[0].tier;
-  if(!TIER_DECKS[tier].length)deckRefill(tier,R);
-  const allowed=new Set(pool.map(p=>p.id));
-  let ids=TIER_DECKS[tier].filter(id=>allowed.has(id));
-  if(!ids.length){
-    /* A constrained subset can be exhausted before the full tier. Reinsert only
-       that subset, never cards from another tier. */
-    ids=shuffleInPlace(pool.map(p=>p.id),R);TIER_DECKS[tier].push(...ids);
-  }
-  const cands=ids.map(id=>DB[id]),wts=cands.map(p=>pullWeight(p));
-  let total=wts.reduce((a,b)=>a+b,0),r=R()*total,pick=cands[cands.length-1];
+  decksReady();
+  TIER_ORDER.forEach(t=>{if(TIER_DECKS[t]&&!TIER_DECKS[t].length)deckRefill(t);}); /* true full cycle: reshuffle */
+  const inDeck=p=>{const d=TIER_DECKS[p.tier];return !d||d.includes(p.id);};
+  let cands=pool.filter(inDeck);
+  if(!cands.length)cands=pool; /* position-constrained subset spent: borrow, but never reset the tier's cycle */
+  const R=rng||Math.random,wts=cands.map(p=>pullWeight(p.id));
+  let r=R()*wts.reduce((a,b)=>a+b,0),pick=cands[cands.length-1];
   for(let i=0;i<cands.length;i++){r-=wts[i];if(r<0){pick=cands[i];break;}}
-  const ix=TIER_DECKS[tier].indexOf(pick.id);if(ix>-1)TIER_DECKS[tier].splice(ix,1);
-  PULL_AT[pick.id]=PACK_NO;NAME_PULL_AT[pick.name]=PACK_NO;
+  const d=TIER_DECKS[pick.tier];
+  if(d){const ix=d.indexOf(pick.id);if(ix>-1)d.splice(ix,1);}
+  PULL_AT[pick.id]=PACK_NO;
   return pick;
 }
-function unpickPlayer(p){
-  if(!p)return;decksReady();const d=TIER_DECKS[p.tier];if(!d.includes(p.id))d.push(p.id);
+function unpickPlayer(p){ /* a rolled card replaced by guarantee logic was never shown: refund its memory */
+  const d=TIER_DECKS[p.tier];if(d&&!d.includes(p.id))d.push(p.id);
   delete PULL_AT[p.id];
 }
 function weightedPick(pool,recent,rng){
-  const R=rng||rand01,wts=pool.map(p=>recent&&recent.has(p.id)?COOLDOWN_WEIGHT:1);
-  let r=R()*wts.reduce((a,b)=>a+b,0);for(let i=0;i<pool.length;i++){r-=wts[i];if(r<0)return pool[i];}return pool[pool.length-1];
+  const R=rng||Math.random;
+  const wts=pool.map(p=>recent&&recent.has(p.id)?COOLDOWN_WEIGHT:1);
+  let r=R()*wts.reduce((a,b)=>a+b,0);
+  for(let i=0;i<pool.length;i++){r-=wts[i];if(r<0)return pool[i];}
+  return pool[pool.length-1];
 }
-function tierPool(packKey,t){return packKey==="rare"&&t==="Gold"?POOL_90.filter(p=>p.ovr<=91):POOLS[t];}
-function rollCard(packKey,ownedExcl,packSeen,recent,rng){
-  const t=rollTier(PACKS[packKey].odds,rng||rand01),pool=tierPool(packKey,t);
-  let open=pool.filter(p=>!ownedExcl.has(p.id)&&!packSeen.has(p.id));
-  if(!open.length)open=pool.filter(p=>!packSeen.has(p.id));
-  if(!open.length)open=pool.slice();
+function rollCard(packKey,excl,recent,rng){
+  const t=rollTier(PACKS[packKey].odds,rng);
+  let pool;
+  if(packKey==="rare")pool=t==="Gold"?POOL_90.filter(p=>p.ovr<=91):POOLS[t];
+  else pool=POOLS[t];
+  let open=pool.filter(p=>!excl.has(p.id));
+  if(!open.length)open=packUniverse(packKey).filter(p=>!excl.has(p.id)); // tier exhausted: widen
+  /* tier odds strictly picked the pool; the card comes from the pull-memory picker */
   return pickPlayer(open,rng);
 }
-function legacyGuaranteeTier(floor,rng){
-  const odds={};TIER_ORDER.slice(floor).forEach(t=>odds[t]=LEGACY_TIER_COUNTS[t]);
-  const total=Object.values(odds).reduce((a,b)=>a+b,0);Object.keys(odds).forEach(t=>odds[t]/=total);
-  return rollTier(odds,rng||rand01);
-}
 function rollPack(packKey,owned,recent,rng){
-  const pk=PACKS[packKey];PACK_NO++;
-  const ownedExcl=new Set(owned||[]),packSeen=new Set(),cards=[];
-  for(let i=0;i<3;i++){const c=rollCard(packKey,ownedExcl,packSeen,recent,rng);cards.push(c);packSeen.add(c.id);}
+  const pk=PACKS[packKey],rec=recent||new Set();
+  PACK_NO++;
+  let excl=new Set(owned||[]);
+  /* uniqueness is per CARD (name+team+era = its id): other versions of an owned
+     player stay pullable. Only exact copies are excluded — and once fewer than
+     3 unowned cards remain, exact dupes become pullable and are auto-discarded. */
+  if(packUniverse(packKey).filter(p=>!excl.has(p.id)).length<3)excl=new Set();
+  const cards=[];
+  for(let i=0;i<3;i++){const c=rollCard(packKey,excl,rec,rng);cards.push(c);excl.add(c.id);}
   if(pk.guarTier&&!cards.some(c=>tierRank(c.tier)>=tierRank(pk.guarTier))){
-    const old=cards[2],floor=tierRank(pk.guarTier),t=legacyGuaranteeTier(floor,rng);
-    packSeen.delete(old.id);
-    let pool=tierPool(packKey,t).filter(p=>!ownedExcl.has(p.id)&&!packSeen.has(p.id));
-    if(!pool.length)pool=tierPool(packKey,t).filter(p=>!packSeen.has(p.id));
-    if(!pool.length)pool=tierPool(packKey,t).slice();
-    if(pool.length){unpickPlayer(old);cards[2]=pickPlayer(pool,rng);}
+    // upgrade the last card to satisfy the guarantee
+    const floor=tierRank(pk.guarTier);
+    excl.delete(cards[2].id);
+    const hi=TIER_ORDER.slice(floor).flatMap(t=>POOLS[t]).filter(p=>!excl.has(p.id));
+    if(hi.length){unpickPlayer(cards[2]);cards[2]=pickPlayer(hi,rng);}
   }
-  persistRand();return cards;
+  persistRand();
+  return cards;
 }
 
 /* ================= ROSTER / CHEMISTRY / OVR ================= */
@@ -896,37 +846,94 @@ function slotPos(slot){return STARTER_SLOTS.includes(slot)?slot:"B";}
 function eligible(player,slot){const p=slotPos(slot);return p==="B"||player.positions.includes(p);}
 function rosterHas(roster,pid){return ALL_SLOTS.some(s=>roster[s]===pid);}
 
-function activeIconicGroups(roster){
-  const names=new Set();
-  STARTER_SLOTS.forEach(s=>{const pid=roster[s];if(pid!=null)names.add(DB[pid].name);});
-  /* Trio first, then higher rate. Once a player is used, another iconic group
-     cannot reuse them — this is the hard anti-stacking rule. Team and era are
-     deliberately absent here: every card variant matches by player name only. */
-  const candidates=ICONIC_GROUPS.filter(g=>g.members.every(n=>names.has(n)))
-    .sort((a,b)=>b.members.length-a.members.length||b.rate-a.rate||a.order-b.order);
-  const used=new Set(),selected=[];
-  candidates.forEach(g=>{
-    if(g.members.some(n=>used.has(n)))return;
-    g.members.forEach(n=>used.add(n));
-    selected.push(g);
-  });
-  return selected;
-}
-function activeIconicPairKeys(roster){
-  const keys=new Set();
-  activeIconicGroups(roster).forEach(g=>{for(let i=0;i<g.members.length;i++)for(let j=i+1;j<g.members.length;j++)
-    keys.add([g.members[i],g.members[j]].sort().join("|"));});
-  return keys;
-}
-function iconicChemistry(roster){
-  const groups=activeIconicGroups(roster),links=[];
-  let bonus=0;
-  groups.forEach(g=>{
-    const b=+(g.rate*g.members.length).toFixed(1);
-    bonus+=b;
-    links.push({label:"Iconic: "+g.label,n:g.members.length,bonus:b,kind:"iconic"});
-  });
-  return {bonus:+Math.min(3,bonus).toFixed(1),links,groups};
+/* ---- Iconic Duos & Trios: name-based chemistry, card team/era irrelevant ----
+   +0.6 per link (duo 0.6, full trio 1.2), scored inside the tag cap of 5 so the
+   total chemistry ceiling is unchanged. A duo that is a subset of an already-credited
+   larger group never double-pays. */
+const DUO_W=0.5;
+const DUOS=[
+ {l:"Jordan & Pippen",m:["Michael Jordan", "Scottie Pippen"]},
+ {l:"Shaq & Kobe",m:["Shaquille O'Neal", "Kobe Bryant"]},
+ {l:"Magic & Kareem",m:["Magic Johnson", "Kareem Abdul-Jabbar"]},
+ {l:"Splash Brothers",m:["Stephen Curry", "Klay Thompson"]},
+ {l:"LeBron & Wade",m:["LeBron James", "Dwyane Wade"]},
+ {l:"Bird & McHale",m:["Larry Bird", "Kevin McHale"]},
+ {l:"Russell & Cousy",m:["Bill Russell", "Bob Cousy"]},
+ {l:"Kobe & Pau",m:["Kobe Bryant", "Pau Gasol"]},
+ {l:"Twin Towers",m:["Tim Duncan", "David Robinson"]},
+ {l:"Duncan & Parker",m:["Tim Duncan", "Tony Parker"]},
+ {l:"LeBron & AD",m:["LeBron James", "Anthony Davis"]},
+ {l:"LeBron & Kyrie",m:["LeBron James", "Kyrie Irving"]},
+ {l:"KD & Curry",m:["Kevin Durant", "Stephen Curry"]},
+ {l:"Hakeem & Drexler",m:["Hakeem Olajuwon", "Clyde Drexler"]},
+ {l:"Dr. J & Moses",m:["Julius Erving", "Moses Malone"]},
+ {l:"Isiah & Dumars",m:["Isiah Thomas", "Joe Dumars"]},
+ {l:"West & Wilt",m:["Jerry West", "Wilt Chamberlain"]},
+ {l:"Clyde & The Pearl",m:["Walt Frazier", "Earl Monroe"]},
+ {l:"Oscar & Kareem",m:["Oscar Robertson", "Kareem Abdul-Jabbar"]},
+ {l:"Jokic & Murray",m:["Nikola Jokic", "Jamal Murray"]},
+ {l:"Giannis & Middleton",m:["Giannis Antetokounmpo", "Khris Middleton"]},
+ {l:"Tatum & Brown",m:["Jayson Tatum", "Jaylen Brown"]},
+ {l:"Stockton & Malone",m:["John Stockton", "Karl Malone"]},
+ {l:"West & Baylor",m:["Jerry West", "Elgin Baylor"]},
+ {l:"Payton & Kemp",m:["Gary Payton", "Shawn Kemp"]},
+ {l:"Penny & Shaq",m:["Penny Hardaway", "Shaquille O'Neal"]},
+ {l:"Nash & Amar'e",m:["Steve Nash", "Amar'e Stoudemire"]},
+ {l:"Lob City",m:["Chris Paul", "Blake Griffin"]},
+ {l:"Harden & CP3",m:["James Harden", "Chris Paul"]},
+ {l:"KD & Russ",m:["Kevin Durant", "Russell Westbrook"]},
+ {l:"Luka & Kyrie",m:["Luka Doncic", "Kyrie Irving"]},
+ {l:"DeRozan & Lowry",m:["DeMar DeRozan", "Kyle Lowry"]},
+ {l:"Webber & Bibby",m:["Chris Webber", "Mike Bibby"]},
+ {l:"Davis & Richardson",m:["Baron Davis", "Jason Richardson"]},
+ {l:"Grit & Grind",m:["Mike Conley", "Marc Gasol"]},
+ {l:"Spurs Big Three",m:["Tim Duncan", "Tony Parker", "Manu Ginobili"]},
+ {l:"Bulls Second Threepeat",m:["Michael Jordan", "Scottie Pippen", "Dennis Rodman"]},
+ {l:"Bulls First Threepeat",m:["Michael Jordan", "Scottie Pippen", "Horace Grant"]},
+ {l:"Celtics Big Three '80s",m:["Larry Bird", "Kevin McHale", "Robert Parish"]},
+ {l:"Showtime Trio",m:["Magic Johnson", "Kareem Abdul-Jabbar", "James Worthy"]},
+ {l:"Showtime Wilkes",m:["Magic Johnson", "Kareem Abdul-Jabbar", "Jamaal Wilkes"]},
+ {l:"Warriors Core",m:["Stephen Curry", "Klay Thompson", "Draymond Green"]},
+ {l:"Hamptons Five Wings",m:["Stephen Curry", "Kevin Durant", "Klay Thompson"]},
+ {l:"Curry KD Draymond",m:["Stephen Curry", "Kevin Durant", "Draymond Green"]},
+ {l:"Heatles",m:["LeBron James", "Dwyane Wade", "Chris Bosh"]},
+ {l:"Russell Jones Havlicek",m:["Bill Russell", "Sam Jones", "John Havlicek"]},
+ {l:"Russell Cousy Heinsohn",m:["Bill Russell", "Bob Cousy", "Tommy Heinsohn"]},
+ {l:"Bad Boys Core",m:["Isiah Thomas", "Joe Dumars", "Dennis Rodman"]},
+ {l:"Celtics Big Three '08",m:["Kevin Garnett", "Paul Pierce", "Ray Allen"]},
+ {l:"Cavs Big Three",m:["LeBron James", "Kyrie Irving", "Kevin Love"]},
+ {l:"Lakers '69 Trio",m:["Wilt Chamberlain", "Jerry West", "Elgin Baylor"]},
+ {l:"Sixers '83",m:["Moses Malone", "Julius Erving", "Maurice Cheeks"]},
+ {l:"Knicks '73",m:["Walt Frazier", "Earl Monroe", "Willis Reed"]},
+ {l:"Goin' to Work Pistons",m:["Ben Wallace", "Chauncey Billups", "Richard Hamilton"]},
+ {l:"Nets Finals Core",m:["Jason Kidd", "Richard Jefferson", "Kenyon Martin"]},
+ {l:"Mavs '11 Core",m:["Dirk Nowitzki", "Jason Terry", "Josh Howard"]},
+ {l:"Heat Culture Trio",m:["Jimmy Butler", "Bam Adebayo", "Tyler Herro"]},
+ {l:"OKC Big Three",m:["Kevin Durant", "Russell Westbrook", "James Harden"]},
+ {l:"Nets Big Three",m:["Kevin Durant", "Kyrie Irving", "James Harden"]},
+ {l:"Kings '02 Core",m:["Chris Webber", "Vlade Divac", "Mike Bibby"]},
+ {l:"Seven Seconds or Less",m:["Steve Nash", "Amar'e Stoudemire", "Shawn Marion"]},
+ {l:"Run TMC",m:["Tim Hardaway", "Mitch Richmond", "Chris Mullin"]},
+ {l:"Bucks '01 Trio",m:["Ray Allen", "Glenn Robinson", "Sam Cassell"]},
+ {l:"Pacers '13 Core",m:["Paul George", "Roy Hibbert", "David West"]}
+];
+const DUO_PAIRS=new Set();
+DUOS.forEach(g=>{for(let i=0;i<g.m.length;i++)for(let j=i+1;j<g.m.length;j++){
+  DUO_PAIRS.add(g.m[i]+"|"+g.m[j]);DUO_PAIRS.add(g.m[j]+"|"+g.m[i]);}});
+function duoBonus(starters,links){
+  const on=new Set(starters.map(p=>p.name));
+  const groups=DUOS.map(g=>({l:g.l,present:g.m.filter(n=>on.has(n))}))
+    .filter(g=>g.present.length>=2)
+    .sort((a,b)=>b.present.length-a.present.length);
+  let total=0;const credited=[];
+  for(const g of groups){
+    if(credited.some(big=>g.present.every(n=>big.has(n))))continue;
+    const b=+(((g.present.length-1)*DUO_W).toFixed(1));
+    total+=b;
+    if(links)links.push({label:g.l,n:g.present.length,bonus:b,kind:"duo"});
+    credited.push(new Set(g.present));
+  }
+  return total;
 }
 function chemistry(roster){
   const links=[];
@@ -938,27 +945,23 @@ function chemistry(roster){
   Object.entries(counts).forEach(([t,n])=>{
     if(n>=2){const b=(n-1)*1.5;team+=b;links.push({label:t+" Core",n,bonus:b,kind:"team"});}});
   team=Math.min(6,team);
-
-  /* Iconic links ignore card team/era. Each player may count once, so a trio
-     replaces its duo instead of paying both bonuses. */
-  const iconic=iconicChemistry(roster);
-  links.push(...iconic.links);
-
-  /* Generic tag synergies are deliberately capped lower now that iconic cores
-     exist. Unique player NAMES prevent two versions of one player self-linking. */
+  /* tag synergies: scan starters + bench; unique player NAMES per tag so two
+     versions of the same player never self-link */
+  /* STARTERS ONLY: the bench is ignored entirely for chemistry */
   const groups={};
   STARTER_SLOTS.forEach(s=>{const pid=roster[s];if(pid==null)return;
     DB[pid].tags.forEach(t=>{(groups[t]=groups[t]||new Set()).add(DB[pid].name);});});
   let tag=0;
   Object.entries(groups).forEach(([t,names])=>{
     const n=names.size;if(n<2)return;
-    const w=t.startsWith("Story_")?0.5:0.3;
+    const w=t.startsWith("Story_")?0.4:0.25; /* rare story links pay more than era/style */
     const b=+((n-1)*w).toFixed(1);
     tag+=b;links.push({label:TAG_LABEL[t]||t,n,bonus:b,
       kind:t.startsWith("Story_")?"story":t.startsWith("Era_")?"era":"style"});});
-  tag=Math.min(4,tag);
+  tag+=duoBonus(STARTER_SLOTS.filter(s=>roster[s]!=null).map(s=>DB[roster[s]]),links);
+  tag=Math.min(4.5,tag); /* duos live inside the same cap — total ceiling unchanged */
   links.sort((a,b)=>b.bonus-a.bonus);
-  const bonus=+Math.min(10,team+iconic.bonus+tag).toFixed(1);
+  const bonus=+Math.min(10,team+tag).toFixed(1);
   return {bonus,links};
 }
 function startersFull(roster){return STARTER_SLOTS.every(s=>roster[s]!=null);}
@@ -1033,7 +1036,7 @@ function classicRollPack(owned,counts,recent,packKey,rng){
   for(let k=0;k<3;k++){
     let t=classicDowngrade(rollTier(odds,rng),counts);
     let open=POOLS[t].filter(p=>!excl.has(p.id));
-    if(!open.length)open=POOLS[t].slice();
+    if(!open.length)open=DB.filter(p=>!excl.has(p.id));
     const c=pickPlayer(open,rng);
     cards.push(c);excl.add(c.id);
     if(tierRank(c.tier)>=tierRank("Elite"))counts[c.tier]=(counts[c.tier]||0)+1;
@@ -1143,7 +1146,6 @@ function cardHTML(p,attrs,badge){
     ${tagRow("Era",p.tags.filter(t=>t.startsWith("Era_")))}
     ${tagRow("Playstyle",p.tags.filter(t=>t.startsWith("Style_")))}
     ${tagRow("Storylines",p.tags.filter(t=>t.startsWith("Story_")))}
-    ${tagRow("Iconic cores",p.iconics.slice(0,2).map(g=>g.label).concat(p.iconics.length>2?["+"+(p.iconics.length-2)+" more"]:[]))}
     <div class="bk-lab">Card</div><div class="bk-val">${p.tier} tier · ${SLOTNAMES(p)}</div>
     <div class="bk-flip">↺ tap to flip back</div>
   </div>`;
@@ -1218,7 +1220,7 @@ function hubHTML(side){
   const lab=ovr.ready?pr.label:"Fill your starting five";
   const chemHTML=ovr.chem.links.length
     ?ovr.chem.links.map(l=>`<span class="${"ck-"+l.kind}">${l.label} ×${l.n} → +${l.bonus.toFixed(1)}</span>`).join("")
-    :`<span>No chemistry — link teams, iconic duos/trios, eras, styles, draft classes or rivalries</span>`;
+    :`<span>No chemistry — link teams, eras, styles, draft classes or rivalries</span>`;
   const owned=ownedList(side);
   const cl=S.classic,clLeft=cl.cap-cl.opened;
   const classicShelf=`
@@ -1247,10 +1249,10 @@ function hubHTML(side){
           <div class="chemlegend">
             <div class="clg-h">CHEMISTRY RANKS</div>
             <div class="clg ck-team"><i></i><div><b>Team Core</b><span>same-franchise starters · +1.5 each</span></div></div>
-            <div class="clg ck-iconic"><i></i><div><b>Iconic Duo / Trio</b><span>full historical core · +0.3–0.5 per player · strongest overlap only</span></div></div>
-            <div class="clg ck-story"><i></i><div><b>Storylines</b><span>rivalries · USA teams · draft classes · +0.5</span></div></div>
-            <div class="clg ck-era"><i></i><div><b>Era</b><span>same generation · +0.3</span></div></div>
-            <div class="clg ck-style"><i></i><div><b>Playstyle</b><span>shared archetype · +0.3</span></div></div>
+            <div class="clg ck-duo"><i></i><div><b>Iconic Duos</b><span>legendary duos +0.5 · full trios +1.0 · any card version</span></div></div>
+            <div class="clg ck-story"><i></i><div><b>Storylines</b><span>rivalries · USA teams · draft classes · +0.4</span></div></div>
+            <div class="clg ck-era"><i></i><div><b>Era</b><span>same generation · +0.25</span></div></div>
+            <div class="clg ck-style"><i></i><div><b>Playstyle</b><span>shared archetype · +0.25</span></div></div>
           </div>
         </div>
       </div>
@@ -1414,12 +1416,10 @@ let REV=null; // {cards, side, packKey, flipped:[]}
 let RECENT=sGet("atu-recent-v1")||[]; // ids from the last 2 packs, persisted across resets
 /* hydrate the pull-memory randomizer now that storage helpers exist */
 try{
-  PACK_NO=sGet("atu-packno-v2")||0;
-  PULL_AT=sGet("atu-pullhist-v2")||{};
-  NAME_PULL_AT=sGet("atu-namehist-v2")||{};
-  const dk=sGet("atu-decks-v2");
-  if(dk&&typeof dk==="object")TIER_DECKS=dk;
-  decksReady(); /* removes stale ids and inserts every newly added card */
+  PACK_NO=sGet("atu-packno-v1")||0;
+  PULL_AT=sGet("atu-pullhist-v1")||{};
+  const dk=sGet("atu-decks-v1");
+  if(dk&&typeof dk==="object")TIER_DECKS=dk; /* decksReady() patches any missing tiers */
 }catch(e){}
 function recentSet(){return new Set(RECENT.flat());}
 function noteRecent(cards){RECENT.push(cards.map(c=>c.id));RECENT=RECENT.slice(-2);sSet("atu-recent-v1",RECENT);}
@@ -1623,10 +1623,10 @@ function draftHTML(){
     <div class="chemlegend">
       <div class="clg-h">CHEMISTRY RANKS</div>
       <div class="clg ck-team"><i></i><div><b>Team Core</b><span>same-franchise starters · +1.5 each</span></div></div>
-      <div class="clg ck-iconic"><i></i><div><b>Iconic Duo / Trio</b><span>full historical core · +0.3–0.5 per player · strongest overlap only</span></div></div>
-      <div class="clg ck-story"><i></i><div><b>Storylines</b><span>rivalries · USA teams · draft classes · +0.5</span></div></div>
-      <div class="clg ck-era"><i></i><div><b>Era</b><span>same generation · +0.3</span></div></div>
-      <div class="clg ck-style"><i></i><div><b>Playstyle</b><span>shared archetype · +0.3</span></div></div>
+      <div class="clg ck-duo"><i></i><div><b>Iconic Duos</b><span>legendary duos +0.5 · full trios +1.0 · any card version</span></div></div>
+      <div class="clg ck-story"><i></i><div><b>Storylines</b><span>rivalries · USA teams · draft classes · +0.4</span></div></div>
+      <div class="clg ck-era"><i></i><div><b>Era</b><span>same generation · +0.25</span></div></div>
+      <div class="clg ck-style"><i></i><div><b>Playstyle</b><span>shared archetype · +0.25</span></div></div>
     </div></div></div>
   <div class="court">
     <svg class="squadweb" aria-hidden="true"></svg>
@@ -1757,12 +1757,12 @@ function drawDraftCanvas(){
       const CTR={x:540,y:772},R=252,ANG={C:-90,SF:-18,PG:54,SG:126,PF:198},pos={};
       Object.entries(ANG).forEach(([s,a])=>{const r=a*Math.PI/180;
         pos[s]={x:CTR.x+R*Math.cos(r),y:CTR.y+R*Math.sin(r)};});
-      const SL=["C","PF","SF","SG","PG"],activeIconicPairs=activeIconicPairKeys(D.roster);
+      const SL=["C","PF","SF","SG","PG"];
       for(let i=0;i<5;i++)for(let j=i+1;j<5;j++){
         const A=SL[i],B=SL[j];
         c.beginPath();c.moveTo(pos[A].x,pos[A].y);c.lineTo(pos[B].x,pos[B].y);
         c.strokeStyle="rgba(107,107,116,.18)";c.lineWidth=2;c.shadowBlur=0;c.stroke();
-        const k=pairLinkKind(DB[D.roster[A]],DB[D.roster[B]],activeIconicPairs);
+        const k=pairLinkKind(DB[D.roster[A]],DB[D.roster[B]]);
         if(k){const col=WEB_COLORS[k];
           c.save();c.shadowColor=col;c.shadowBlur=22;c.strokeStyle=col;
           c.globalAlpha=.55;c.lineWidth=6;c.stroke();
@@ -1948,18 +1948,17 @@ function render(){
     </footer>`;
 }
 /* neon squad web: blue lines between starters sharing a chemistry tag or team core */
-const WEB_COLORS={team:"#ffc53d",iconic:"#b58cff",story:"#ff7ac8",era:"#35d6ff",style:"#39ff9c"};
+const WEB_COLORS={team:"#ffc53d",duo:"#ff4d6d",story:"#ff7ac8",era:"#35d6ff",style:"#39ff9c"};
 /* glow strength ascends with chemistry rank */
 /* layered stroke bloom per rank — painted directly into the web (no CSS filters,
    which iOS Safari drops on SVG children). Widest soft halo → mid glow → crisp core,
    ascending strength by rank, same soft-rim feel as the Icon cards. */
 /* uniform neon bloom for all lit segments (Icon-rim style, per-link color)
    via SVG-native feGaussianBlur — renders on every browser incl. iOS Safari. */
-function pairLinkKind(a,b,activeIconicPairs=null){ /* strongest shared chemistry between two starters */
+function pairLinkKind(a,b){ /* strongest shared chemistry between two starters */
   if(a.name===b.name)return null; /* two versions of one player never link */
   if(a.team===b.team)return "team";
-  const pair=[a.name,b.name].sort().join("|");
-  if(activeIconicPairs&&activeIconicPairs.has(pair))return "iconic";
+  if(DUO_PAIRS.has(a.name+"|"+b.name))return "duo";
   let era=false,style=false;
   for(const t of a.tags){if(!b.tags.includes(t))continue;
     if(t.startsWith("Story_"))return "story";
@@ -1972,7 +1971,6 @@ function drawSquadWeb(){
   const court=svg.closest(".court"),cr=court.getBoundingClientRect();
   if(cr.width)svg.setAttribute("viewBox",`0 0 ${cr.width} ${cr.height}`);
   const roster=screen==="draft"?D.roster:screen==="share"&&SHARED?SHARED.roster:S[sideFor(screen)].roster;
-  const activeIconicPairs=activeIconicPairKeys(roster);
   const pts={};
   STARTER_SLOTS.forEach(s=>{const el=court.querySelector(".slot-"+s);if(!el)return;
     const r=el.getBoundingClientRect();
@@ -1989,7 +1987,7 @@ function drawSquadWeb(){
     const seg=(cls,st)=>`<line x1="${p1.x.toFixed(1)}" y1="${p1.y.toFixed(1)}" x2="${p2.x.toFixed(1)}" y2="${p2.y.toFixed(1)}" ${st}/>`;
     grey+=seg("g",'stroke="#6b6b74" stroke-width="1.5" opacity="0.22"'); /* cool-grey web, always present */
     if(roster[A]!=null&&roster[B]!=null){
-      const k=pairLinkKind(DB[roster[A]],DB[roster[B]],activeIconicPairs);
+      const k=pairLinkKind(DB[roster[A]],DB[roster[B]]);
       if(k){const c=WEB_COLORS[k];
         blue+=seg("core-"+k,`class="core-${k}" stroke="${c}" stroke-width="3" opacity="0.9" stroke-linecap="round" filter="url(#webneon)"`);}
     }
