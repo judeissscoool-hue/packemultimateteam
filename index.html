@@ -367,7 +367,30 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .notice{font-size:12px;color:var(--amber);text-align:center;margin-top:8px;min-height:16px}
 .stack{display:flex;flex-direction:column;gap:12px}
 .grid2{display:grid;grid-template-columns:1fr;gap:12px}
-@media(min-width:900px){.grid2{grid-template-columns:340px 1fr}}
+@media(min-width:900px){.grid2{grid-template-columns:minmax(420px,460px) minmax(0,1fr)}}
+/* v35: the Pack Mode scoreboard lives inside the sidebar, so it needs its own
+   compact layout instead of inheriting the full-width three-column scoreboard. */
+.hub-scoreboard{grid-template-columns:104px minmax(0,1fr);align-items:start;gap:12px}
+.hub-scoreboard>div:nth-child(2){min-width:0}
+.hub-scoreboard .projrow{gap:10px}
+.hub-scoreboard .recordid{min-width:0}
+.hub-scoreboard .recordid .rid-main{font-size:15px;overflow-wrap:anywhere}
+.hub-scoreboard .recordid .rid-sub{font-size:8px;letter-spacing:.10em;overflow-wrap:anywhere}
+.hub-scoreboard .recordid .rid-record{font-size:20px}
+.hub-scoreboard .chemlegend{grid-column:1/-1;border-left:0;border-top:1px solid rgba(255,255,255,.08);padding:10px 0 0;min-width:0;display:grid;grid-template-columns:1fr 1fr;gap:7px 12px}
+.hub-scoreboard .chemlegend .clg-h{grid-column:1/-1}
+.hub-scoreboard .clg{min-width:0}
+.hub-scoreboard .clg span{overflow-wrap:anywhere}
+@media(max-width:1120px) and (min-width:900px){
+  .grid2{grid-template-columns:400px minmax(0,1fr)}
+  .hub-scoreboard{grid-template-columns:92px minmax(0,1fr)}
+  .hub-scoreboard .chemlegend{grid-template-columns:1fr}
+  .hub-scoreboard .chemlegend .clg-h{grid-column:auto}
+}
+@media(max-width:899px){
+  .hub-scoreboard{grid-template-columns:auto 1fr}
+  .hub-scoreboard .chemlegend{grid-column:1/-1}
+}
 @media(max-width:520px){
   .slot,.card{width:88px}.card{height:146px}.slot{min-height:134px}
   .ovrbig{font-size:48px;min-width:84px}
@@ -1672,7 +1695,7 @@ function hubHTML(side){
   <div class="grid2">
     <div class="stack">
       <div class="panel">
-        <div class="scoreboard">
+        <div class="scoreboard hub-scoreboard">
           <div class="ovrbig" id="ovr-${side}">${ovr.total}<small>TEAM OVR</small><small class="exact">${ovr.ready?ovr.eff.toFixed(1)+" Ovr w Chem":"—"}</small></div>
           <div>
             <div class="projrow">
@@ -1953,6 +1976,28 @@ function confetti(n,palette){
 }
 
 /* ================= DRAFT MODE ================= */
+/* v35 state invariant: older/touch-interrupted sessions could retain selected IDs
+   in D.taken while losing their slot assignment. Rebuild those orphan selections
+   into legal empty slots before rendering, then derive completion from the court. */
+function reconcileDraftState(){
+  D.roster=D.roster||emptyRoster();
+  ALL_SLOTS.forEach(s=>{if(!(s in D.roster))D.roster[s]=null;});
+  D.taken=Array.isArray(D.taken)?D.taken.filter(id=>DB[id]):[];
+  const placedIds=new Set(ALL_SLOTS.map(s=>D.roster[s]).filter(id=>id!=null));
+  const placedNames=new Set([...placedIds].map(id=>DB[id].name));
+  const orphans=[];
+  D.taken.forEach(id=>{const p=DB[id];if(!placedIds.has(id)&&!placedNames.has(p.name)){orphans.push(id);placedNames.add(p.name);}});
+  orphans.forEach(id=>{
+    const p=DB[id];
+    const slot=DRAFT_ORDER.find(s=>D.roster[s]==null&&eligible(p,s));
+    if(slot!=null){D.roster[slot]=id;placedIds.add(id);}
+  });
+  D.taken=ALL_SLOTS.map(s=>D.roster[s]).filter(id=>id!=null);
+  const full=ALL_SLOTS.every(s=>D.roster[s]!=null);
+  if(full){D.done=true;D.stage="picking";D.activeSlot=null;D.opts=null;}
+  else if(D.done)D.done=false;
+  return full;
+}
 function startDraft(){
   beginDraftFairSession();
   const captain=draftCaptainOptions();
@@ -1963,7 +2008,7 @@ function pickCaptain(pid){
   const p=DB[pid];
   D.tierCounts[p.tier]=(D.tierCounts[p.tier]||0)+1; /* Icon captain spends an Icon slot */
   D.roster[p.pos]=pid;D.taken.push(pid);D.lastSlot=p.pos;D.stage="picking";
-  render();
+  reconcileDraftState();render();
 }
 function draftSlotTap(slot){
   if(D.stage!=="picking")return;
@@ -1986,7 +2031,7 @@ function draftPickInto(pid){
   if(draftCapHit(p.tier)){notice(p.tier+" cap reached ("+DRAFT_LIMITS[p.tier]+" per draft).");return;}
   if(DRAFT_LIMITS[p.tier])D.tierCounts[p.tier]=(D.tierCounts[p.tier]||0)+1;
   D.roster[slot]=pid;D.taken.push(pid);D.lastSlot=slot;D.activeSlot=null;D.opts=null;
-  if(ALL_SLOTS.every(s=>D.roster[s]!=null)){
+  if(reconcileDraftState()){
     D.done=true; /* stay on the court \u2014 no summary screen */
     const o=teamOVR(D.roster),pr=projection(o.eff);
     if(o.total>HS.draft.ovr){HS.draft.ovr=o.total;HS.draft.wins=pr.wins;saveHS();}
@@ -2049,6 +2094,7 @@ function draftSlotHTML(slot){
   return `<div class="slot-${slot}" style="position:relative${tappable?";cursor:pointer":""}" ${tappable?`onclick="draftSlotTap('${slot}')"`:""}><div class="${D.lastSlot===slot?"snapin":""}">${cardHTML(DB[pid])}</div>${tappable?`<div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:8px;letter-spacing:.15em;color:var(--cyan);pointer-events:none">TAP TO MOVE</div>`:""}</div>`;
 }
 function draftHTML(){
+  reconcileDraftState();
   if(D.stage==="captain"){
     return `<div class="result"><h2 class="disp" style="font-size:22px;color:var(--dim)">Choosing your captain…</h2></div>`;
   }
@@ -2080,7 +2126,7 @@ function draftHTML(){
     </div></div></div>
   <div class="court">
     <svg class="squadweb" aria-hidden="true"></svg>
-    <h3>Tap an empty slot — PG · SG · SF · PF · C</h3>
+    <h3>${D.done?"Final Draft Board — tap a player to rearrange":"Tap an empty slot — PG · SG · SF · PF · C"}</h3>
     <div class="fiveslots">${["C","PF","SF","SG","PG"].map(s=>draftSlotHTML(s)).join("")}</div>
     <div class="benchlabel">BENCH — ANY POSITION</div>
     <div class="benchrow">${BENCH_SLOTS.map(s=>draftSlotHTML(s)).join("")}</div>
@@ -2326,6 +2372,7 @@ function classicPickCaptain(pid){
   notice(p.name+" anchors the run — build around them.");
 }
 function renderDraftOverlay(){
+  reconcileDraftState();
   const o=$("#draftoverlay");if(!o)return;
   const classicCaptain=screen==="classic"&&CC;
   const active=(screen==="draft"&&(D.stage==="captain"||(D.stage==="picking"&&D.activeSlot)))||classicCaptain;
