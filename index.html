@@ -83,6 +83,24 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .projrow b{display:block;color:var(--ink);font-size:15px;font-family:var(--disp);letter-spacing:.05em}
 .chemlinks{margin-top:6px;font-size:11px;color:var(--dim);display:flex;gap:6px;flex-wrap:wrap}
 .chemlinks span{background:var(--panel2);border:1px solid var(--line);padding:2px 8px;border-radius:20px}
+
+.recordid{margin-top:9px;border:1px solid rgba(255,255,255,.10);background:linear-gradient(135deg,rgba(255,255,255,.035),rgba(255,255,255,.012));border-radius:10px;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;gap:10px;overflow:hidden;position:relative}
+.recordid::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 0 42%,rgba(255,255,255,.05) 50%,transparent 58% 100%);transform:translateX(-120%)}
+.recordid .rid-main{font-family:var(--disp);font-size:18px;letter-spacing:.07em;text-transform:uppercase;line-height:1}
+.recordid .rid-sub{font-size:9px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase;margin-top:4px}
+.recordid .rid-record{font-family:var(--disp);font-size:24px;letter-spacing:.04em;white-space:nowrap}
+.recordid.rid-playoff{border-color:rgba(53,214,255,.32)}
+.recordid.rid-contender{border-color:rgba(255,197,61,.38);box-shadow:0 0 14px rgba(255,197,61,.08) inset}
+.recordid.rid-great{border-color:rgba(255,122,200,.48);box-shadow:0 0 18px rgba(255,122,200,.10) inset}
+.recordid.rid-near{border-color:rgba(242,169,59,.72);box-shadow:0 0 18px rgba(242,169,59,.16),0 0 20px rgba(242,169,59,.08) inset}
+.recordid.rid-near .rid-main,.recordid.rid-near .rid-record{color:var(--amber)}
+.recordid.rid-perfect{border:1px solid var(--gold);background:linear-gradient(135deg,#3a2f12,#1b1609 58%,#33250d);box-shadow:0 0 24px rgba(255,197,61,.34),0 0 30px rgba(255,197,61,.18) inset;animation:clubpulse 1.8s ease-in-out infinite}
+.recordid.rid-perfect::after{animation:clubshine 2.8s ease-in-out infinite}
+.recordid.rid-perfect .rid-main,.recordid.rid-perfect .rid-record{color:var(--gold);text-shadow:0 0 12px rgba(255,197,61,.5)}
+.recordid.rid-perfect .rid-sub{color:#f9dfa0}
+@keyframes clubpulse{0%,100%{box-shadow:0 0 20px rgba(255,197,61,.25),0 0 28px rgba(255,197,61,.12) inset}50%{box-shadow:0 0 32px rgba(255,197,61,.46),0 0 38px rgba(255,197,61,.22) inset}}
+@keyframes clubshine{0%,30%{transform:translateX(-120%)}65%,100%{transform:translateX(120%)}}
+.clubstamp{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--gold);border-radius:999px;padding:5px 10px;background:#2b210b;color:var(--gold);font-family:var(--disp);font-size:12px;letter-spacing:.12em;text-transform:uppercase;box-shadow:0 0 16px rgba(255,197,61,.25)}
 :root{--ck-team:#ffc53d;--ck-duo:#ff4d6d;--ck-story:#ff7ac8;--ck-era:#35d6ff;--ck-style:#39ff9c}
 /* chem web segments: icon-rim style bloom, strength ascends with rank */
 .squadweb .wl{stroke-linecap:round;animation:webpulse var(--ws,2s) ease-in-out infinite}
@@ -358,6 +376,18 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important}
 }
+
+/* ============ PHASE 4: TROPHY CASE ============ */
+.trophyhero{background:linear-gradient(135deg,#211a08,#171717 48%,#101d24);border:1px solid rgba(255,197,61,.35);border-radius:16px;padding:18px;margin-bottom:12px;display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center}
+.trophyhero h2{font-size:28px;color:var(--gold)}.tpbig{font-family:var(--disp);font-size:34px;color:var(--gold);text-align:right}.tpbig small{display:block;font:10px var(--body);letter-spacing:.18em;color:var(--dim)}
+.trophyfilters{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}.trophyfilters button{padding:7px 10px;border:1px solid var(--line);border-radius:20px;font-size:10px;letter-spacing:.08em;color:var(--dim);background:var(--panel2)}.trophyfilters button.on{color:#071217;background:var(--cyan);border-color:var(--cyan)}
+.trophygrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(235px,1fr));gap:10px}.trophy{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:13px;min-height:142px;position:relative;overflow:hidden}.trophy.done{border-color:rgba(255,197,61,.55);box-shadow:0 0 16px rgba(255,197,61,.10) inset}.trophy.hidden:not(.done){filter:saturate(.35)}
+.trophy .tier{font-size:8px;letter-spacing:.22em;text-transform:uppercase;color:var(--dim)}.trophy h3{font-size:16px;margin:4px 0}.trophy p{font-size:11px;color:#c8c8d0;line-height:1.45;min-height:32px}.trophy .prog{height:6px;background:#0b0b0c;border-radius:5px;margin:10px 0 5px;overflow:hidden}.trophy .prog i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--gold));border-radius:5px}.trophy .footrow{display:flex;justify-content:space-between;gap:8px;font-size:9px;color:var(--dim)}
+.t-BronzeT{border-top:3px solid var(--bronze)}.t-SilverT{border-top:3px solid var(--silver)}.t-GoldT{border-top:3px solid var(--gold)}.t-DiamondT{border-top:3px solid var(--cyan)}.t-ImmortalT{border-top:3px solid var(--icon2);box-shadow:0 0 18px rgba(255,122,200,.14)}
+.archivegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}.archive{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:13px}.archive.complete{border-color:var(--green)}.archive.activated{border-color:var(--gold);box-shadow:0 0 13px rgba(255,197,61,.12)}.archive h3{font-size:16px}.archive .members{font-size:10px;color:#c9c9d2;line-height:1.6;margin-top:5px}.member.ok{color:var(--green)}.member.miss{color:#ff8aa0}.archive .state{font-size:9px;letter-spacing:.12em;color:var(--dim);margin-top:8px}.archivetabs{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}.archivetabs .btn.on{border-color:var(--gold);color:var(--gold)}
+.unlocktoast{position:fixed;right:14px;top:14px;z-index:120;width:min(340px,calc(100vw - 28px));background:#17130a;border:1px solid var(--gold);border-radius:14px;padding:14px;box-shadow:0 0 28px rgba(255,197,61,.32);animation:toastin .35s ease-out}.unlocktoast b{color:var(--gold);font-family:var(--disp);letter-spacing:.05em}.unlocktoast span{display:block;font-size:11px;color:#d5d1c6;margin-top:4px}@keyframes toastin{from{transform:translateY(-20px);opacity:0}}
+@media(max-width:560px){.trophyhero{grid-template-columns:1fr}.tpbig{text-align:left}.trophygrid,.archivegrid{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -1173,6 +1203,21 @@ function teamOVR(roster){
    flat-ish under 75, climbing through the 80s, exploding past 90 */
 const EIGHTY_TWO_EFF=104.0;
 const PROJ=[[60,15],[70,26],[75,31],[80,38],[84,46],[87,54],[90,65],[92,70],[95,76],[97,78],[100,80],[EIGHTY_TWO_EFF,82]];
+function recordIdentity(wins){
+  if(wins>=82)return {title:"82–0 Club",sub:"Perfection certified",cls:"rid-perfect",stamp:"TRUE 82–0"};
+  if(wins===81)return {title:"Perfect Season Threat",sub:"One loss from immortality",cls:"rid-near"};
+  if(wins===80)return {title:"One for the Ages",sub:"Historic without perfection",cls:"rid-near"};
+  if(wins>=77)return {title:"Dynasty Material",sub:"An all-time powerhouse",cls:"rid-great"};
+  if(wins>=72)return {title:"All-Time Great",sub:"Historic championship level",cls:"rid-great"};
+  if(wins>=66)return {title:"Finals Favorite",sub:"Built to own June",cls:"rid-contender"};
+  if(wins>=60)return {title:"Title Contender",sub:"A real championship window",cls:"rid-contender"};
+  if(wins>=54)return {title:"Conference Threat",sub:"Dangerous deep into May",cls:"rid-contender"};
+  if(wins>=47)return {title:"Homecourt Bullies",sub:"A brutal first-round draw",cls:"rid-playoff"};
+  if(wins>=40)return {title:"Playoff Team",sub:"Good enough to matter",cls:"rid-playoff"};
+  if(wins>=30)return {title:"Play-In Pests",sub:"Annoying, alive, unfinished",cls:""};
+  if(wins>=20)return {title:"Rebuilding",sub:"Pieces exist; wins do not",cls:""};
+  return {title:"Lottery Lifers",sub:"Back to the draft board",cls:""};
+}
 function projection(eff){
   const e=Math.max(60,Math.min(EIGHTY_TWO_EFF,eff));
   let wins=PROJ[PROJ.length-1][1];
@@ -1180,10 +1225,13 @@ function projection(eff){
     if(e<=b){const t=(e-a)/(b-a),s=(1-Math.cos(Math.PI*t))/2; /* smooth, non-linear */
       wins=Math.round(wa+(wb-wa)*s);break;}}
   wins=Math.max(12,Math.min(82,wins));
-  const label=wins<20?"Lottery Team":wins<30?"Rebuilding":wins<40?"Play-In Hopeful":
-    wins<47?"Playoff Team":wins<54?"Homecourt Threat":wins<60?"Contender":
-    wins<66?"Title Favorite":wins<72?"Juggernaut":"Historic Juggernaut";
-  return {wins,losses:82-wins,label};
+  const identity=recordIdentity(wins);
+  return {wins,losses:82-wins,label:identity.title,identity};
+}
+function recordIdentityHTML(pr,ready){
+  if(!ready)return `<div class="recordid"><div><div class="rid-main">Identity Pending</div><div class="rid-sub">Fill the starting five</div></div><div class="rid-record">—</div></div>`;
+  const i=pr.identity||recordIdentity(pr.wins);
+  return `<div class="recordid ${i.cls}"><div><div class="rid-main">${i.title}</div><div class="rid-sub">${i.sub}</div></div><div class="rid-record">${pr.wins}–${pr.losses}</div></div>`;
 }
 function nearMissChem(o){
   if(!o.ready)return null;
@@ -1390,6 +1438,124 @@ let D={stage:"idle",done:false,taken:[],roster:emptyRoster(),opts:null,activeSlo
 const DRAFT_ORDER=["PG","SG","SF","PF","C","B1","B2","B3"];
 const SLOT_LABEL={PG:"Point Guard",SG:"Shooting Guard",SF:"Small Forward",PF:"Power Forward",C:"Center",B1:"Bench 1",B2:"Bench 2",B3:"Bench 3"};
 
+/* ================= PHASE 4: TROPHY CASE ================= */
+const TROPHY_KEY="atu-trophies-v1";
+function emptyTrophyState(){return {version:1,seenCards:{},seenNames:{},unlocked:{},activatedChem:{},activatedWhatIf:{},activatedTeams:{},last82:{},stats:{packs:0,drafts:0,pack82:0,draft82:0,maxChem:0,maxWins:0,iconsPulled:0,elitePulled:0,goldPulled:0,doubleElite:0,doubleIcon:0,threeElite:0,pulled99:0}};}
+let T=sGet(TROPHY_KEY)||emptyTrophyState();T.version=1;T.seenCards=T.seenCards||{};T.seenNames=T.seenNames||{};T.unlocked=T.unlocked||{};T.activatedChem=T.activatedChem||{};T.activatedWhatIf=T.activatedWhatIf||{};T.activatedTeams=T.activatedTeams||{};T.stats=Object.assign(emptyTrophyState().stats,T.stats||{});T.last82=T.last82||{};
+let TROPHY_FILTER="Featured",ARCHIVE_TAB="chem";
+const TROPHY_POINTS={Bronze:10,Silver:25,Gold:50,Diamond:100,Immortal:250};
+function saveTrophies(){sSet(TROPHY_KEY,T);}
+function ledgerAdd(p){if(!p)return;T.seenCards[p.id]=1;T.seenNames[p.name]=1;}
+function allCurrentCards(){const ids=new Set();["main","rare","classic"].forEach(side=>{if(!S[side])return;Object.keys(S[side].coll||{}).forEach(id=>ids.add(+id));ALL_SLOTS.forEach(sl=>{const id=S[side].roster&&S[side].roster[sl];if(id!=null)ids.add(id);});});return [...ids].map(id=>DB[id]).filter(Boolean);}
+function migrateTrophies(){allCurrentCards().forEach(ledgerAdd);Object.values(HS).forEach(h=>{if(h&&h.wins)T.stats.maxWins=Math.max(T.stats.maxWins,h.wins);});saveTrophies();}
+function ownedNames(){return new Set(Object.keys(T.seenNames));}
+function ownedCards(){return Object.keys(T.seenCards).map(Number).map(id=>DB[id]).filter(Boolean);}
+function rosterPlayers(r){return ALL_SLOTS.map(s=>r&&r[s]!=null?DB[r[s]]:null).filter(Boolean);}
+function activeRosters(){const a=[];["main","rare","classic"].forEach(k=>S[k]&&a.push({mode:k,r:S[k].roster}));if(D.done)a.push({mode:"draft",r:D.roster});return a;}
+function hasLineup(test){return activeRosters().some(x=>{const ps=rosterPlayers(x.r);return ps.length===8&&test(ps,x.r,x.mode);});}
+function starterTest(test){return activeRosters().some(x=>{const ps=STARTER_SLOTS.map(s=>x.r[s]!=null?DB[x.r[s]]:null).filter(Boolean);return ps.length===5&&test(ps,x.r,x.mode);});}
+function bestLive(){let best={wins:0,chem:0,total:60,mode:""};activeRosters().forEach(x=>{const o=teamOVR(x.r);if(!o.ready)return;const pr=projection(o.eff);if(pr.wins>best.wins)best={wins:pr.wins,chem:o.chem.bonus,total:o.total,mode:x.mode};});return best;}
+function markActivations(){const names=ownedNames();activeRosters().forEach(x=>{const starters=STARTER_SLOTS.map(s=>x.r[s]!=null?DB[x.r[s]].name:null).filter(Boolean);const set=new Set(starters);DUOS.forEach(g=>{if(g.m.every(n=>set.has(n)))T.activatedChem[g.l]=1;});WHAT_IF.forEach(g=>{if(g.m.every(n=>set.has(n)))T.activatedWhatIf[g.id]=1;});ICONIC_TEAMS.forEach(g=>{const all=new Set(rosterPlayers(x.r).map(p=>p.name));if(g.m.every(n=>all.has(n)))T.activatedTeams[g.id]=1;});});}
+function trophyProgress(cur,max,missing){return {cur:Math.min(cur,max),max,done:cur>=max,missing:missing||[]};}
+function countNames(pred){const names=ownedNames();return [...names].filter(n=>{const cards=DB.filter(p=>p.name===n);return cards.some(pred);}).length;}
+function uniqueVariantsDone(){const by={};ownedCards().forEach(p=>(by[p.name]=by[p.name]||new Set()).add(p.id));return Object.values(by).filter(s=>s.size>=2).length;}
+function fullVariantSets(){const own=new Set(Object.keys(T.seenCards).map(Number));const by={};DB.forEach(p=>(by[p.name]=by[p.name]||[]).push(p.id));return Object.values(by).filter(ids=>ids.length>1&&ids.every(id=>own.has(id))).length;}
+const STYLE_KEYS=[...new Set(DB.flatMap(p=>p.tags.filter(t=>t.startsWith("Style_"))))];
+const ERA_KEYS=[...new Set(DB.flatMap(p=>p.tags.filter(t=>t.startsWith("Era_"))))];
+const TEAM_KEYS=[...new Set(DB.map(p=>p.team))].sort();
+function namesFor(pred){return [...new Set(DB.filter(pred).map(p=>p.name))];}
+function setProgress(required){const own=ownedNames(),available=required.filter(n=>DB.some(p=>p.name===n)),unavailable=required.filter(n=>!DB.some(p=>p.name===n)),miss=available.filter(n=>!own.has(n));const out=trophyProgress(available.length-miss.length,Math.max(1,available.length),miss);out.unavailable=unavailable;return out;}
+
+const WHAT_IF=[
+{id:"vetoed-lakers",n:"The Vetoed Lakers",cred:"Deal agreed",m:["Chris Paul","Kobe Bryant","Dwight Howard"]},
+{id:"chicago-mamba",n:"Chicago Mamba",cred:"Advanced talks",m:["Kobe Bryant","Derrick Rose","Joakim Noah"]},
+{id:"dallas-mamba",n:"Dallas Superteam",cred:"Serious pursuit",m:["Jason Kidd","Kobe Bryant","Dirk Nowitzki"]},
+{id:"kg-lakers",n:"Twin Infernos",cred:"Advanced talks",m:["Kobe Bryant","Kevin Garnett"]},
+{id:"kg-suns",n:"Desert Superteam",cred:"Preferred destination",m:["Steve Nash","Kevin Garnett","Amar'e Stoudemire"]},
+{id:"kidd-lakers",n:"The Original Lakers Superteam",cred:"Serious pursuit",m:["Kobe Bryant","Jason Kidd"]},
+{id:"kobe-hill",n:"Hill and Kobe",cred:"Speculative proposal",m:["Kobe Bryant","Grant Hill"]},
+{id:"cp3-celtics",n:"Point God in Boston",cred:"Reported pursuit",m:["Chris Paul","Kevin Garnett","Paul Pierce"]},
+{id:"lebron-knicks",n:"King of New York",cred:"Free-agency possibility",m:["LeBron James","Amar'e Stoudemire","Carmelo Anthony"]},
+{id:"kd-warriors-core",n:"The Pre-Hamptons Pitch",cred:"Serious recruitment",m:["Kevin Durant","Stephen Curry","Draymond Green"]},
+{id:"harden-sixers",n:"Process Superteam",cred:"Trade talks",m:["James Harden","Joel Embiid","Ben Simmons"]},
+{id:"kawhi-lakers",n:"Los Angeles Three-Headed Monster",cred:"Free-agency pursuit",m:["Kawhi Leonard","LeBron James","Anthony Davis"]},
+{id:"pg-lakers",n:"Homecoming That Wasn't",cred:"Reported interest",m:["Paul George","LeBron James"]},
+{id:"tmac-duncan",n:"Orlando's Lost Dynasty",cred:"Free-agency meeting",m:["Tracy McGrady","Tim Duncan","Grant Hill"]},
+{id:"jordan-drexler",n:"Portland's Alternate GOAT",cred:"Draft decision",m:["Michael Jordan","Clyde Drexler"]}
+];
+const ICONIC_TEAMS=[
+{id:"bulls96",n:"1995–96 Bulls",kind:"Champion",m:["Michael Jordan","Scottie Pippen","Dennis Rodman","Ron Harper","Luc Longley","Toni Kukoc","Steve Kerr"]},
+{id:"bulls91",n:"1990–91 Bulls",kind:"Champion",m:["Michael Jordan","Scottie Pippen","Horace Grant","John Paxson","Bill Cartwright"]},
+{id:"lakers87",n:"1986–87 Showtime Lakers",kind:"Champion",m:["Magic Johnson","Kareem Abdul-Jabbar","James Worthy","Byron Scott","Michael Cooper"]},
+{id:"celtics86",n:"1985–86 Celtics",kind:"Champion",m:["Larry Bird","Kevin McHale","Robert Parish","Dennis Johnson","Bill Walton"]},
+{id:"pistons89",n:"1988–89 Bad Boys",kind:"Champion",m:["Isiah Thomas","Joe Dumars","Dennis Rodman","Bill Laimbeer","Mark Aguirre"]},
+{id:"sixers83",n:"1982–83 76ers",kind:"Champion",m:["Moses Malone","Julius Erving","Maurice Cheeks","Andrew Toney","Bobby Jones"]},
+{id:"lakers01",n:"2000–01 Lakers",kind:"Champion",m:["Shaquille O'Neal","Kobe Bryant","Derek Fisher","Robert Horry","Rick Fox"]},
+{id:"pistons04",n:"2003–04 Pistons",kind:"Champion",m:["Chauncey Billups","Richard Hamilton","Tayshaun Prince","Rasheed Wallace","Ben Wallace"]},
+{id:"celtics08",n:"2007–08 Celtics",kind:"Champion",m:["Rajon Rondo","Ray Allen","Paul Pierce","Kevin Garnett","Kendrick Perkins"]},
+{id:"mavs11",n:"2010–11 Mavericks",kind:"Champion",m:["Jason Kidd","Jason Terry","Shawn Marion","Dirk Nowitzki","Tyson Chandler"]},
+{id:"heat13",n:"2012–13 Heat",kind:"Champion",m:["LeBron James","Dwyane Wade","Chris Bosh","Ray Allen","Shane Battier"]},
+{id:"spurs14",n:"2013–14 Beautiful Game Spurs",kind:"Champion",m:["Tony Parker","Danny Green","Kawhi Leonard","Tim Duncan","Boris Diaw","Manu Ginobili"]},
+{id:"cavs16",n:"2015–16 Cavaliers",kind:"Champion",m:["Kyrie Irving","JR Smith","LeBron James","Kevin Love","Tristan Thompson"]},
+{id:"warriors17",n:"2016–17 Warriors",kind:"Champion",m:["Stephen Curry","Klay Thompson","Kevin Durant","Draymond Green","Andre Iguodala"]},
+{id:"raptors19",n:"2018–19 Raptors",kind:"Champion",m:["Kyle Lowry","Danny Green","Kawhi Leonard","Pascal Siakam","Marc Gasol"]},
+{id:"lakers20",n:"2019–20 Lakers",kind:"Champion",m:["LeBron James","Anthony Davis","Kentavious Caldwell-Pope","Danny Green","Dwight Howard"]},
+{id:"bucks21",n:"2020–21 Bucks",kind:"Champion",m:["Jrue Holiday","Khris Middleton","Giannis Antetokounmpo","Brook Lopez","Bobby Portis"]},
+{id:"warriors22",n:"2021–22 Warriors",kind:"Champion",m:["Stephen Curry","Klay Thompson","Andrew Wiggins","Draymond Green","Kevon Looney"]},
+{id:"nuggets23",n:"2022–23 Nuggets",kind:"Champion",m:["Jamal Murray","Kentavious Caldwell-Pope","Michael Porter Jr.","Aaron Gordon","Nikola Jokic"]},
+{id:"celtics24",n:"2023–24 Celtics",kind:"Champion",m:["Jrue Holiday","Derrick White","Jaylen Brown","Jayson Tatum","Kristaps Porzingis"]},
+{id:"suns93",n:"1992–93 Suns",kind:"Cult classic",m:["Kevin Johnson","Dan Majerle","Charles Barkley","Tom Chambers"]},
+{id:"magic95",n:"1994–95 Magic",kind:"Cult classic",m:["Penny Hardaway","Nick Anderson","Dennis Scott","Horace Grant","Shaquille O'Neal"]},
+{id:"sonics96",n:"1995–96 SuperSonics",kind:"Cult classic",m:["Gary Payton","Hersey Hawkins","Detlef Schrempf","Shawn Kemp"]},
+{id:"jazz97",n:"1996–97 Jazz",kind:"Cult classic",m:["John Stockton","Jeff Hornacek","Bryon Russell","Karl Malone"]},
+{id:"kings02",n:"2001–02 Kings",kind:"Cult classic",m:["Mike Bibby","Doug Christie","Peja Stojakovic","Chris Webber","Vlade Divac"]},
+{id:"suns05",n:"2004–05 Seven Seconds or Less",kind:"Cult classic",m:["Steve Nash","Joe Johnson","Quentin Richardson","Shawn Marion","Amar'e Stoudemire"]},
+{id:"webelieve07",n:"2006–07 We Believe Warriors",kind:"Cult classic",m:["Baron Davis","Jason Richardson","Stephen Jackson","Al Harrington","Andris Biedrins"]},
+{id:"thunder12",n:"2011–12 Thunder",kind:"Cult classic",m:["Russell Westbrook","James Harden","Kevin Durant","Serge Ibaka","Kendrick Perkins"]},
+{id:"pacers13",n:"2012–13 Pacers",kind:"Cult classic",m:["George Hill","Lance Stephenson","Paul George","David West","Roy Hibbert"]},
+{id:"rockets18",n:"2017–18 Rockets",kind:"Cult classic",m:["Chris Paul","James Harden","Trevor Ariza","P.J. Tucker","Clint Capela"]},
+{id:"grizzlies15",n:"Grit and Grind",kind:"Iconic core",m:["Mike Conley","Tony Allen","Zach Randolph","Marc Gasol"]},
+{id:"lobcity",n:"Lob City",kind:"Iconic core",m:["Chris Paul","JJ Redick","Matt Barnes","Blake Griffin","DeAndre Jordan"]},
+{id:"deathlineup",n:"Death Lineup",kind:"Iconic core",m:["Stephen Curry","Klay Thompson","Andre Iguodala","Draymond Green","Harrison Barnes"]},
+{id:"hamptons",n:"Hamptons Five",kind:"Iconic core",m:["Stephen Curry","Klay Thompson","Andre Iguodala","Kevin Durant","Draymond Green"]}
+];
+
+function baseTrophies(){const a=[];const add=(id,n,tier,cat,desc,fn,hidden=false)=>a.push({id,n,tier,cat,desc,fn,hidden});
+ const totalNames=new Set(DB.map(p=>p.name)).size,own=()=>ownedNames().size;
+ add("first-pull","First Pull","Bronze","Collection","Discover your first card.",()=>trophyProgress(own(),1));
+ [["starting-five","Starting Five",5,"Bronze"],["full-rotation","Full Rotation",8,"Bronze"],["collector-50","Card Collector",50,"Bronze"],["century","Century Club",100,"Silver"],["deep-250","Deep Collection",250,"Silver"],["leaguepass-400","League Pass Addict",400,"Gold"],["historian-550","Basketball Historian",550,"Gold"],["almost-all", "Almost Everyone",Math.min(650,totalNames),"Diamond"],["complete-collection","The Complete Collection",totalNames,"Immortal"]].forEach(([id,n,m,t])=>add(id,n,t,"Collection",`Discover ${m} unique player names.`,()=>trophyProgress(own(),m)));
+ add("double-take","Double Take","Bronze","Variants","Own two card variants of one player.",()=>trophyProgress(uniqueVariantsDone(),1));add("variant-hunter","Variant Hunter","Gold","Variants","Complete ten multi-card player variant sets.",()=>trophyProgress(fullVariantSets(),10));add("master-archivist","Master Archivist","Immortal","Variants","Complete every multi-card player variant set.",()=>{const total=Object.values(DB.reduce((o,p)=>((o[p.name]=o[p.name]||[]).push(p),o),{})).filter(x=>x.length>1).length;return trophyProgress(fullVariantSets(),total)});
+ [["gold-rush","Gold Rush","Gold",25],["elite-company","Elite Company","Elite",10],["icon-sighting","Icon Sighting","Icon",1],["icon-cabinet","Icon Cabinet","Icon",10],["hall-icons","Hall of Icons","Icon",25]].forEach(([id,n,t,m])=>add(id,n,m===1?"Bronze":m<25?"Silver":"Gold","Rarity",`Discover ${m} unique ${t} player${m>1?"s":""}.`,()=>trophyProgress(countNames(p=>p.tier===t),m)));
+ add("perfect-specimen","Perfect Specimen","Gold","Rarity","Discover a 99 OVR card.",()=>trophyProgress(ownedCards().filter(p=>p.ovr===99).length,1));add("mount-rushmore","Mount Rushmore","Diamond","Rarity","Discover four unique 99 OVR players.",()=>trophyProgress(countNames(p=>p.ovr===99),4));add("all-99","Ninety-Nine Problems","Immortal","Rarity","Discover every 99 OVR card.",()=>{const req=DB.filter(p=>p.ovr===99).map(p=>p.id),ownc=new Set(Object.keys(T.seenCards).map(Number));return trophyProgress(req.filter(id=>ownc.has(id)).length,req.length)});
+ ERA_KEYS.forEach((tag,i)=>{const req=namesFor(p=>p.tags.includes(tag));add("era-"+tag, (TAG_LABEL[tag]||tag)+" Archive",i<2?"Silver":"Gold","Eras","Complete this era's player-name collection.",()=>setProgress(req));});
+ STYLE_KEYS.forEach(tag=>{const req=namesFor(p=>p.tags.includes(tag)),target=Math.min(tag.includes("Ankle")?15:25,req.length);add("style-"+tag,(TAG_LABEL[tag]||tag)+" Collection",target>=25?"Gold":"Silver","Styles",`Discover ${target} players with this playstyle.`,()=>trophyProgress(req.filter(n=>ownedNames().has(n)).length,target));});
+ add("complete-toolkit","Complete Toolkit","Diamond","Styles","Discover at least 15 players from every playstyle.",()=>{const vals=STYLE_KEYS.map(t=>namesFor(p=>p.tags.includes(t)).filter(n=>ownedNames().has(n)).length);return trophyProgress(vals.filter(v=>v>=15).length,STYLE_KEYS.length)});
+ TEAM_KEYS.forEach(team=>{const req=namesFor(p=>p.team===team);add("team-"+team,team+" Legacy Collection",req.length>30?"Diamond":"Gold","Franchises",`Discover every unique player associated with ${team}.`,()=>setProgress(req));});
+ [["winning","Winning Season",42,"Bronze"],["playoff","Playoff Bound",47,"Silver"],["contender","Contender",60,"Gold"],["historic","Historic Pace",72,"Gold"],["dynasty","Dynasty Material",77,"Diamond"],["ages","One for the Ages",80,"Diamond"],["threat","Perfect Season Threat",81,"Diamond"],["club","82–0 Club",82,"Immortal"]].forEach(([id,n,w,t])=>add(id,n,t,"Records",`Project at least ${w} wins.`,()=>trophyProgress(Math.max(T.stats.maxWins,bestLive().wins),w)));
+ add("pack-perfect","Pack Perfection","Immortal","Records","Reach 82–0 in Pack Mode.",()=>trophyProgress(T.stats.pack82,1));add("draft-perfect","Draft Perfection","Immortal","Records","Reach 82–0 in Classic Draft.",()=>trophyProgress(T.stats.draft82,1));add("master-both","Master of Both","Immortal","Records","Reach 82–0 in Pack Mode and Draft.",()=>trophyProgress((T.stats.pack82>0)+(T.stats.draft82>0),2));
+ [["spark","Spark",1,"Bronze"],["connected","Connected",3,"Silver"],["perfect-fit","Perfect Fit",5,"Gold"],["chem-master","Chemistry Masterclass",8,"Diamond"],["max-chem","Maximum Chemistry",10,"Immortal"]].forEach(([id,n,c,t])=>add(id,n,t,"Chemistry",`Reach +${c} chemistry.`,()=>trophyProgress(Math.max(T.stats.maxChem,bestLive().chem),c)));
+ add("first-connection","First Connection","Bronze","Chemistry","Activate one iconic chemistry group.",()=>trophyProgress(Object.keys(T.activatedChem).length,1));add("chem-student","Chemistry Student","Silver","Chemistry","Activate ten iconic groups.",()=>trophyProgress(Object.keys(T.activatedChem).length,10));add("linked-history","Linked Through History","Diamond","Chemistry","Activate fifty iconic groups.",()=>trophyProgress(Object.keys(T.activatedChem).length,50));add("every-story","Every Story Told","Immortal","Chemistry","Activate every iconic chemistry group.",()=>trophyProgress(Object.keys(T.activatedChem).length,DUOS.length));
+ add("same-colours","Same Colours","Gold","Squad Building","Start five players from one franchise.",()=>trophyProgress(starterTest(ps=>new Set(ps.map(p=>p.team)).size===1)?1:0,1));add("eight-deep","Eight Deep","Diamond","Squad Building","Field eight players from one franchise.",()=>trophyProgress(hasLineup(ps=>new Set(ps.map(p=>p.team)).size===1)?1:0,1));add("across-ages","Across the Ages","Silver","Squad Building","Start players from five different era tags.",()=>trophyProgress(starterTest(ps=>new Set(ps.map(p=>p.tags.find(t=>t.startsWith("Era_")))).size===5)?1:0,1));
+ const squads=[["defensive","Defensive Identity","Style_Lockdown"],["let-fly","Let It Fly","Style_Sharpshooter"],["above-rim","Above the Rim","Style_FlightClub"],["paint-war","Paint Warfare","Style_PaintBeast"],["ball-string","Ball on a String","Style_AnkleBreaker"]];squads.forEach(([id,n,t])=>add(id,n,"Gold","Squad Building",`Start five players carrying ${TAG_LABEL[t]||t}.`,()=>trophyProgress(starterTest(ps=>ps.every(p=>p.tags.includes(t)))?1:0,1)));
+ add("no-icons","No Icons Needed","Gold","Squad Building","Project 60 wins with no Icon in the active roster.",()=>trophyProgress(hasLineup((ps,r)=>ps.every(p=>p.tier!=="Icon")&&projection(teamOVR(r).eff).wins>=60)?1:0,1));add("underdog","Underdog Dynasty","Diamond","Squad Building","Project 60 wins with no card above 89 OVR.",()=>trophyProgress(hasLineup((ps,r)=>ps.every(p=>p.ovr<=89)&&projection(teamOVR(r).eff).wins>=60)?1:0,1));
+ add("first-pack","Welcome to the Game","Bronze","Pack Moments","Open one pack.",()=>trophyProgress(T.stats.packs,1));add("elite-arrival","Elite Arrival","Silver","Pack Moments","Pull an Elite.",()=>trophyProgress(T.stats.elitePulled,1));add("icon-walkout","Icon Walkout","Gold","Pack Moments","Pull an Icon.",()=>trophyProgress(T.stats.iconsPulled,1));add("double-trouble","Double Trouble","Gold","Pack Moments","Pull two Elite-or-better cards in one pack.",()=>trophyProgress(T.stats.doubleElite,1));add("pack-legends","Pack of Legends","Diamond","Pack Moments","Pull three Elite-or-better cards in one pack.",()=>trophyProgress(T.stats.threeElite,1));add("icon-double","Icon Double","Immortal","Pack Moments","Pull two Icons in one pack.",()=>trophyProgress(T.stats.doubleIcon,1));add("perfect-pull","Perfect Pull","Diamond","Pack Moments","Pull a 99 OVR card.",()=>trophyProgress(T.stats.pulled99,1));
+ add("first-draft","First Draft","Bronze","Draft","Complete a Classic Draft.",()=>trophyProgress(T.stats.drafts,1));add("good-eye","Good Eye","Silver","Draft","Draft a 60-win team.",()=>trophyProgress(HS.draft.wins||0,60));add("elite-drafter","Elite Drafter","Gold","Draft","Draft a 72-win team.",()=>trophyProgress(HS.draft.wins||0,72));add("near-perfect-draft","Near Perfect","Diamond","Draft","Draft an 81-win team.",()=>trophyProgress(HS.draft.wins||0,81));
+ add("white-mamba","The White Mamba","Diamond","Hidden","Build a winning roster containing Brian Scalabrine.",()=>trophyProgress(hasLineup((ps,r)=>ps.some(p=>p.name==="Brian Scalabrine")&&projection(teamOVR(r).eff).wins>=42)?1:0,1),true);add("tall-ball","Tall Ball","Gold","Hidden","Start five players eligible at center.",()=>trophyProgress(starterTest(ps=>ps.every(p=>p.positions.includes("C")))?1:0,1),true);add("goat-debate","Generational Argument","Immortal","Hidden","Start Jordan, LeBron, Kareem and Kobe together.",()=>{const req=["Michael Jordan","LeBron James","Kareem Abdul-Jabbar","Kobe Bryant"];return trophyProgress(starterTest(ps=>req.every(n=>ps.some(p=>p.name===n)))?1:0,1)},true);
+ add("alternate-timeline","Alternate Timeline","Silver","What If","Complete one What If archive entry.",()=>trophyProgress(WHAT_IF.filter(g=>setProgress(g.m).done).length,1));add("trade-machine","The Trade Machine","Gold","What If","Complete five What If entries.",()=>trophyProgress(WHAT_IF.filter(g=>setProgress(g.m).done).length,5));add("multiverse","The Multiverse","Immortal","What If","Complete the entire What If archive.",()=>trophyProgress(WHAT_IF.filter(g=>setProgress(g.m).done).length,WHAT_IF.length));
+ add("starting-something","Starting Something","Silver","Iconic Teams","Complete one Iconic Team entry.",()=>trophyProgress(ICONIC_TEAMS.filter(g=>setProgress(g.m).done).length,1));add("champ-dna","Championship DNA","Gold","Iconic Teams","Complete five champion-team entries.",()=>trophyProgress(ICONIC_TEAMS.filter(g=>g.kind==="Champion"&&setProgress(g.m).done).length,5));add("basketball-museum","Basketball Museum","Immortal","Iconic Teams","Complete every Iconic Team entry.",()=>trophyProgress(ICONIC_TEAMS.filter(g=>setProgress(g.m).done).length,ICONIC_TEAMS.length));
+ return a;}
+function allTrophies(){return baseTrophies();}
+function evaluateTrophies(show=true){markActivations();const now=Date.now(),fresh=[];allTrophies().forEach(t=>{const p=t.fn();if(p.done&&!T.unlocked[t.id]){T.unlocked[t.id]={at:now};fresh.push(t);}});saveTrophies();if(show&&fresh.length)showUnlocks(fresh);}
+function showUnlocks(items){items.slice(0,4).forEach((t,i)=>setTimeout(()=>{const d=document.createElement("div");d.className="unlocktoast";d.innerHTML=`<b>TROPHY UNLOCKED · ${t.tier}</b><span>${esc(t.n)} — ${esc(t.desc)}</span>`;document.body.appendChild(d);setTimeout(()=>d.remove(),3600);},i*500));}
+function trophySummary(){const ts=allTrophies(),done=ts.filter(t=>T.unlocked[t.id]);return {done:done.length,total:ts.length,pts:done.reduce((a,t)=>a+TROPHY_POINTS[t.tier],0)};}
+function trophyTile(t){const p=t.fn(),u=T.unlocked[t.id],pct=Math.round(100*p.cur/Math.max(1,p.max)),secret=t.hidden&&!u;const miss=p.missing&&p.missing.length?`Missing: ${p.missing.slice(0,4).join(", ")}${p.missing.length>4?` +${p.missing.length-4}`:""}`:"";return `<div class="trophy t-${t.tier}T ${u?"done":""} ${secret?"hidden":""}"><div class="tier">${t.tier} · ${TROPHY_POINTS[t.tier]} TP</div><h3>${secret?"Hidden Trophy":esc(t.n)}</h3><p>${secret?"A secret challenge waits to be discovered.":esc(t.desc)}</p><div class="prog"><i style="width:${pct}%"></i></div><div class="footrow"><span>${p.cur} / ${p.max}</span><span>${u?"UNLOCKED":miss||"IN PROGRESS"}</span></div></div>`;}
+function archiveTile(g,type){const p=setProgress(g.m),act=type==="chem"?T.activatedChem[g.l]:type==="whatif"?T.activatedWhatIf[g.id]:T.activatedTeams[g.id];const own=ownedNames();return `<div class="archive ${p.done?"complete":""} ${act?"activated":""}"><h3>${esc(g.n||g.l)}</h3><div class="state">${type==="whatif"?esc(g.cred)+" · ":type==="teams"?esc(g.kind)+" · ":""}${act?"ARCHIVE ACTIVATED":p.done?"READY TO ASSEMBLE":p.cur?"DISCOVERED":"UNKNOWN"}</div><div class="members">${g.m.map(n=>{const avail=DB.some(x=>x.name===n);return `<span class="member ${!avail?"":" "+(own.has(n)?"ok":"miss")}" style="${!avail?"color:#777":""}">${!avail?"⊘":own.has(n)?"✓":"○"} ${esc(n)}${!avail?" (not yet in card pool)":""}</span>`}).join(" · ")}</div><div class="prog"><i style="width:${100*p.cur/p.max}%"></i></div><div class="footrow"><span>${p.cur}/${p.max} obtainable</span><span>${p.missing.slice(0,2).join(", ")}</span></div></div>`;}
+function trophyHTML(){evaluateTrophies(false);const sum=trophySummary(),cats=["Featured",...new Set(allTrophies().map(t=>t.cat)),"Archives"];let body;if(TROPHY_FILTER==="Archives"){const list=ARCHIVE_TAB==="chem"?DUOS:ARCHIVE_TAB==="whatif"?WHAT_IF:ICONIC_TEAMS;body=`<div class="archivetabs"><button class="btn ${ARCHIVE_TAB==="chem"?"on":""}" onclick="ARCHIVE_TAB='chem';render()">Chemistry Archive (${Object.keys(T.activatedChem).length}/${DUOS.length})</button><button class="btn ${ARCHIVE_TAB==="whatif"?"on":""}" onclick="ARCHIVE_TAB='whatif';render()">What If (${WHAT_IF.filter(g=>setProgress(g.m).done).length}/${WHAT_IF.length})</button><button class="btn ${ARCHIVE_TAB==="teams"?"on":""}" onclick="ARCHIVE_TAB='teams';render()">Iconic Teams (${ICONIC_TEAMS.filter(g=>setProgress(g.m).done).length}/${ICONIC_TEAMS.length})</button></div><div class="archivegrid">${list.map(g=>archiveTile(g,ARCHIVE_TAB)).join("")}</div>`;}else{let ts=allTrophies();if(TROPHY_FILTER==="Featured")ts=ts.filter(t=>T.unlocked[t.id]||["Collection","Records","Chemistry","What If","Iconic Teams"].includes(t.cat)).slice(0,30);else ts=ts.filter(t=>t.cat===TROPHY_FILTER);body=`<div class="trophygrid">${ts.map(trophyTile).join("")}</div>`;}return `<div class="trophyhero"><div><h2>Trophy Case</h2><p style="font-size:12px;color:var(--dim);line-height:1.5">Permanent progression across every run. Collection Ledger: <b style="color:var(--ink)">${ownedNames().size}</b> unique players · resets never erase discoveries.</p></div><div class="tpbig">${sum.pts}<small>TROPHY POINTS · ${sum.done}/${sum.total}</small></div></div><div class="trophyfilters">${cats.map(c=>`<button class="${TROPHY_FILTER===c?"on":""}" onclick="TROPHY_FILTER='${c}';render()">${c}</button>`).join("")}</div>${body}<div class="notice" id="notice"></div>`;}
+function trophyPack(cards){T.stats.packs++;cards.forEach(c=>{ledgerAdd(c);if(c.tier==="Icon")T.stats.iconsPulled++;if(c.tier==="Elite")T.stats.elitePulled++;if(c.tier==="Gold")T.stats.goldPulled++;if(c.ovr===99)T.stats.pulled99++;});const hi=cards.filter(c=>tierRank(c.tier)>=tierRank("Elite")).length,ic=cards.filter(c=>c.tier==="Icon").length;if(hi>=2)T.stats.doubleElite++;if(hi>=3)T.stats.threeElite++;if(ic>=2)T.stats.doubleIcon++;evaluateTrophies();}
+function trophyRoster(mode,r){const o=teamOVR(r);if(o.ready){const w=projection(o.eff).wins;T.stats.maxWins=Math.max(T.stats.maxWins,w);T.stats.maxChem=Math.max(T.stats.maxChem,o.chem.bonus);if(w===82){const sig=ALL_SLOTS.map(s=>r[s]??"x").join(",");if(T.last82[mode]!==sig){T.last82[mode]=sig;if(mode==="draft")T.stats.draft82++;else if(mode==="classic")T.stats.pack82++;}}}evaluateTrophies();}
+migrateTrophies();
+
+
 /* ================= SMALL HELPERS ================= */
 const $=s=>document.querySelector(s);
 function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;");}
@@ -1437,9 +1603,10 @@ function renderTabs(){
   let items;
   if(screen==="landing")items=[];
   else if(screen==="share")items=[["landing","\u2630 Modes"]];
-  else if(screen==="draft")items=[["landing","☰ Modes"],["draft","Classic Draft"]];
-  else if(screen==="classic")items=[["landing","☰ Modes"],["classic","Pack Mode"]];
-  else items=[["landing","☰ Modes"],["team","My Team"],["packs","Packs"],["rare","Rare Pull"]];
+  else if(screen==="draft")items=[["landing","☰ Modes"],["draft","Classic Draft"],["trophies","🏆 Trophies"]];
+  else if(screen==="classic")items=[["landing","☰ Modes"],["classic","Pack Mode"],["trophies","🏆 Trophies"]];
+  else if(screen==="trophies")items=[["landing","☰ Modes"],["trophies","🏆 Trophies"]];
+  else items=[["landing","☰ Modes"],["team","My Team"],["packs","Packs"],["rare","Rare Pull"],["trophies","🏆 Trophies"]];
   bar.innerHTML=items.map(([k,l])=>`<button class="${screen===k?"on":""}" onclick="setScreen('${k}')">${l}</button>`).join("");
   bar.style.display=items.length?"":"none";
 }
@@ -1487,7 +1654,6 @@ function dropToColl(e,side){e.preventDefault();if(!DRAG||DRAG.from==="coll")retu
 function hubHTML(side){
   const st=S[side],ovr=teamOVR(st.roster),pr=projection(ovr.eff);
   const rec=ovr.ready?`${pr.wins}–${pr.losses}`:"—";
-  const lab=ovr.ready?pr.label:"Fill your starting five";
   const chemHTML=ovr.chem.links.length
     ?ovr.chem.links.map(l=>`<span class="${"ck-"+l.kind}">${l.label} ×${l.n} → +${l.bonus.toFixed(1)}</span>`).join("")
     :`<span>No chemistry — link teams, eras, styles, draft classes or rivalries</span>`;
@@ -1511,9 +1677,9 @@ function hubHTML(side){
           <div>
             <div class="projrow">
               <div><b>${rec}</b>projected record</div>
-              <div><b>${lab}</b>power label</div>
               <div><b>+${ovr.chem.bonus.toFixed(1)}</b>chemistry</div>
             </div>
+            ${recordIdentityHTML(pr,ovr.ready)}
             <div class="chemlinks">${chemHTML}</div>${nearMissHTML(ovr)}
           </div>
           <div class="chemlegend">
@@ -1532,7 +1698,7 @@ function hubHTML(side){
         <div class="stack">
           ${packBtn}
           <button class="btn" onclick="autoFill('${side}')">Auto-fill best lineup</button>
-          ${side==="classic"?`<button class="btn" onclick="shareRoster('classic')">Share roster</button>`:""}
+          ${side==="classic"?`<button class="btn gold" onclick="shareRosterImage('classic')">Share as image</button><button class="btn" onclick="shareRoster('classic')">Share roster</button>`:""}
           <button class="btn danger" onclick="confirmReset('${side}')">Reset / New Team</button>
         </div>
         <div class="notice" id="notice"></div>
@@ -1639,7 +1805,7 @@ function autoFill(side){
 }
 function afterRosterChange(side){
   const t=teamOVR(S[side].roster).total;
-  bump(side);save();render();
+  bump(side);save();trophyRoster(side,S[side].roster);render();
   if(t>lastOVR[side]){const el=$("#ovr-"+side);if(el){el.classList.add("bump");setTimeout(()=>el.classList.remove("bump"),260);}}
   lastOVR[side]=t;
 }
@@ -1714,7 +1880,7 @@ function openPack(packKey,side){
     const cards=classicRollPack(ownedIds("classic"),cl.tierCounts,recentSet(),packKey);
     noteRecent(cards);cl.opened++;
     cards.forEach(c=>{cl.coll[c.id]=(cl.coll[c.id]||0)+1;});
-    save();
+    save();trophyPack(cards);
     REV={cards,side:"classic",packKey,dupes:[false,false,false],flipped:[false,false,false],busy:false};
     renderReveal();return;
   }
@@ -1724,7 +1890,7 @@ function openPack(packKey,side){
   noteRecent(cards);
   const dupes=cards.map(c=>owned.has(c.id)); /* exact same card already owned */
   cards.forEach((c,i)=>{if(!dupes[i])S[side].coll[c.id]=(S[side].coll[c.id]||0)+1;});
-  save();
+  save();trophyPack(cards);
   REV={cards,side,packKey,flipped:[false,false,false],busy:false,dupes};
   renderReveal();
 }
@@ -1824,7 +1990,7 @@ function draftPickInto(pid){
     D.done=true; /* stay on the court \u2014 no summary screen */
     const o=teamOVR(D.roster),pr=projection(o.eff);
     if(o.total>HS.draft.ovr){HS.draft.ovr=o.total;HS.draft.wins=pr.wins;saveHS();}
-    confetti(80);
+    T.stats.drafts++;trophyRoster("draft",D.roster);confetti(80);
   }
   render(); /* re-render snaps the card in + relights the chemistry web */
 }
@@ -1871,7 +2037,7 @@ function doDraftSwap(a,b){
   D.lastSlot=b;closeSheet();
   const o=teamOVR(D.roster),pr=projection(o.eff);
   if(o.total>HS.draft.ovr){HS.draft.ovr=o.total;HS.draft.wins=pr.wins;saveHS();}
-  render();
+  trophyRoster("draft",D.roster);render();
   notice(esc(pa.name)+" \u2192 "+SLOT_LABEL[b]+".");
 }
 function draftSlotHTML(slot){
@@ -1901,6 +2067,7 @@ function draftHTML(){
       <div><b>${ovr.ready?pr.wins+"–"+pr.losses:"—"}</b>projected record</div>
       <div><b>${D.done?"8 / 8 — FINAL":filled+" / 8"}</b>picks locked</div>
       <div><b>+${ovr.chem.bonus.toFixed(1)}</b>chemistry</div></div>
+      ${recordIdentityHTML(pr,ovr.ready)}
       <div class="chemlinks">${ovr.chem.links.length?ovr.chem.links.map(l=>`<span class="${"ck-"+l.kind}">${l.label} ×${l.n} → +${l.bonus.toFixed(1)}</span>`).join(""):`<span>Tap an empty slot to draft — links light the web in their colors</span>`}</div>${nearMissHTML(ovr)}
     </div>
     <div class="chemlegend">
@@ -1943,6 +2110,7 @@ function landingHTML(){
       <div class="modebest">BEST OVR <b>${best}</b></div>
       <button class="btn ${cls}">${cta}</button>
     </div>`).join("")}
+    <div class="modecard" onclick="setScreen('trophies')"><h3>🏆 Trophy Case</h3><p>Permanent collection progression, franchise and era archives, iconic chemistry discoveries, What If timelines, historic teams, records and hidden challenges.</p><div class="modebest">PROGRESS <b>${trophySummary().done}/${trophySummary().total}</b></div><button class="btn gold">OPEN TROPHY CASE</button></div>
   </div>`;
 }
 /* ---- share roster (Draft + Classic) ---- */
@@ -2004,7 +2172,7 @@ function imgCard(p,cx,cy,w,h){
   c.fillStyle="#8a8a94";c.font=Math.round(w*.075)+"px Arial";
   c.fillText(p.team+" \u00b7 "+p.era+" \u00b7 "+p.tier.toUpperCase(),cx,y+h-14);
 }
-function drawDraftCanvas(){
+function drawRosterCanvas(modeKey,roster){
   return new Promise(res=>{
     try{
       const cv=document.createElement("canvas");cv.width=1080;cv.height=1350;
@@ -2024,9 +2192,9 @@ function drawDraftCanvas(){
       c.fillStyle="#f2f2f5";c.fillText("ALL-TIME ",x0,108);
       c.fillStyle="#ffc53d";c.fillText("ULTIMATE",x0+w1,108);
       c.textAlign="center";c.fillStyle="#8a8a94";c.font="26px Arial";
-      c.fillText("C L A S S I C   D R A F T",540,152);
+      c.fillText(modeKey==="draft"?"C L A S S I C   D R A F T":"P A C K   M O D E   R U N",540,152);
       /* scoreboard — compact, ends above the pentagon */
-      const o=teamOVR(D.roster),pr=projection(o.eff);
+      const o=teamOVR(roster),pr=projection(o.eff);
       /* left block: big OVR centered on x=330 — alignment set explicitly per group */
       c.textAlign="center";c.fillStyle="#ffc53d";c.font="900 118px "+IMG_FONT;
       c.fillText(o.total,330,300);
@@ -2035,7 +2203,16 @@ function drawDraftCanvas(){
       c.textAlign="left";
       c.fillStyle="#f2f2f5";c.font="700 40px Arial";c.fillText("projected "+pr.wins+"\u2013"+pr.losses,520,232);
       c.fillStyle="#f2a93b";c.font="700 34px Arial";c.fillText("+"+o.chem.bonus.toFixed(1)+" chemistry",520,280);
-      c.fillStyle="#ff7ac8";c.font="700 30px Arial";c.fillText(pr.label,520,326);
+      const ident=pr.identity||recordIdentity(pr.wins);
+      c.fillStyle=pr.wins===82?"#ffc53d":"#ff7ac8";c.font="700 30px Arial";c.fillText(ident.title,520,326);
+      if(pr.wins===82){
+        c.save();c.translate(850,118);c.rotate(-0.08);
+        c.shadowColor="#ffc53d";c.shadowBlur=24;c.strokeStyle="#ffc53d";c.lineWidth=5;
+        c.beginPath();c.arc(0,0,102,0,Math.PI*2);c.stroke();c.shadowBlur=0;
+        c.beginPath();c.arc(0,0,88,0,Math.PI*2);c.strokeStyle="rgba(255,197,61,.65)";c.lineWidth=2;c.stroke();
+        c.textAlign="center";c.fillStyle="#ffc53d";c.font="900 31px "+IMG_FONT;c.fillText("82–0",0,-5);
+        c.font="700 18px Arial";c.fillText("CLUB",0,24);c.font="700 12px Arial";c.fillText("PERFECTION CERTIFIED",0,48);c.restore();
+      }
       /* pentagon web + starters — wider ring, smaller cards: no overlap */
       const CTR={x:540,y:772},R=252,ANG={C:-90,SF:-18,PG:54,SG:126,PF:198},pos={};
       Object.entries(ANG).forEach(([s,a])=>{const r=a*Math.PI/180;
@@ -2045,17 +2222,17 @@ function drawDraftCanvas(){
         const A=SL[i],B=SL[j];
         c.beginPath();c.moveTo(pos[A].x,pos[A].y);c.lineTo(pos[B].x,pos[B].y);
         c.strokeStyle="rgba(107,107,116,.18)";c.lineWidth=2;c.shadowBlur=0;c.stroke();
-        const k=pairLinkKind(DB[D.roster[A]],DB[D.roster[B]]);
+        const k=pairLinkKind(DB[roster[A]],DB[roster[B]]);
         if(k){const col=WEB_COLORS[k];
           c.save();c.shadowColor=col;c.shadowBlur=22;c.strokeStyle=col;
           c.globalAlpha=.55;c.lineWidth=6;c.stroke();
           c.shadowBlur=0;c.globalAlpha=.95;c.lineWidth=3;c.stroke();c.restore();}
       }
-      SL.forEach(s=>imgCard(DB[D.roster[s]],pos[s].x,pos[s].y,160,232));
+      SL.forEach(s=>imgCard(DB[roster[s]],pos[s].x,pos[s].y,160,232));
       /* bench */
       c.textAlign="center";c.fillStyle="#8a8a94";c.font="21px Arial";
       c.fillText("B E N C H",540,1102);
-      BENCH_SLOTS.forEach((s,i)=>imgCard(DB[D.roster[s]],273+72+i*(144+51),1206,144,176));
+      BENCH_SLOTS.forEach((s,i)=>imgCard(DB[roster[s]],273+72+i*(144+51),1206,144,176));
       /* footer */
       c.strokeStyle="rgba(255,255,255,.10)";c.lineWidth=1;
       c.beginPath();c.moveTo(80,1314);c.lineTo(1000,1314);c.stroke();
@@ -2066,23 +2243,29 @@ function drawDraftCanvas(){
     }catch(e){res(null);}
   });
 }
-async function shareDraftImage(){
-  if(!D.done){notice("Finish the draft first \u2014 then share the squad.");return;}
-  notice("Rendering your squad\u2026");
-  const blob=await drawDraftCanvas();
+async function shareRosterImage(modeKey){
+  const roster=modeKey==="draft"?D.roster:S.classic.roster;
+  if(modeKey==="draft"&&!D.done){notice("Finish the draft first — then share the squad.");return;}
+  if(!startersFull(roster)){notice("Fill your starting five before sharing an image.");return;}
+  notice("Rendering your squad…");
+  const blob=await drawRosterCanvas(modeKey,roster);
   if(!blob){notice("Couldn't render the image on this browser.");return;}
-  const file=new File([blob],"all-time-ultimate-draft.png",{type:"image/png"});
+  const o=teamOVR(roster),pr=projection(o.eff),perfect=pr.wins===82;
+  const stem=modeKey==="draft"?"draft":"pack-mode";
+  const file=new File([blob],`all-time-ultimate-${stem}${perfect?"-82-0-club":""}.png`,{type:"image/png"});
+  const text=perfect?"I made the 82–0 Club. Beat this squad:\nPackEmUltimateTeam.com":"my squad - beat it:\nPackEmUltimateTeam.com";
   if(navigator.canShare&&navigator.canShare({files:[file]})){
-    try{await navigator.share({files:[file],title:"All-Time Ultimate",text:"my squad - beat it:\nPackEmUltimateTeam.com"});return;}catch(e){}
+    try{await navigator.share({files:[file],title:perfect?"All-Time Ultimate — 82–0 Club":"All-Time Ultimate",text});return;}catch(e){}
   }
   try{await navigator.clipboard.write([new ClipboardItem({"image/png":blob})]);
-    notice("Squad image copied \u2014 paste it anywhere.");return;}catch(e){}
+    notice(perfect?"82–0 Club image copied — paste it anywhere.":"Squad image copied — paste it anywhere.");return;}catch(e){}
   if(URL.createObjectURL){
     const a=document.createElement("a");a.href=URL.createObjectURL(blob);
-    a.download="all-time-ultimate-draft.png";document.body.appendChild(a);a.click();a.remove();
-    notice("Squad image downloaded.");return;}
+    a.download=file.name;document.body.appendChild(a);a.click();a.remove();
+    notice(perfect?"82–0 Club image downloaded.":"Squad image downloaded.");return;}
   notice("Couldn't export the image on this browser.");
 }
+async function shareDraftImage(){return shareRosterImage("draft");}
 function shareRoster(modeKey){
   const roster=modeKey==="draft"?D.roster:S.classic.roster;
   if(!startersFull(roster)){notice("Fill your starting five before sharing.");return;}
@@ -2104,9 +2287,9 @@ function shareHTML(){
       <div class="ovrbig">${ovr.total}<small>TEAM OVR</small><small class="exact">${ovr.ready?ovr.eff.toFixed(1)+" Ovr w Chem":"—"}</small></div>
       <div><div class="projrow">
         <div><b>${ovr.ready?pr.wins+"\u2013"+pr.losses:"\u2014"}</b>projected record</div>
-        <div><b>${ovr.ready?pr.label:"incomplete five"}</b>power label</div>
         <div><b>+${ovr.chem.bonus.toFixed(1)}</b>chemistry</div></div>
-        <div class="chemlinks">${ovr.chem.links.map(l=>`<span class="${"ck-"+l.kind}">${l.label} ×${l.n} → +${l.bonus.toFixed(1)}</span>`).join("")||"<span>No chemistry links</span>"}</div>
+        ${recordIdentityHTML(pr,ovr.ready)}
+        <div class="chemlinks">${ovr.chem.links.map(l=>`<span class="${"ck-"+l.kind}">${l.label} ×${l.n} → +${l.bonus.toFixed(1)}</span>`).join("")||"<span>No chemistry links</span>"}</div>${nearMissHTML(ovr)}
       </div></div>
   </div>
   <div class="court">
@@ -2118,8 +2301,15 @@ function shareHTML(){
   </div>
   <div style="display:flex;gap:10px;justify-content:center;margin-top:14px">
     <button class="btn primary" onclick="history.replaceState(null,'',location.pathname);SHARED=null;setScreen('landing')" >Build your own squad</button>
+    <button class="btn gold" onclick="SHARED&&shareSharedImage()">Share as image</button>
     <button class="btn" onclick="copyText(location.href.includes('share=')?location.href:buildShareURL(SHARED.mode,SHARED.roster))">Re-share this squad</button>
   </div>`;
+}
+async function shareSharedImage(){
+  if(!SHARED)return;
+  const oldD=D.roster,oldDone=D.done;
+  if(SHARED.mode==="draft"){D.roster=SHARED.roster;D.done=true;try{return await shareRosterImage("draft");}finally{D.roster=oldD;D.done=oldDone;}}
+  const old=S.classic.roster;S.classic.roster=SHARED.roster;try{return await shareRosterImage("classic");}finally{S.classic.roster=old;}
 }
 let CC=null; /* classic captain options while the overlay is open */
 function openClassicCaptain(){
@@ -2224,7 +2414,7 @@ function render(){
       <div class="hs">BEST TEAM OVR<br><b>${best}</b></div>
     </header>
     ${screen==="landing"?landingHTML():screen==="share"?shareHTML():screen==="team"?hubHTML("main"):screen==="packs"?packsHTML()
-      :screen==="draft"?draftHTML():screen==="classic"?hubHTML("classic"):hubHTML("rare")}
+      :screen==="draft"?draftHTML():screen==="classic"?hubHTML("classic"):screen==="trophies"?trophyHTML():hubHTML("rare")}
     <footer class="foot">
       <button onclick="showPrivacy()">Privacy Policy</button>
       <span>·</span><span>Fan-made sandbox — not affiliated with or endorsed by the NBA, its teams, or players.</span>
