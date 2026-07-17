@@ -115,6 +115,11 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .clg.ck-era b{color:var(--ck-era)}.clg.ck-style b{color:var(--ck-style)}
 .clg span{font-size:8.5px;color:var(--dim);line-height:1.35;display:block}
 
+
+.near82{margin-top:9px;padding:8px 11px;border:1px solid var(--elite);border-radius:9px;background:linear-gradient(135deg,rgba(255,77,109,.14),rgba(242,169,59,.08));color:#ff9cad;font-family:var(--disp);font-size:15px;letter-spacing:.08em;text-align:center;text-transform:uppercase;box-shadow:0 0 15px rgba(255,77,109,.16)}
+.near82 b{color:var(--gold);font-size:18px;text-shadow:0 0 10px rgba(255,197,61,.35)}
+.near82.hit{border-color:var(--green);color:var(--green);background:rgba(57,255,156,.08);box-shadow:0 0 18px rgba(57,255,156,.18)}
+
 /* ============ COURT ROSTER ============ */
 .court{position:relative;border:1px solid rgba(255,255,255,.09);border-radius:14px;overflow:hidden;
   background:linear-gradient(180deg,rgba(24,24,24,.9) 0%,rgba(17,17,17,.9) 100%);padding:18px 10px 14px;margin-top:12px}
@@ -1160,14 +1165,16 @@ function teamOVR(roster){
   const total=Math.max(60,Math.min(99,Math.round(base+chem.bonus)));
   /* effective rating drives the win curve: chemistry counts double there,
      so a lower-OVR team with perfect chem can out-project a chem-less one */
-  const eff=base+chem.bonus*2.2; /* chemistry multiplier: pushes the win curve directly */
+  const CHEM_WIN_MULT=2.10;
+  const eff=base+chem.bonus*CHEM_WIN_MULT; /* Phase 2 tune: chemistry remains decisive without making 82–0 routine */
   return {base:Math.round(base),chem,total,eff,ready:startersFull(roster)};
 }
 /* logistic-style win curve on anchor points with cosine easing between them:
    flat-ish under 75, climbing through the 80s, exploding past 90 */
-const PROJ=[[60,15],[70,26],[75,31],[80,38],[84,46],[87,54],[90,65],[92,70],[95,76],[97,78],[99,80],[103,82]];
+const EIGHTY_TWO_EFF=104.0;
+const PROJ=[[60,15],[70,26],[75,31],[80,38],[84,46],[87,54],[90,65],[92,70],[95,76],[97,78],[100,80],[EIGHTY_TWO_EFF,82]];
 function projection(eff){
-  const e=Math.max(60,Math.min(103,eff));
+  const e=Math.max(60,Math.min(EIGHTY_TWO_EFF,eff));
   let wins=PROJ[PROJ.length-1][1];
   for(let i=0;i<PROJ.length-1;i++){const [a,wa]=PROJ[i],[b,wb]=PROJ[i+1];
     if(e<=b){const t=(e-a)/(b-a),s=(1-Math.cos(Math.PI*t))/2; /* smooth, non-linear */
@@ -1178,9 +1185,21 @@ function projection(eff){
     wins<66?"Title Favorite":wins<72?"Juggernaut":"Historic Juggernaut";
   return {wins,losses:82-wins,label};
 }
+function nearMissChem(o){
+  if(!o.ready)return null;
+  const pr=projection(o.eff);if(pr.wins>=82)return {hit:true,needed:0};
+  const needed=Math.max(0,(EIGHTY_TWO_EFF-o.eff)/CHEM_WIN_MULT);
+  return {hit:false,needed:+needed.toFixed(1)};
+}
+function nearMissHTML(o){
+  const n=nearMissChem(o);if(!n)return "";
+  return n.hit
+    ?`<div class="near82 hit">82–0 STANDARD REACHED</div>`
+    :`<div class="near82"><b>+${n.needed.toFixed(1)} CHEM</b> FROM 82–0</div>`;
+}
 
 /* draft option weights (kept generous so drafts feel good) */
-const DRAFT_ODDS={Bronze:.10,Silver:.30,Gold:.49,Elite:.08,Icon:.03};
+const DRAFT_ODDS={Bronze:.10,Silver:.305,Gold:.49,Elite:.075,Icon:.03};
 const DRAFT_LIMITS={Icon:2,Elite:4}; /* per draft, captain included */
 function draftDowngrade(t,counts){
   const order=["Icon","Elite","Gold"];
@@ -1206,8 +1225,8 @@ function draftArrange(ids){
   return r;
 }
 /* CLASSIC MODE: balanced drop curve with hard high-tier ceilings per session */
-const CLASSIC_ODDS={Bronze:.36,Silver:.42,Gold:.17,Elite:.04,Icon:.01};
-const CLASSIC_PREMIUM_ODDS={Silver:.51,Gold:.35,Elite:.11,Icon:.03};
+const CLASSIC_ODDS={Bronze:.37,Silver:.425,Gold:.16,Elite:.037,Icon:.008};
+const CLASSIC_PREMIUM_ODDS={Silver:.525,Gold:.35,Elite:.10,Icon:.025};
 const CLASSIC_LIMITS={Icon:2,Elite:4}; /* hard caps per classic run */
 function classicDowngrade(t,counts,limits){
   const L=limits||CLASSIC_LIMITS,order=["Icon","Elite","Gold"];
@@ -1324,7 +1343,7 @@ function classicCaptainOptions(owned,rng){
   const r=rng||Math.random,excl=owned||new Set(),out=[],seen=new Set();
   let guard=0;
   while(out.length<3&&guard++<400){
-    const t=r()<0.35?"Icon":"Elite";
+    const t=r()<0.30?"Icon":"Elite";
     const pool=POOLS[t].filter(p=>!excl.has(p.id)&&!seen.has(p.name));
     if(pool.length){const p=pickPlayer(pool,rng);out.push(p);seen.add(p.name);}
   }
@@ -1495,7 +1514,7 @@ function hubHTML(side){
               <div><b>${lab}</b>power label</div>
               <div><b>+${ovr.chem.bonus.toFixed(1)}</b>chemistry</div>
             </div>
-            <div class="chemlinks">${chemHTML}</div>
+            <div class="chemlinks">${chemHTML}</div>${nearMissHTML(ovr)}
           </div>
           <div class="chemlegend">
             <div class="clg-h">CHEMISTRY RANKS</div>
@@ -1882,7 +1901,7 @@ function draftHTML(){
       <div><b>${ovr.ready?pr.wins+"–"+pr.losses:"—"}</b>projected record</div>
       <div><b>${D.done?"8 / 8 — FINAL":filled+" / 8"}</b>picks locked</div>
       <div><b>+${ovr.chem.bonus.toFixed(1)}</b>chemistry</div></div>
-      <div class="chemlinks">${ovr.chem.links.length?ovr.chem.links.map(l=>`<span class="${"ck-"+l.kind}">${l.label} ×${l.n} → +${l.bonus.toFixed(1)}</span>`).join(""):`<span>Tap an empty slot to draft — links light the web in their colors</span>`}</div>
+      <div class="chemlinks">${ovr.chem.links.length?ovr.chem.links.map(l=>`<span class="${"ck-"+l.kind}">${l.label} ×${l.n} → +${l.bonus.toFixed(1)}</span>`).join(""):`<span>Tap an empty slot to draft — links light the web in their colors</span>`}</div>${nearMissHTML(ovr)}
     </div>
     <div class="chemlegend">
       <div class="clg-h">CHEMISTRY RANKS</div>
@@ -2277,6 +2296,5 @@ const __sh=parseShare();
 if(__sh){SHARED=__sh;screen="share";}
 render();
 </script>
-<script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>
