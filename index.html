@@ -2597,7 +2597,10 @@ function drawRosterCanvas(modeKey,roster,eraLocked){
       c.fillStyle="#f2f2f5";c.fillText("ALL-TIME ",x0,108);
       c.fillStyle="#ffc53d";c.fillText("ULTIMATE",x0+w1,108);
       c.textAlign="center";c.fillStyle="#8a8a94";c.font="26px Arial";
-      const modeLabel=modeKey==="daily"?("D A I L Y   \u00b7   "+((DD&&DD.challenge.name)||"CHALLENGE").toUpperCase().split("").join(" ")):modeKey==="draft"?"C L A S S I C   D R A F T":"P A C K   M O D E   R U N";
+      const spaced=s=>s.toUpperCase().split("").join(" ");
+      const modeLabel=modeKey==="daily"?("D A I L Y   \u00b7   "+spaced((DD&&DD.challenge.name)||"CHALLENGE"))
+        :modeKey==="draft"?(eraLocked&&DRAFT_ERA?spaced(eraLabel(DRAFT_ERA)+" Era Draft"):"C L A S S I C   D R A F T")
+        :"P A C K   M O D E   R U N";
       c.fillText(modeLabel,540,152);
       /* scoreboard — compact, ends above the pentagon */
       const o=teamOVR(roster),pr=projection(o.eff);
@@ -2617,7 +2620,7 @@ function drawRosterCanvas(modeKey,roster,eraLocked){
         c.beginPath();c.arc(0,0,102,0,Math.PI*2);c.stroke();c.shadowBlur=0;
         c.beginPath();c.arc(0,0,88,0,Math.PI*2);c.strokeStyle="rgba(255,197,61,.65)";c.lineWidth=2;c.stroke();
         c.textAlign="center";c.fillStyle="#ffc53d";c.font="900 31px "+IMG_FONT;c.fillText("82\u20130",0,-5);
-        if(eraLocked){c.font="700 16px Arial";c.fillText("ERA RUN",0,24);c.font="700 11px Arial";c.fillText("PRACTICE MODE",0,46);}
+        if(eraLocked){c.font="700 15px Arial";c.fillText(DRAFT_ERA?eraLabel(DRAFT_ERA).toUpperCase():"ERA",0,24);c.font="700 12px Arial";c.fillText("ERA SQUAD",0,46);}
         else{c.font="700 18px Arial";c.fillText("CLUB",0,24);c.font="700 12px Arial";c.fillText("PERFECTION CERTIFIED",0,48);}c.restore();
       }
       /* pentagon web + starters — wider ring, smaller cards: no overlap */
@@ -2664,10 +2667,12 @@ async function shareRosterImage(modeKey){
   const file=new File([blob],`all-time-ultimate-${stem}${(perfect&&!eraLocked)?"-82-0-club":""}.png`,{type:"image/png"});
   const dailyName=modeKey==="daily"&&DD?DD.challenge.name:"";
   const text=(perfect&&!eraLocked)?"I made the 82–0 Club. Beat this squad:\nPackEmUltimateTeam.com"
+    :eraLocked?`My ${eraLabel(DRAFT_ERA)} Era squad (${pr.wins} wins) \u2014 beat it:\nPackEmUltimateTeam.com`
     :modeKey==="daily"?`Today\u2019s ${dailyName} challenge \u2014 ${pr.wins} wins. Beat it:\nPackEmUltimateTeam.com`
     :"my squad - beat it:\nPackEmUltimateTeam.com";
+  const shareTitle=(perfect&&!eraLocked)?"All-Time Ultimate — 82–0 Club":eraLocked?`All-Time Ultimate — ${eraLabel(DRAFT_ERA)} Era`:"All-Time Ultimate";
   if(navigator.canShare&&navigator.canShare({files:[file]})){
-    try{await navigator.share({files:[file],title:perfect?"All-Time Ultimate — 82–0 Club":"All-Time Ultimate",text});return;}catch(e){}
+    try{await navigator.share({files:[file],title:shareTitle,text});return;}catch(e){}
   }
   try{await navigator.clipboard.write([new ClipboardItem({"image/png":blob})]);
     notice(perfect?"82–0 Club image copied — paste it anywhere.":"Squad image copied — paste it anywhere.");return;}catch(e){}
