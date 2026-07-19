@@ -307,6 +307,10 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
   padding:16px;width:100%;max-width:480px;display:flex;flex-direction:column;gap:8px}
 .sheetbox h3{font-size:18px}
 .sheetbox .who{font-size:12px;color:var(--dim);margin-bottom:4px}
+.swaprows{display:flex;flex-direction:column;gap:8px;margin:8px 0}
+.swaprows .btn{display:flex;flex-direction:column;align-items:center;gap:1px;padding:11px;line-height:1.25}
+.swaprows .btn span{font-weight:700}
+.swaprows .btn small{font-size:11px;font-weight:500}
 .sheetbox .btn{width:100%;text-align:left}
 
 /* ============ DRAFT ============ */
@@ -409,6 +413,35 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .t-BronzeT{border-top:3px solid var(--bronze)}.t-SilverT{border-top:3px solid var(--silver)}.t-GoldT{border-top:3px solid var(--gold)}.t-DiamondT{border-top:3px solid var(--cyan)}.t-ImmortalT{border-top:3px solid var(--icon2);box-shadow:0 0 18px rgba(255,122,200,.14)}
 .archivegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}.archive{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:13px}.archive.complete{border-color:var(--green)}.archive.activated{border-color:var(--gold);box-shadow:0 0 13px rgba(255,197,61,.12)}.archive h3{font-size:16px}.archive .members{font-size:10px;color:#c9c9d2;line-height:1.6;margin-top:5px}.member.ok{color:var(--green)}.member.miss{color:#ff8aa0}.archive .state{font-size:9px;letter-spacing:.12em;color:var(--dim);margin-top:8px}.archivetabs{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}.archivetabs .btn.on{border-color:var(--gold);color:var(--gold)}
 .unlocktoast{position:fixed;right:14px;top:14px;z-index:120;width:min(340px,calc(100vw - 28px));background:#17130a;border:1px solid var(--gold);border-radius:14px;padding:14px;box-shadow:0 0 28px rgba(255,197,61,.32);animation:toastin .35s ease-out}.unlocktoast b{color:var(--gold);font-family:var(--disp);letter-spacing:.05em}.unlocktoast span{display:block;font-size:11px;color:#d5d1c6;margin-top:4px}@keyframes toastin{from{transform:translateY(-20px);opacity:0}}
+
+/* ===== Eras Mode ===== */
+.erabox{margin-top:6px;padding:14px;background:var(--panel);border:1px solid var(--line);border-radius:12px;max-width:440px}
+.erabox .era-h{font-size:11px;letter-spacing:.18em;color:var(--cyan);margin-bottom:2px}
+.erabtns{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.eradrop{position:relative;max-width:280px;margin:0 auto}
+.eradrop summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--panel2);border:1px solid var(--cyan);color:var(--cyan);border-radius:10px;padding:11px 16px;font-size:14px;font-weight:600}
+.eradrop summary::-webkit-details-marker{display:none}
+.eradrop .chev{transition:transform .2s;font-style:normal}
+.eradrop[open] .chev{transform:rotate(180deg)}
+.eradrop[open] summary{border-radius:10px 10px 0 0;border-bottom-color:transparent}
+.eramenu{position:absolute;left:0;right:0;z-index:20;background:var(--panel2);border:1px solid var(--cyan);border-top:none;border-radius:0 0 10px 10px;overflow:hidden}
+.eraitem{display:flex;flex-direction:column;align-items:flex-start;gap:1px;width:100%;background:none;border:none;border-top:1px solid rgba(53,214,255,.15);color:var(--ink);padding:10px 16px;cursor:pointer;text-align:left;transition:background .12s}
+.eraitem:first-child{border-top:none}
+.eraitem:hover{background:rgba(53,214,255,.14)}
+.eraitem b{font-size:14px;color:var(--cyan)}.eraitem small{font-size:10px;color:var(--dim)}
+.btn.erabtn{background:var(--panel2);border:1px solid var(--cyan);color:var(--cyan);padding:8px 16px;font-size:13px}
+.btn.erabtn:hover{background:var(--cyan);color:#04121a}
+.erabadge{background:linear-gradient(90deg,rgba(53,214,255,.16),transparent);border:1px solid rgba(53,214,255,.4);color:var(--cyan);border-radius:10px;padding:8px 14px;font-size:12px;letter-spacing:.08em;text-align:center;margin-bottom:10px;font-weight:700}
+/* ===== PHASE 5: DAILY CHALLENGE (draft-format) ===== */
+.dailybanner{display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#1a1508,#171717 55%,#0d1a20);border:1px solid rgba(255,197,61,.3);border-radius:14px;padding:12px 16px;margin-bottom:12px}
+.dailybanner .db-tag{font-size:9px;letter-spacing:.2em;color:var(--gold)}
+.dailybanner .db-main{flex:1}.dailybanner .db-main h2{font-size:19px;margin:2px 0 1px}.dailybanner .db-main p{color:#c8c8d0;font-size:11px;line-height:1.4}
+.dailybanner .db-meta{display:flex;gap:12px;font-size:11px;color:var(--dim);text-align:right}.dailybanner .db-meta b{color:var(--ink);font-family:var(--disp);font-size:16px}
+#dailynotice{padding:11px 13px;border-radius:10px;font-size:13px;text-align:center;font-weight:600}
+.dailyok,.dailywin{background:rgba(57,255,156,.12);border:1px solid rgba(57,255,156,.4);color:#7dffc0}
+.dailyhintbar{background:var(--panel2);border:1px solid var(--line);color:var(--dim)}
+.dailyblock{background:rgba(255,77,109,.14);border:1px solid rgba(255,77,109,.5);color:#ff9caa}
+@media(max-width:560px){.dailybanner{flex-wrap:wrap;gap:8px}.dailybanner .db-meta{text-align:left}}
 @media(max-width:560px){.trophyhero{grid-template-columns:1fr}.tpbig{text-align:left}.trophygrid,.archivegrid{grid-template-columns:1fr}}
 
 </style>
@@ -958,6 +991,18 @@ function cardChips(p){ /* stories first, then styles, max 2 shown on the card */
   return t.slice(0,2).map(x=>TAG_LABEL[x]).join(" · ");
 }
 const POOLS={};TIER_ORDER.forEach(t=>POOLS[t]=DB.filter(p=>p.tier===t));
+/* ---- Eras Mode: optional era-lock shared by Classic Draft + daily Decade Lock ---- */
+let DRAFT_ERA=null; /* null = all eras; else e.g. "'10s" restricts every draft pool */
+const ERA_POOL=e=>DB.filter(p=>p.era===e);
+function viableEras(){ /* eras deep enough to fill a full draft */
+  const by={};DB.forEach(p=>{(by[p.era]=by[p.era]||[]).push(p);});
+  return Object.entries(by).filter(([e,a])=>a.length>=120&&STARTER_SLOTS.every(s=>a.some(p=>p.positions.includes(s))))
+    .sort((a,b)=>{const ord=["'20s","'10s","'00s","'90s","'80s","'70s","'60s","'50s"];return ord.indexOf(a[0])-ord.indexOf(b[0]);})
+    .map(([e])=>e);
+}
+function eraLabel(e){return e?e.replace("'","20").replace(/^20(\d)0s$/,(m,d)=>d>=5?"19"+d+"0s":"20"+d+"0s"):"All-Time";}
+function eraPool(t){return DRAFT_ERA?POOLS[t].filter(p=>p.era===DRAFT_ERA):POOLS[t];}
+function eraPlayerCount(e){return DB.filter(p=>p.era===e).length;}
 const POOL_90=DB.filter(p=>p.ovr>=90);
 
 /* ================= PACKS ================= */
@@ -1219,7 +1264,8 @@ function teamOVR(roster){
   /* effective rating drives the win curve: chemistry counts double there,
      so a lower-OVR team with perfect chem can out-project a chem-less one */
   const eff=base+chem.bonus*CHEM_WIN_MULT; /* Phase 2 tune: chemistry remains decisive without making 82–0 routine */
-  return {base:Math.round(base),chem,total,eff,ready:startersFull(roster)};
+  const full=startersFull(roster)&&BENCH_SLOTS.every(s=>roster[s]!=null);
+  return {base:Math.round(base),chem,total,eff,ready:startersFull(roster),full};
 }
 /* logistic-style win curve on anchor points with cosine easing between them:
    flat-ish under 75, climbing through the 80s, exploding past 90 */
@@ -1263,6 +1309,7 @@ function nearMissChem(o){
   return {hit:false,needed:+needed.toFixed(1)};
 }
 function nearMissHTML(o){
+  if(!o.full)return ""; /* only meaningful once ALL 8 slots (incl bench) are set — otherwise the number shifts as cards are added, not just from chemistry */
   const n=nearMissChem(o);if(!n)return "";
   return n.hit
     ?`<div class="near82 hit">82–0 STANDARD REACHED</div>`
@@ -1354,7 +1401,7 @@ function draftRecencyWeight(name){
   const last=DRAFT_NAME_LAST[name];
   if(last===undefined)return 1;
   const age=DRAFT_FAIR_SESSION-last;
-  return age<=0?0.001:age===1?0.025:age===2?0.10:age===3?0.28:age===4?0.55:age===5?0.80:1;
+  return age<=0?0.001:age===1?0.012:age===2?0.05:age===3?0.12:age===4?0.24:age===5?0.40:age===6?0.58:age===7?0.76:age===8?0.90:1;
 }
 function weightedIndex(weights,rng){
   const R=rng||Math.random,total=weights.reduce((a,b)=>a+b,0);
@@ -1374,7 +1421,7 @@ function draftFairPick(pool,hardBlocked,softBlocked,rng){
   const minShown=Math.min(...names.map(n=>DRAFT_NAME_SHOWN[n]||0));
   const weights=names.map(n=>{
     const gap=(DRAFT_NAME_SHOWN[n]||0)-minShown;
-    return Math.pow(0.32,gap)*draftRecencyWeight(n)*(SPOTLIGHT[n]??1);
+    return Math.pow(0.32,gap)*draftRecencyWeight(n)*Math.sqrt(SPOTLIGHT[n]??1);
   });
   const name=names[weightedIndex(weights,R)],versions=byName[name];
   const minCard=Math.min(...versions.map(p=>DRAFT_CARD_SHOWN[p.id]||0));
@@ -1390,7 +1437,7 @@ function draftOptionsFor(slot,takenIds,counts,seenNames,rng){
   const soft=new Set(seenNames||[]);let guard=0;
   while(opts.length<5&&guard++<500){
     const t=draftDowngrade(rollTier(DRAFT_ODDS,rng),counts||{});
-    const pool=POOLS[t].filter(p=>eligible(p,slot));
+    const pool=eraPool(t).filter(p=>eligible(p,slot));
     const boardHard=new Set([...hard,...opts.map(o=>o.name)]);
     const p=draftFairPick(pool,boardHard,soft,rng);
     if(p){opts.push(p);soft.add(p.name);}
@@ -1400,9 +1447,13 @@ function draftOptionsFor(slot,takenIds,counts,seenNames,rng){
 }
 function draftCaptainOptions(rng){
   const R=rng||Math.random,out=[],hard=new Set(),soft=new Set();let guard=0;
+  /* era-aware anchor tiers: prefer Icon/Elite, but fall back to the best tiers the era HAS */
+  const tierPool=t=>eraPool(t);
+  let anchorTiers=["Icon","Elite"].filter(t=>tierPool(t).length>0);
+  if(!anchorTiers.length)anchorTiers=TIER_ORDER.slice().reverse().filter(t=>tierPool(t).length>0).slice(0,2);
   while(out.length<3&&guard++<400){
-    const t=R()<0.35?"Icon":"Elite";
-    const p=draftFairPick(POOLS[t],hard,soft,R);
+    const t=anchorTiers[Math.floor(R()*anchorTiers.length)]||anchorTiers[0];
+    const p=draftFairPick(tierPool(t),hard,soft,R);
     if(p){out.push(p);hard.add(p.name);soft.add(p.name);}
   }
   persistDraftFair();
@@ -1611,9 +1662,252 @@ function trophyTile(t){const p=t.fn(),u=T.unlocked[t.id],pct=Math.round(100*p.cu
 function archiveTile(g,type){const p=setProgressSoft(g.m),tgt=setTarget(g.m),act=type==="chem"?T.activatedChem[g.l]:type==="whatif"?T.activatedWhatIf[g.id]:T.activatedTeams[g.id];const own=ownedNames();return `<div class="archive ${p.done?"complete":""} ${act?"activated":""}"><h3>${esc(g.n||g.l)}</h3><div class="state">${type==="whatif"?esc(g.cred)+" · ":type==="teams"?esc(g.kind)+" · ":""}${act?"ARCHIVE ACTIVATED":p.done?"READY TO ASSEMBLE":p.cur?"DISCOVERED":"UNKNOWN"}</div><div class="members">${g.m.map(n=>{const avail=DB.some(x=>x.name===n);return `<span class="member ${!avail?"":" "+(own.has(n)?"ok":"miss")}" style="${!avail?"color:#777":""}">${!avail?"⊘":own.has(n)?"✓":"○"} ${esc(n)}${!avail?" (not yet in card pool)":""}</span>`}).join(" · ")}</div><div class="prog"><i style="width:${100*p.cur/p.max}%"></i></div><div class="footrow"><span>${p.cur}/${p.max} needed${tgt.available>tgt.need?` (of ${tgt.available})`:""}</span><span>${p.missing.slice(0,2).join(", ")}</span></div></div>`;}
 function trophyHTML(){evaluateTrophies(false);const sum=trophySummary(),cats=["Featured",...new Set(allTrophies().map(t=>t.cat)),"Archives"];let body;if(TROPHY_FILTER==="Archives"){const list=ARCHIVE_TAB==="chem"?DUOS:ARCHIVE_TAB==="whatif"?WHAT_IF:ICONIC_TEAMS;body=`<div class="archivetabs"><button class="btn ${ARCHIVE_TAB==="chem"?"on":""}" onclick="ARCHIVE_TAB='chem';render()">Chemistry Archive (${Object.keys(T.activatedChem).length}/${DUOS.length})</button><button class="btn ${ARCHIVE_TAB==="whatif"?"on":""}" onclick="ARCHIVE_TAB='whatif';render()">What If (${WHAT_IF.filter(g=>setProgressSoft(g.m).done).length}/${WHAT_IF.length})</button><button class="btn ${ARCHIVE_TAB==="teams"?"on":""}" onclick="ARCHIVE_TAB='teams';render()">Iconic Teams (${ICONIC_TEAMS.filter(g=>setProgressSoft(g.m).done).length}/${ICONIC_TEAMS.length})</button></div><div class="archivegrid">${list.map(g=>archiveTile(g,ARCHIVE_TAB)).join("")}</div>`;}else{let ts=allTrophies();if(TROPHY_FILTER==="Featured")ts=ts.filter(t=>T.unlocked[t.id]||["Collection","Records","Chemistry","What If","Iconic Teams"].includes(t.cat)).slice(0,30);else ts=ts.filter(t=>t.cat===TROPHY_FILTER);body=`<div class="trophygrid">${ts.map(trophyTile).join("")}</div>`;}return `<div class="trophyhero"><div><h2>Trophy Case</h2><p style="font-size:12px;color:var(--dim);line-height:1.5">Permanent progression across every run. Collection Ledger: <b style="color:var(--ink)">${ownedNames().size}</b> unique players · resets never erase discoveries.</p></div><div class="tpbig">${sum.pts}<small>TROPHY POINTS · ${sum.done}/${sum.total}</small></div></div><div class="trophyfilters">${cats.map(c=>`<button class="${TROPHY_FILTER===c?"on":""}" onclick="TROPHY_FILTER='${c}';render()">${c}</button>`).join("")}</div>${body}<div class="notice" id="notice"></div>`;}
 function trophyPack(cards){T.stats.packs++;cards.forEach(c=>{ledgerAdd(c);if(c.tier==="Icon")T.stats.iconsPulled++;if(c.tier==="Elite")T.stats.elitePulled++;if(c.tier==="Gold")T.stats.goldPulled++;if(c.ovr===99)T.stats.pulled99++;});const hi=cards.filter(c=>tierRank(c.tier)>=tierRank("Elite")).length,ic=cards.filter(c=>c.tier==="Icon").length;if(hi>=2)T.stats.doubleElite++;if(hi>=3)T.stats.threeElite++;if(ic>=2)T.stats.doubleIcon++;evaluateTrophies();}
-function trophyRoster(mode,r){const o=teamOVR(r);if(o.ready){const w=projection(o.eff).wins;T.stats.maxWins=Math.max(T.stats.maxWins,w);T.stats.maxChem=Math.max(T.stats.maxChem,o.chem.bonus);if(w===82){const sig=ALL_SLOTS.map(s=>r[s]??"x").join(",");if(T.last82[mode]!==sig){T.last82[mode]=sig;if(mode==="draft")T.stats.draft82++;else if(mode==="classic")T.stats.pack82++;}}}evaluateTrophies();}
+function trophyRoster(mode,r,opts){const o=teamOVR(r);const ranked=!(opts&&opts.eraLocked); /* era-locked drafts don't count toward win/record prestige */
+  if(o.ready&&ranked){const w=projection(o.eff).wins;T.stats.maxWins=Math.max(T.stats.maxWins,w);T.stats.maxChem=Math.max(T.stats.maxChem,o.chem.bonus);if(w===82){const sig=ALL_SLOTS.map(s=>r[s]??"x").join(",");if(T.last82[mode]!==sig){T.last82[mode]=sig;if(mode==="draft")T.stats.draft82++;else if(mode==="classic")T.stats.pack82++;}}}
+  evaluateTrophies();}
 sanitizeSave();save();
 migrateTrophies();
+
+
+/* ================= PHASE 5: DAILY CHALLENGE (DRAFT FORMAT) ================= */
+/* A date-seeded DRAFT: everyone gets the same challenge + the same option boards each day.
+   Tap each slot to reveal draft options drawn from the day's seeded pool, filtered by the
+   day's ban (so banned cards are never even offered). Blocked submission if the final
+   board violates the constraint. Streak + personal best persist. */
+const DAILY_KEY="atu-daily-v1";
+function emptyDaily(){return {streak:0,lastPlayed:null,best:{},history:{}};}
+let DAILY=sGet(DAILY_KEY)||emptyDaily();
+DAILY.best=DAILY.best||{};DAILY.history=DAILY.history||{};
+function saveDaily(){sSet(DAILY_KEY,DAILY);}
+/* deterministic seeded RNG so a given date => identical challenge, pool and option boards everywhere */
+function xmur3(str){let h=1779033703^str.length;for(let i=0;i<str.length;i++){h=Math.imul(h^str.charCodeAt(i),3432918353);h=h<<13|h>>>19;}return function(){h=Math.imul(h^h>>>16,2246822507);h=Math.imul(h^h>>>13,3266489909);return (h^=h>>>16)>>>0;};}
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296;};}
+function seededRng(seedStr){return mulberry32(xmur3(seedStr)());}
+function todayKey(d){d=d||new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function dayIndex(dateKey){const [y,m,dd]=dateKey.split("-").map(Number);return Math.floor(Date.UTC(y,m-1,dd)/86400000);}
+
+/* ---- the 14-day cycle: every entry is a DRAFT constraint + a `ban` on what may be offered ---- */
+const DAILY_CYCLE=[
+ {id:"one-franchise",name:"One Franchise",desc:"Draft five starters from a single franchise.",
+  ban:null,franchiseLock:true,
+  valid:ps=>new Set(ps.map(p=>p.team)).size===1,
+  hint:"All five starters must share one team."},
+ {id:"no-icons",name:"No Icons",desc:"Draft the best team with zero Icon cards.",
+  ban:p=>p.tier==="Icon",
+  valid:ps=>ps.every(p=>p.tier!=="Icon"),
+  hint:"No Icon-tier cards are offered or allowed."},
+ {id:"decade-lock",name:"Decade Lock",desc:"Draft the best team from one locked decade.",
+  eraLock:true, /* the specific decade is chosen per-day below; all other eras are banned */
+  valid:ps=>new Set(ps.map(p=>p.era)).size===1,
+  hint:"Only one decade's players are offered — draft the best team from it."},
+ {id:"underdog",name:"The Underdog",desc:"Draft a contender with nobody above 89 OVR.",
+  ban:p=>p.ovr>=90,
+  valid:ps=>ps.every(p=>p.ovr<=89),
+  hint:"Nobody over 89 OVR is offered."},
+ {id:"duo-hunt",name:"Duo Hunt",desc:"Draft a team featuring two iconic bonds.",
+  ban:null,seedBonds:2,
+  valid:ps=>{const names=new Set(ps.map(p=>p.name));let c=0;DUOS.forEach(g=>{if(g.m.filter(n=>names.has(n)).length>=2)c++;});return c>=2;},
+  hint:"Field at least two iconic duos/trios among starters."},
+ {id:"no-golds-up",name:"Silver & Below",desc:"Draft using only Silver and Bronze cards.",
+  ban:p=>["Gold","Elite","Icon"].includes(p.tier),
+  valid:ps=>ps.every(p=>["Silver","Bronze"].includes(p.tier)),
+  hint:"Only Silver and Bronze cards are offered."},
+ {id:"small-ball",name:"Small Ball",desc:"Draft with no natural centers.",
+  ban:p=>p.pos==="C",
+  valid:ps=>ps.every(p=>p.pos!=="C"),
+  hint:"No player whose primary position is Center is offered."},
+ {id:"modern-only",name:"Rookie Szn",desc:"Draft using only 2010s & 2020s players.",
+  ban:p=>!(p.era==="'10s"||p.era==="'20s"),
+  valid:ps=>ps.every(p=>p.era==="'10s"||p.era==="'20s"),
+  hint:"Only modern-era ('10s/'20s) players are offered."},
+ {id:"rivalry",name:"Rivalry Week",desc:"Draft starters from four+ different franchises.",
+  ban:null,
+  valid:ps=>new Set(ps.map(p=>p.team)).size>=4,
+  hint:"Four or more distinct franchises among starters."},
+ {id:"old-school",name:"Old School",desc:"Draft using only 2000s & 2010s players.",
+  ban:p=>!(p.era==="'00s"||p.era==="'10s"),
+  valid:ps=>ps.every(p=>p.era==="'00s"||p.era==="'10s"),
+  hint:"Only 2000s & 2010s players are offered."},
+ {id:"dynasty",name:"The Dynasty",desc:"Draft a complete three-player iconic trio.",
+  ban:null,seedTrio:true,
+  valid:ps=>{const names=new Set(ps.map(p=>p.name));return DUOS.some(g=>g.m.length===3&&g.m.every(n=>names.has(n)));},
+  hint:"All three members of one iconic trio must start."},
+ {id:"no-elite",name:"Grit & Grind",desc:"Draft without Elite or Icon cards.",
+  ban:p=>p.tier==="Elite"||p.tier==="Icon",
+  valid:ps=>ps.every(p=>p.tier!=="Elite"&&p.tier!=="Icon"),
+  hint:"No Elite or Icon cards are offered."},
+ {id:"positionless",name:"Positionless",desc:"Draft five different primary positions.",
+  ban:null,
+  valid:ps=>new Set(ps.map(p=>p.pos)).size===ps.length,
+  hint:"All five starters must have different primary positions."},
+ {id:"ring-chase",name:"Ring Chase",desc:"No constraints — draft the perfect 82–0.",
+  ban:null,
+  valid:()=>true,
+  hint:"Open draft. Get as close to 82–0 as you can."},
+];
+function dailyFor(dateKey){dateKey=dateKey||todayKey();return DAILY_CYCLE[((dayIndex(dateKey)%DAILY_CYCLE.length)+DAILY_CYCLE.length)%DAILY_CYCLE.length];}
+
+/* ---- date-seeded draft pool: filtered by the day's ban, guaranteed constraint-solvable ---- */
+function dailyDraftPool(dateKey){
+  dateKey=dateKey||todayKey();
+  const ch=dailyFor(dateKey),rng=seededRng("pool-"+dateKey);
+  const shuf=arr=>{const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+  /* eraLock challenges: pick THE decade for this day (rotates), then ban every other era */
+  let lockedEra=null;
+  if(ch.eraLock){const eras=viableEras();lockedEra=eras[dayIndex(dateKey)%eras.length];}
+  const banned=p=>(ch.ban&&ch.ban(p))||(lockedEra&&p.era!==lockedEra);
+  let base=DB.filter(p=>!banned(p));
+  /* franchise-lock: restrict to ONE seeded team that can fill all five slots */
+  if(ch.franchiseLock){
+    const teams={};base.forEach(p=>{(teams[p.team]=teams[p.team]||[]).push(p);});
+    const viable=Object.entries(teams).filter(([t,a])=>STARTER_SLOTS.every(s=>a.some(p=>eligible(p,s))));
+    const pick=shuf(viable.map(v=>v[0]))[0];
+    base=teams[pick]||base;
+  }
+  const ids=new Set(base.map(p=>p.id));
+  const inject=names=>names.forEach(n=>{const c=DB.find(p=>p.name===n);if(c&&!banned(c)&&!ids.has(c.id)){base.push(c);ids.add(c.id);}});
+  if(ch.seedTrio){const trios=DUOS.filter(g=>g.m.length===3);inject(shuf(trios)[0].m);}
+  if(ch.seedBonds){shuf(DUOS).slice(0,ch.seedBonds).forEach(g=>inject(g.m));}
+  if(ch.id==="decade-lock"){ /* guarantee one decade can fill all five starter slots */
+    const eras={};base.forEach(p=>{(eras[p.era]=eras[p.era]||[]).push(p);});
+    const viable=Object.entries(eras).filter(([e,a])=>STARTER_SLOTS.every(s=>a.some(p=>eligible(p,s))));
+    if(!viable.length){ /* force one: pick the era with most players, top up missing slots from DB */
+      const era=shuf(Object.keys(eras))[0]||"'10s";
+      STARTER_SLOTS.forEach(s=>{if(!(eras[era]||[]).some(p=>eligible(p,s))){const c=shuf(DB.filter(p=>p.era===era&&eligible(p,s)&&!(ch.ban&&ch.ban(p))))[0];if(c&&!ids.has(c.id)){base.push(c);ids.add(c.id);}}});
+    }
+  }
+  if(ch.id==="positionless"){ /* ensure 5 distinct primary positions exist */
+    ["PG","SG","SF","PF","C"].forEach(pos=>{if(!base.some(p=>p.pos===pos)){const c=shuf(DB.filter(p=>p.pos===pos&&!(ch.ban&&ch.ban(p))))[0];if(c&&!ids.has(c.id)){base.push(c);ids.add(c.id);}}});
+  }
+  if(ch.id==="rivalry"){ /* ensure 4+ distinct teams that can cover slots */
+    const teams=[...new Set(base.map(p=>p.team))];if(teams.length<5){shuf(DB).slice(0,20).forEach(c=>{if(!ids.has(c.id)&&!(ch.ban&&ch.ban(c))){base.push(c);ids.add(c.id);}});}
+  }
+  return {pool:base,rng:seededRng("boards-"+dateKey)};
+}
+
+/* ---- daily draft state (mirrors D, but seeded + pool-restricted) ---- */
+let DD=null;
+function dailyEligiblePool(slot){return DD.pool.filter(p=>eligible(p,slot));}
+function dailyOptionsFor(slot){
+  /* seeded, deterministic option board of up to 5 from the day's pool for this slot */
+  const taken=new Set(ALL_SLOTS.map(s=>DD.roster[s]).filter(x=>x!=null).map(id=>DB[id].name));
+  const boardNames=new Set();
+  const cands=dailyEligiblePool(slot).filter(p=>!taken.has(p.name));
+  /* shuffle deterministically via the day's board RNG, take 5 unique names */
+  const a=cands.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(DD.rng()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  const opts=[];
+  for(const p of a){if(opts.length>=5)break;if(!boardNames.has(p.name)){opts.push(p);boardNames.add(p.name);}}
+  return opts;
+}
+function dailyStart(dateKey){
+  dateKey=dateKey||todayKey();
+  const {pool,rng}=dailyDraftPool(dateKey);
+  DD={dateKey,challenge:dailyFor(dateKey),pool,rng,lockedEra:(dailyFor(dateKey).eraLock?viableEras()[dayIndex(dateKey)%viableEras().length]:null),
+      stage:"picking",roster:emptyRoster(),taken:[],opts:null,slotOpts:{},activeSlot:null,lastSlot:null,done:false,
+      submitted:!!DAILY.history[dateKey]};
+}
+function dailySlotTap(slot){
+  if(!DD||DD.stage!=="picking"||DD.done)return; /* once all 8 are in, the board is locked — no swapping */
+  if(DD.roster[slot]!=null)return;
+  DD.activeSlot=slot;
+  if(!DD.slotOpts[slot])DD.slotOpts[slot]=dailyOptionsFor(slot);
+  DD.opts=DD.slotOpts[slot];
+  render();
+}
+function dailyPickInto(pid){
+  const slot=DD.activeSlot;if(!slot||DD.roster[slot]!=null)return;
+  const p=DB[pid];
+  if(DD.taken.some(id=>DB[id].name===p.name)){notice(p.name+" already on your board.");return;}
+  DD.roster[slot]=pid;DD.taken.push(pid);DD.lastSlot=slot;DD.activeSlot=null;DD.opts=null;
+  const full=STARTER_SLOTS.every(s=>DD.roster[s]!=null)&&BENCH_SLOTS.every(s=>DD.roster[s]!=null);
+  if(full){DD.done=true;dailyFinalize();}
+  render();
+}
+function dailyClearActive(){DD.activeSlot=null;DD.opts=null;render();}
+function dailyFinalize(){
+  const v=dailyValidity();DD.finalValid=v.valid;
+  if(v.valid){const res=dailySubmit();DD.finalResult=res.ok?res:null;if(res.ok&&res.result.wins>=70)confetti(70);}
+  else DD.finalResult=null;
+}
+function dailyStarters(){return STARTER_SLOTS.map(s=>DD.roster[s]!=null?DB[DD.roster[s]]:null).filter(Boolean);}
+function dailyValidity(){
+  if(!DD)return {full:false,valid:false,reason:"No draft in progress"};
+  const full=STARTER_SLOTS.every(s=>DD.roster[s]!=null);
+  if(!full)return {full:false,valid:false,reason:"Draft all five starters"};
+  const ok=DD.challenge.valid(dailyStarters(),DD.roster);
+  return {full:true,valid:ok,reason:ok?"Constraint met":"Constraint not met: "+DD.challenge.hint};
+}
+function dailyResult(){const o=teamOVR(DD.roster),pr=projection(o.eff);return {ovr:o.total,eff:o.eff,chem:o.chem.bonus,wins:pr.wins,identity:recordIdentity(pr.wins)};}
+function dailySubmit(){
+  const v=dailyValidity();
+  if(!v.valid)return {ok:false,reason:v.reason};
+  const r=dailyResult(),key=DD.dateKey,prev=DAILY.lastPlayed;
+  if(prev!==key){ /* yesterday relative to the SUBMITTED day, not the wall clock */
+    const [yy,mm,ddN]=key.split("-").map(Number);const y=new Date(Date.UTC(yy,mm-1,ddN-1));
+    const yKey=y.getUTCFullYear()+"-"+String(y.getUTCMonth()+1).padStart(2,"0")+"-"+String(y.getUTCDate()).padStart(2,"0");
+    DAILY.streak=(prev===yKey)?(DAILY.streak+1):1;DAILY.lastPlayed=key;}
+  const pb=DAILY.best[key];
+  if(!pb||r.wins>pb.wins)DAILY.best[key]={wins:r.wins,ovr:r.ovr,chem:+r.chem.toFixed(1),title:r.identity.title};
+  DAILY.history[key]=(DAILY.history[key]||0)+1;DD.submitted=true;saveDaily();
+  if(typeof trophyRoster==="function")trophyRoster("daily",DD.roster);
+  return {ok:true,result:r,best:DAILY.best[key],streak:DAILY.streak};
+}
+
+/* ---- daily draft screen — mirrors draftHTML's court exactly ---- */
+function dailySlotHTML(slot){
+  const pid=DD.roster[slot],p=slotPos(slot);
+  if(pid==null)return `<button class="slot slot-${slot} ${DD.activeSlot===slot?"eligible":""}" onclick="dailySlotTap('${slot}')">
+    <div class="postag">${p==="B"?"BN":p}</div><div>${SLOT_LABEL[slot]}</div>
+    <div style="font-size:8px;color:var(--cyan)">TAP TO DRAFT</div></button>`;
+  return `<div class="slot-${slot}" style="position:relative"><div class="${DD.lastSlot===slot?"snapin":""}">${cardHTML(DB[pid])}</div></div>`;
+}
+function dailyHTML(){
+  if(!DD||DD.dateKey!==todayKey())dailyStart();
+  const ch=DD.challenge,ovr=teamOVR(DD.roster),pr=projection(ovr.eff);
+  const filled=ALL_SLOTS.filter(s=>DD.roster[s]!=null).length;
+  const v=dailyValidity(),best=DAILY.best[DD.dateKey];
+  return `
+  <div class="dailybanner">
+    <div class="db-tag">DAILY DRAFT · ${DD.dateKey}</div>
+    <div class="db-main"><h2>${esc(ch.name)}${DD.lockedEra?` · ${eraLabel(DD.lockedEra)}`:""}</h2><p>${esc(ch.desc)}</p></div>
+    <div class="db-meta"><span>🔥 <b>${DAILY.streak||0}</b></span>${best?`<span>BEST <b>${best.wins}W</b></span>`:`<span>Unplayed</span>`}</div>
+  </div>
+  <div class="panel" style="margin-bottom:12px"><div class="scoreboard">
+    <div class="ovrbig">${ovr.total}<small>TEAM OVR</small><small class="exact">${ovr.ready?ovr.eff.toFixed(1)+" Ovr w Chem":"—"}</small></div>
+    <div><div class="projrow">
+      <div><b>${ovr.ready?pr.wins+"–"+pr.losses:"—"}</b>projected record</div>
+      <div><b>${DD.done?"8 / 8 — FINAL":filled+" / 8"}</b>picks locked</div>
+      <div><b>+${ovr.chem.bonus.toFixed(1)}</b>chemistry</div></div>
+      ${recordIdentityHTML(pr,ovr.ready)}
+      <div class="chemlinks">${ovr.chem.links.length?ovr.chem.links.map(l=>`<span class="${"ck-"+l.kind}">${l.label} ×${l.n} → +${l.bonus.toFixed(1)}</span>`).join(""):`<span>Tap an empty slot to draft — banned cards for today are never offered</span>`}</div>${nearMissHTML(ovr)}
+    </div>
+    <div class="chemlegend">
+      <div class="clg-h">TODAY'S RULE</div>
+      <div class="clg ck-duo"><i></i><div><b>${esc(ch.name)}${DD.lockedEra?` — ${eraLabel(DD.lockedEra)}`:""}</b><span>${DD.lockedEra?`Only ${eraLabel(DD.lockedEra)} players are offered today.`:esc(ch.hint)}</span></div></div>
+      <div class="clg ${v.valid?"ck-style":"ck-team"}"><i></i><div><b>${v.full?(v.valid?"Constraint met":"Constraint NOT met"):"Draft all 5 starters"}</b><span>${v.full&&!v.valid?"draft again to satisfy it":v.valid?"scored & locked":"tap slots to draft"}</span></div></div>
+    </div></div></div>
+  <div class="court">
+    <svg class="squadweb" aria-hidden="true"></svg>
+    <h3>${DD.done?"Final Board — locked in":"Tap an empty slot — PG · SG · SF · PF · C"}</h3>
+    <div class="fiveslots">${["C","PF","SF","SG","PG"].map(s=>dailySlotHTML(s)).join("")}</div>
+    <div class="benchlabel">BENCH — ANY POSITION</div>
+    <div class="benchrow">${BENCH_SLOTS.map(s=>dailySlotHTML(s)).join("")}</div>
+  </div>
+  ${!DD.done?`<div id="dailynotice" class="dailyhintbar" style="margin-top:12px">ⓘ ${esc(ch.hint)}</div>`
+    :DD.finalValid?`<div id="dailynotice" class="dailywin" style="margin-top:12px">✓ <b>${recordIdentity(pr.wins).title}</b> · ${pr.wins} wins · streak ${DAILY.streak}🔥</div>
+     <div style="display:flex;gap:10px;justify-content:center;margin-top:12px;flex-wrap:wrap">
+       <button class="btn gold" onclick="shareDailyImage()">Share as image</button>
+       <button class="btn" onclick="setScreen('landing')">Exit to modes</button></div>
+     <div class="sub" style="text-align:center;color:var(--dim);font-size:11px;margin-top:8px">Locked in for today — come back tomorrow for a new challenge.</div>`
+    :`<div id="dailynotice" class="dailyblock" style="margin-top:12px">⛔ Constraint not met: ${esc(ch.hint)}</div>
+     <div style="display:flex;gap:10px;justify-content:center;margin-top:12px">
+       <button class="btn gold" onclick="dailyStart();render()">Draft Again</button>
+       <button class="btn" onclick="setScreen('landing')">Exit</button></div>
+     <div class="sub" style="text-align:center;color:var(--dim);font-size:11px;margin-top:8px">Your board didn't satisfy today's rule — draft again for a valid team.</div>`}
+  <div class="notice" id="notice" style="margin-top:10px"></div>
+  `;
+}
+
 
 
 /* ================= SMALL HELPERS ================= */
@@ -1666,6 +1960,7 @@ function renderTabs(){
   else if(screen==="draft")items=[["landing","☰ Modes"],["draft","Classic Draft"],["trophies","🏆 Trophies"]];
   else if(screen==="classic")items=[["landing","☰ Modes"],["classic","Pack Mode"],["trophies","🏆 Trophies"]];
   else if(screen==="trophies")items=[["landing","☰ Modes"],["trophies","🏆 Trophies"]];
+  else if(screen==="daily")items=[["landing","☰ Modes"],["daily","🗓 Daily"],["trophies","🏆 Trophies"]];
   else items=[["landing","☰ Modes"],["team","My Team"],["packs","Packs"],["rare","Rare Pull"],["trophies","🏆 Trophies"]];
   bar.innerHTML=items.map(([k,l])=>`<button class="${screen===k?"on":""}" onclick="setScreen('${k}')">${l}</button>`).join("");
   bar.style.display=items.length?"":"none";
@@ -2035,7 +2330,9 @@ function reconcileDraftState(){
   else if(D.done)D.done=false;
   return full;
 }
-function startDraft(){
+function startEraByIndex(i){const e=viableEras()[i];if(e)startDraft(e);}
+function startDraft(era){
+  DRAFT_ERA=era||null;
   beginDraftFairSession();
   const captain=draftCaptainOptions();
   D={stage:"captain",captain,roster:emptyRoster(),taken:[],opts:null,slotOpts:{},activeSlot:null,lastSlot:null,done:false,tierCounts:{},offeredNames:captain.map(p=>p.name)};
@@ -2071,8 +2368,8 @@ function draftPickInto(pid){
   if(reconcileDraftState()){
     D.done=true; /* stay on the court \u2014 no summary screen */
     const o=teamOVR(D.roster),pr=projection(o.eff);
-    if(o.total>HS.draft.ovr){HS.draft.ovr=o.total;HS.draft.wins=pr.wins;saveHS();}
-    T.stats.drafts++;trophyRoster("draft",D.roster);confetti(80);
+    if(!DRAFT_ERA&&o.total>HS.draft.ovr){HS.draft.ovr=o.total;HS.draft.wins=pr.wins;saveHS();} /* era runs don't set the all-time best */
+    T.stats.drafts++;trophyRoster("draft",D.roster,{eraLocked:!!DRAFT_ERA});confetti(80);
   }
   render(); /* re-render snaps the card in + relights the chemistry web */
 }
@@ -2084,29 +2381,43 @@ function draftPickInto(pid){
 function openDraftSwap(slot){
   const cur=DB[D.roster[slot]];
   const fromBench=BENCH_SLOTS.includes(slot);
-  /* starter destinations this player legally fits (bench order is meaningless, so
-     bench isn't listed slot-by-slot \u2014 it's one "Move to bench" action below) */
-  const starterDests=STARTER_SLOTS.filter(s2=>s2!==slot&&eligible(cur,s2));
+  /* A starter destination is only offered when the swap is legal BOTH ways:
+     the mover fits the destination AND the occupant fits this vacated slot.
+     (Bench slots accept anyone, so a bench origin/target always fits.) */
+  const canLand=(mover,dest)=>BENCH_SLOTS.includes(dest)||eligible(mover,dest);
+  const legalStarter=s2=>{
+    if(s2===slot)return false;
+    const occ=DB[D.roster[s2]];
+    return canLand(cur,s2)&&canLand(occ,slot); /* two-way check */
+  };
+  const starterDests=STARTER_SLOTS.filter(legalStarter);
   const rows=starterDests.map(s2=>{
     const occ=DB[D.roster[s2]];
     return `<button class="btn gold" onclick="doDraftSwap('${slot}','${s2}')">
-      Start at ${SLOT_LABEL[s2]}
-      <span style="color:var(--dim)">(swaps with ${esc(occ.name)} ${occ.ovr})</span></button>`;
+      <span>Start at ${SLOT_LABEL[s2]}</span>
+      <small style="color:var(--dim)">swaps with ${esc(occ.name)} ${occ.ovr}</small></button>`;
   }).join("");
-  /* single bench action for a starter: send to any open bench spot, else the last one */
+  /* bench action for a starter: prefer an OPEN bench spot (pure move, no displacement);
+     otherwise swap with the bench player who can legally start this slot, if any. */
   let benchRow="";
   if(!fromBench){
-    const target=BENCH_SLOTS.find(s2=>D.roster[s2]==null)
-      ?? BENCH_SLOTS.reduce((lo,s2)=>DB[D.roster[s2]].ovr<DB[D.roster[lo]].ovr?s2:lo,BENCH_SLOTS[0]);
-    const occ=D.roster[target]!=null?DB[D.roster[target]]:null;
-    benchRow=`<button class="btn" onclick="doDraftSwap('${slot}','${target}')">
-      Move to bench${occ?` <span style="color:var(--dim)">(swaps with ${esc(occ.name)} ${occ.ovr})</span>`:""}</button>`;
+    const open=BENCH_SLOTS.find(s2=>D.roster[s2]==null);
+    if(open!=null){
+      benchRow=`<button class="btn" onclick="doDraftSwap('${slot}','${open}')"><span>Move to bench</span></button>`;
+    }else{
+      /* find a bench player who can start the vacated slot (so the swap is legal) */
+      const t=BENCH_SLOTS.find(s2=>eligible(DB[D.roster[s2]],slot));
+      if(t!=null){const occ=DB[D.roster[t]];
+        benchRow=`<button class="btn" onclick="doDraftSwap('${slot}','${t}')"><span>Move to bench</span><small style="color:var(--dim)">swaps with ${esc(occ.name)} ${occ.ovr}</small></button>`;}
+    }
+  }else{
+    /* from bench: offer starting at any slot this player fits whose occupant can bench (always true) */
   }
   const any=rows||benchRow;
-  const none=any?"":`<div class="who" style="color:var(--dim)">No other legal slots \u2014 ${esc(cur.name)} only fits ${cur.positions.join("/")}.</div>`;
+  const none=any?"":`<div class="who" style="color:var(--dim)">No legal moves \u2014 nobody else can cover ${SLOT_LABEL[slot]} and ${esc(cur.name)} only fits ${cur.positions.join("/")}.</div>`;
   $("#sheet").innerHTML=`<div class="sheetbox"><h3>Move \u00b7 ${esc(cur.name)} ${cur.ovr}</h3>
-    <div class="who">${fromBench?"On the bench":"Starting at "+SLOT_LABEL[slot]}. Send them where you want \u2014 whoever's there trades places.</div>
-    ${rows}${benchRow}${none}<button class="btn" onclick="closeSheet()">Cancel</button></div>`;
+    <div class="who">${fromBench?"On the bench":"Starting at "+SLOT_LABEL[slot]}. Only legal moves are shown \u2014 whoever's there trades places.</div>
+    <div class="swaprows">${rows}${benchRow}</div>${none}<button class="btn" onclick="closeSheet()">Cancel</button></div>`;
   $("#sheet").classList.add("show");
   $("#sheet").onclick=e=>{if(e.target.id==="sheet")closeSheet();};
 }
@@ -2118,8 +2429,8 @@ function doDraftSwap(a,b){
   [D.roster[a],D.roster[b]]=[D.roster[b],D.roster[a]];
   D.lastSlot=b;closeSheet();
   const o=teamOVR(D.roster),pr=projection(o.eff);
-  if(o.total>HS.draft.ovr){HS.draft.ovr=o.total;HS.draft.wins=pr.wins;saveHS();}
-  trophyRoster("draft",D.roster);render();
+  if(!DRAFT_ERA&&o.total>HS.draft.ovr){HS.draft.ovr=o.total;HS.draft.wins=pr.wins;saveHS();}
+  trophyRoster("draft",D.roster,{eraLocked:!!DRAFT_ERA});render();
   notice(esc(pa.name)+" \u2192 "+SLOT_LABEL[b]+".");
 }
 function draftSlotHTML(slot){
@@ -2137,13 +2448,22 @@ function draftHTML(){
   }
   if(D.stage!=="picking")return `<div class="result">
       <h2 class="disp" style="font-size:30px">Classic Draft</h2>
-      <p style="color:var(--dim);font-size:13px;max-width:420px">Pick an Icon captain, then tap each empty slot on the
+      <p style="color:var(--dim);font-size:13px;max-width:440px">Pick an Icon captain, then tap each empty slot on the
       court to reveal five eligible players. Lock in all eight and chase the best draft OVR.</p>
-      <div class="sub" style="color:var(--dim);font-size:12px">Best draft: <b style="color:var(--gold)">${HS.draft.ovr} OVR</b>${HS.draft.wins?` (${HS.draft.wins} wins)`:""}</div>
-      <button class="btn primary" onclick="startDraft()">Start draft</button></div>`;
+      <div class="sub" style="color:var(--dim);font-size:12px;margin-bottom:4px">Best draft: <b style="color:var(--gold)">${HS.draft.ovr} OVR</b>${HS.draft.wins?` (${HS.draft.wins} wins)`:""}</div>
+      <button class="btn primary" onclick="startDraft()" style="margin-bottom:18px">Start All-Time Draft</button>
+      <div class="erabox">
+        <div class="era-h">◷ ERA-BY-ERA DRAFT</div>
+        <p style="color:var(--dim);font-size:12px;margin:2px 0 12px">Lock the whole draft to one decade — only that era's players are offered. <span style="color:var(--cyan)">A more forgiving warm-up: smaller pools mean stronger chemistry, so it doesn't count toward record trophies or the 82–0 Club.</span></p>
+        <details class="eradrop" id="eradrop">
+          <summary><span>Choose a decade</span><i class="chev">▾</i></summary>
+          <div class="eramenu">${viableEras().map((e,i)=>`<button class="eraitem" onclick="startEraByIndex(${i})"><b>${eraLabel(e)}</b><small>${eraPlayerCount(e)} players</small></button>`).join("")}</div>
+        </details>
+      </div></div>`;
   const ovr=teamOVR(D.roster),pr=projection(ovr.eff);
   const filled=ALL_SLOTS.filter(s=>D.roster[s]!=null).length;
   return `
+  ${DRAFT_ERA?`<div class="erabadge">◷ ${eraLabel(DRAFT_ERA)} ERA DRAFT · practice mode — doesn\u2019t count toward records</div>`:""}
   <div class="panel" style="margin-bottom:12px"><div class="scoreboard">
     <div class="ovrbig">${ovr.total}<small>TEAM OVR</small><small class="exact">${ovr.ready?ovr.eff.toFixed(1)+" Ovr w Chem":"—"}</small></div>
     <div><div class="projrow">
@@ -2171,7 +2491,8 @@ function draftHTML(){
   ${D.done?`<div style="display:flex;gap:10px;justify-content:center;margin-top:12px">
     <button class="btn gold" onclick="shareDraftImage()">Share as image</button>
       <button class="btn" onclick="shareRoster('draft')">Share roster</button>
-      <button class="btn primary" onclick="startDraft()">Draft again</button>
+      <button class="btn primary" onclick="startDraft(DRAFT_ERA)">${DRAFT_ERA?eraLabel(DRAFT_ERA)+" draft again":"Draft again"}</button>
+    ${DRAFT_ERA?`<button class="btn" onclick="startDraft()">All-Time draft</button>`:""}
     <button class="btn" onclick="setScreen('landing')">Exit to modes</button></div>
   <div class="sub" style="text-align:center;color:var(--cyan);font-size:11px;margin-top:8px">Final board — tap any player (starter or bench) to move them into any slot they fit.</div>`:""}
   <div class="notice" id="notice" style="margin-top:10px"></div>
@@ -2193,6 +2514,7 @@ function landingHTML(){
       <div class="modebest">BEST OVR <b>${best}</b></div>
       <button class="btn ${cls}">${cta}</button>
     </div>`).join("")}
+    <div class="modecard" onclick="setScreen('daily')"><h3>🗓 Daily Challenge</h3><p>A fresh seeded squad and a new constraint every day — same for everyone. Build the best team under today's rule and keep your streak alive.</p><div class="modebest">STREAK <b>${DAILY.streak||0}🔥</b></div><button class="btn gold">PLAY TODAY</button></div>
     <div class="modecard" onclick="setScreen('trophies')"><h3>🏆 Trophy Case</h3><p>Permanent collection progression, franchise and era archives, iconic chemistry discoveries, What If timelines, historic teams, records and hidden challenges.</p><div class="modebest">PROGRESS <b>${trophySummary().done}/${trophySummary().total}</b></div><button class="btn gold">OPEN TROPHY CASE</button></div>
   </div>`;
 }
@@ -2255,7 +2577,7 @@ function imgCard(p,cx,cy,w,h){
   c.fillStyle="#8a8a94";c.font=Math.round(w*.075)+"px Arial";
   c.fillText(p.team+" \u00b7 "+p.era+" \u00b7 "+p.tier.toUpperCase(),cx,y+h-14);
 }
-function drawRosterCanvas(modeKey,roster){
+function drawRosterCanvas(modeKey,roster,eraLocked){
   return new Promise(res=>{
     try{
       const cv=document.createElement("canvas");cv.width=1080;cv.height=1350;
@@ -2275,7 +2597,8 @@ function drawRosterCanvas(modeKey,roster){
       c.fillStyle="#f2f2f5";c.fillText("ALL-TIME ",x0,108);
       c.fillStyle="#ffc53d";c.fillText("ULTIMATE",x0+w1,108);
       c.textAlign="center";c.fillStyle="#8a8a94";c.font="26px Arial";
-      c.fillText(modeKey==="draft"?"C L A S S I C   D R A F T":"P A C K   M O D E   R U N",540,152);
+      const modeLabel=modeKey==="daily"?("D A I L Y   \u00b7   "+((DD&&DD.challenge.name)||"CHALLENGE").toUpperCase().split("").join(" ")):modeKey==="draft"?"C L A S S I C   D R A F T":"P A C K   M O D E   R U N";
+      c.fillText(modeLabel,540,152);
       /* scoreboard — compact, ends above the pentagon */
       const o=teamOVR(roster),pr=projection(o.eff);
       /* left block: big OVR centered on x=330 — alignment set explicitly per group */
@@ -2293,8 +2616,9 @@ function drawRosterCanvas(modeKey,roster){
         c.shadowColor="#ffc53d";c.shadowBlur=24;c.strokeStyle="#ffc53d";c.lineWidth=5;
         c.beginPath();c.arc(0,0,102,0,Math.PI*2);c.stroke();c.shadowBlur=0;
         c.beginPath();c.arc(0,0,88,0,Math.PI*2);c.strokeStyle="rgba(255,197,61,.65)";c.lineWidth=2;c.stroke();
-        c.textAlign="center";c.fillStyle="#ffc53d";c.font="900 31px "+IMG_FONT;c.fillText("82–0",0,-5);
-        c.font="700 18px Arial";c.fillText("CLUB",0,24);c.font="700 12px Arial";c.fillText("PERFECTION CERTIFIED",0,48);c.restore();
+        c.textAlign="center";c.fillStyle="#ffc53d";c.font="900 31px "+IMG_FONT;c.fillText("82\u20130",0,-5);
+        if(eraLocked){c.font="700 16px Arial";c.fillText("ERA RUN",0,24);c.font="700 11px Arial";c.fillText("PRACTICE MODE",0,46);}
+        else{c.font="700 18px Arial";c.fillText("CLUB",0,24);c.font="700 12px Arial";c.fillText("PERFECTION CERTIFIED",0,48);}c.restore();
       }
       /* pentagon web + starters — wider ring, smaller cards: no overlap */
       const CTR={x:540,y:772},R=252,ANG={C:-90,SF:-18,PG:54,SG:126,PF:198},pos={};
@@ -2327,16 +2651,21 @@ function drawRosterCanvas(modeKey,roster){
   });
 }
 async function shareRosterImage(modeKey){
-  const roster=modeKey==="draft"?D.roster:S.classic.roster;
+  const roster=modeKey==="daily"?(DD&&DD.roster):modeKey==="draft"?D.roster:S.classic.roster;
+  if(modeKey==="daily"&&(!DD||!DD.done)){notice("Finish today's draft first — then share it.");return;}
   if(modeKey==="draft"&&!D.done){notice("Finish the draft first — then share the squad.");return;}
   if(!startersFull(roster)){notice("Fill your starting five before sharing an image.");return;}
   notice("Rendering your squad…");
-  const blob=await drawRosterCanvas(modeKey,roster);
+  const eraLocked=modeKey==="draft"&&!!DRAFT_ERA;
+  const blob=await drawRosterCanvas(modeKey,roster,eraLocked);
   if(!blob){notice("Couldn't render the image on this browser.");return;}
   const o=teamOVR(roster),pr=projection(o.eff),perfect=pr.wins===82;
-  const stem=modeKey==="draft"?"draft":"pack-mode";
-  const file=new File([blob],`all-time-ultimate-${stem}${perfect?"-82-0-club":""}.png`,{type:"image/png"});
-  const text=perfect?"I made the 82–0 Club. Beat this squad:\nPackEmUltimateTeam.com":"my squad - beat it:\nPackEmUltimateTeam.com";
+  const stem=modeKey==="draft"?"draft":modeKey==="daily"?"daily":"pack-mode";
+  const file=new File([blob],`all-time-ultimate-${stem}${(perfect&&!eraLocked)?"-82-0-club":""}.png`,{type:"image/png"});
+  const dailyName=modeKey==="daily"&&DD?DD.challenge.name:"";
+  const text=(perfect&&!eraLocked)?"I made the 82–0 Club. Beat this squad:\nPackEmUltimateTeam.com"
+    :modeKey==="daily"?`Today\u2019s ${dailyName} challenge \u2014 ${pr.wins} wins. Beat it:\nPackEmUltimateTeam.com`
+    :"my squad - beat it:\nPackEmUltimateTeam.com";
   if(navigator.canShare&&navigator.canShare({files:[file]})){
     try{await navigator.share({files:[file],title:perfect?"All-Time Ultimate — 82–0 Club":"All-Time Ultimate",text});return;}catch(e){}
   }
@@ -2349,6 +2678,7 @@ async function shareRosterImage(modeKey){
   notice("Couldn't export the image on this browser.");
 }
 async function shareDraftImage(){return shareRosterImage("draft");}
+async function shareDailyImage(){return shareRosterImage("daily");}
 function shareRoster(modeKey){
   const roster=modeKey==="draft"?D.roster:S.classic.roster;
   if(!startersFull(roster)){notice("Fill your starting five before sharing.");return;}
@@ -2412,8 +2742,18 @@ function renderDraftOverlay(){
   reconcileDraftState();
   const o=$("#draftoverlay");if(!o)return;
   const classicCaptain=screen==="classic"&&CC;
-  const active=(screen==="draft"&&(D.stage==="captain"||(D.stage==="picking"&&D.activeSlot)))||classicCaptain;
+  const dailyActive=screen==="daily"&&DD&&DD.activeSlot;
+  const active=(screen==="draft"&&(D.stage==="captain"||(D.stage==="picking"&&D.activeSlot)))||classicCaptain||dailyActive;
   if(!active){o.classList.remove("show");o.innerHTML="";return;}
+  if(dailyActive){
+    o.innerHTML=`<h2 style="color:var(--cyan)">Drafting ${SLOT_LABEL[DD.activeSlot]}</h2>
+      <div class="sub2">${DD.opts.length?"Five eligible players — tap one to snap them in.":"No eligible players left for this slot."}</div>
+      <div class="captainwrap">${DD.opts.map((p,i)=>DD.taken.includes(p.id)
+        ?`<div class="${p.tier==="Icon"?"spindrop":"dropin"}" style="animation-delay:${(i*0.22).toFixed(2)}s;opacity:.35;pointer-events:none">${cardHTML(p)}</div>`
+        :`<div class="${p.tier==="Icon"?"spindrop":"dropin"}" style="animation-delay:${(i*0.22).toFixed(2)}s">${cardHTML(p,`onclick="dailyPickInto(${p.id})"`)}</div>`).join("")}</div>
+      <button class="btn" style="margin:6px 0 18px" onclick="dailyClearActive()">Cancel</button>`;
+    o.classList.add("show");return;
+  }
   const stagger=(p,i,click)=>`<div class="${p.tier==="Icon"?"spindrop":"dropin"}" style="animation-delay:${(i*0.22).toFixed(2)}s">${cardHTML(p,click)}</div>`;
   if(classicCaptain){
     o.innerHTML=`<h2 style="color:#ffc4e6">Captain Pack</h2>
@@ -2498,7 +2838,7 @@ function render(){
       <div class="hs">BEST TEAM OVR<br><b>${best}</b></div>
     </header>
     ${screen==="landing"?landingHTML():screen==="share"?shareHTML():screen==="team"?hubHTML("main"):screen==="packs"?packsHTML()
-      :screen==="draft"?draftHTML():screen==="classic"?hubHTML("classic"):screen==="trophies"?trophyHTML():hubHTML("rare")}
+      :screen==="draft"?draftHTML():screen==="classic"?hubHTML("classic"):screen==="trophies"?trophyHTML():screen==="daily"?dailyHTML():hubHTML("rare")}
     <footer class="foot">
       <button onclick="showPrivacy()">Privacy Policy</button>
       <span>·</span><span>Fan-made sandbox — not affiliated with or endorsed by the NBA, its teams, or players.</span>
@@ -2527,7 +2867,7 @@ function drawSquadWeb(){
   const svg=$(".squadweb");if(!svg)return;
   const court=svg.closest(".court"),cr=court.getBoundingClientRect();
   if(cr.width)svg.setAttribute("viewBox",`0 0 ${cr.width} ${cr.height}`);
-  const roster=screen==="draft"?D.roster:screen==="share"&&SHARED?SHARED.roster:S[sideFor(screen)].roster;
+  const roster=screen==="draft"?D.roster:screen==="daily"?(DD?DD.roster:emptyRoster()):screen==="share"&&SHARED?SHARED.roster:S[sideFor(screen)].roster;
   const pts={};
   STARTER_SLOTS.forEach(s=>{const el=court.querySelector(".slot-"+s);if(!el)return;
     const r=el.getBoundingClientRect();
