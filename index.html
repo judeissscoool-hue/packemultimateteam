@@ -172,6 +172,15 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .card{width:104px;height:158px;border-radius:12px;padding:7px 7px 6px;position:relative;display:flex;flex-direction:column;
   background:var(--panel2);border:1.5px solid var(--line);user-select:none;cursor:pointer;overflow:hidden;transition:transform .12s}
 .card:active{transform:scale(.96)}
+/* ---- card art layer ---- */
+.card.hasart{background:#0a0a0a}
+.cardart{position:absolute;inset:0;background-size:cover;background-position:center top;z-index:0}
+.cardart-fade{position:absolute;inset:0;z-index:1;background:linear-gradient(to bottom,rgba(0,0,0,.15) 0%,rgba(0,0,0,0) 32%,rgba(0,0,0,.55) 70%,rgba(0,0,0,.9) 100%)}
+.card.hasart .card-top,.card.hasart .infobtn,.card.hasart .nm,.card.hasart .meta{position:relative;z-index:2}
+.card.hasart .ovr{text-shadow:0 2px 6px rgba(0,0,0,.9)}
+.card.hasart .pos{color:#e8e8ec;text-shadow:0 1px 4px rgba(0,0,0,.9)}
+.card.hasart .nm{text-shadow:0 1px 6px rgba(0,0,0,.95)}
+.card.hasart .meta{color:#d8d8e0;text-shadow:0 1px 4px rgba(0,0,0,.9)}
 .card .ovr{font-family:var(--disp);font-size:26px;line-height:1;letter-spacing:.02em}
 .card .pos{letter-spacing:.08em;color:var(--dim);white-space:nowrap}
 .card .ini{margin:4px auto 2px;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;
@@ -1745,6 +1754,9 @@ const DAILY_CYCLE=[
   valid:()=>true,
   hint:"Open draft. Get as close to 82–0 as you can."},
 ];
+/* One Franchise rotates across these four — deepest rosters with real star power */
+const FRANCHISE_CYCLE=["LAL","BOS","GSW","PHX"];
+let DD_FRANCHISE=null;
 function dailyFor(dateKey){dateKey=dateKey||todayKey();return DAILY_CYCLE[((dayIndex(dateKey)%DAILY_CYCLE.length)+DAILY_CYCLE.length)%DAILY_CYCLE.length];}
 
 /* ---- date-seeded draft pool: filtered by the day's ban, guaranteed constraint-solvable ---- */
@@ -1759,10 +1771,20 @@ function dailyDraftPool(dateKey){
   let base=DB.filter(p=>!banned(p));
   /* franchise-lock: restrict to ONE seeded team that can fill all five slots */
   if(ch.franchiseLock){
+    /* rotate through the four deepest, most star-loaded franchises so each One Franchise
+       day is a recognisable team with enough depth to draft a real squad */
     const teams={};base.forEach(p=>{(teams[p.team]=teams[p.team]||[]).push(p);});
-    const viable=Object.entries(teams).filter(([t,a])=>STARTER_SLOTS.every(s=>a.some(p=>eligible(p,s))));
-    const pick=shuf(viable.map(v=>v[0]))[0];
+    const cycle=FRANCHISE_CYCLE.filter(t=>teams[t]&&STARTER_SLOTS.every(s=>teams[t].some(p=>eligible(p,s))));
+    /* index by which OCCURRENCE of this challenge it is, not the raw day number:
+       challenges recur every 14 days and 14 mod 4 aliases to only two of the four teams */
+    const occ=Math.floor(dayIndex(dateKey)/DAILY_CYCLE.length);
+    let pick=cycle.length?cycle[((occ%cycle.length)+cycle.length)%cycle.length]:null;
+    if(!pick){ /* fallback: any viable team */
+      const viable=Object.entries(teams).filter(([t,a])=>STARTER_SLOTS.every(s=>a.some(p=>eligible(p,s))));
+      pick=shuf(viable.map(v=>v[0]))[0];
+    }
     base=teams[pick]||base;
+    DD_FRANCHISE=pick;
   }
   const ids=new Set(base.map(p=>p.id));
   const inject=names=>names.forEach(n=>{const c=DB.find(p=>p.name===n);if(c&&!banned(c)&&!ids.has(c.id)){base.push(c);ids.add(c.id);}});
@@ -1788,21 +1810,129 @@ function dailyDraftPool(dateKey){
 /* ---- daily draft state (mirrors D, but seeded + pool-restricted) ---- */
 let DD=null;
 function dailyEligiblePool(slot){return DD.pool.filter(p=>eligible(p,slot));}
+/* ---- POOL-RELATIVE RARITY ----
+   Whatever the day bans, the pull still feels like a draft: the day's own pool is
+   ranked by OVR and split into five bands that inherit the draft's rarity odds.
+   On "Underdog" (nothing 90+) the 89s BECOME the Icons — a 2% thrill — while the
+   bottom of that pool becomes the common band. Same for Silver&Below, Grit&Grind, etc. */
+const DAILY_BAND_SHARE={Icon:.04,Elite:.10,Gold:.30,Silver:.36,Bronze:.20}; /* size of each band */
+/* Re-banding is ONLY for challenges that cut off the top of the rating range
+   (Underdog, Silver&Below, Grit&Grind, No Icons). Those pools have no real Icons,
+   so we promote their best players into the rare band to keep the pull exciting.
+   Era/roster-shape challenges (Rookie Szn, Decade Lock, One Franchise, Rivalry...)
+   still contain genuine Icons — their real tiers already work, so leave them be. */
+function dailyNeedsReband(){
+  if(DD._reband!==undefined)return DD._reband;
+  /* if the pool is missing the top tiers, the rarity curve has collapsed — rebuild it */
+  /* Reband only when the pool has NO rare tier left at all. Losing just Icons is
+     fine — Elites still provide a genuine rare pull (e.g. "No Icons" keeps 52). */
+  const hasIcon=DD.pool.some(p=>p.tier==="Icon");
+  const hasElite=DD.pool.some(p=>p.tier==="Elite");
+  DD._reband=!hasIcon&&!hasElite;
+  return DD._reband;
+}
+function dailyBands(){
+  if(DD._bands)return DD._bands;
+  const order=["Icon","Elite","Gold","Silver","Bronze"];
+  const bands={};
+  if(!dailyNeedsReband()){ /* real tiers intact — use them as-is */
+    order.forEach(t=>bands[t]=DD.pool.filter(p=>p.tier===t));
+    /* if a top tier is empty (e.g. "No Icons"), promote the next real tier into it so the
+       rare roll still lands on the pool's genuine best rather than falling through */
+    for(let i=0;i<order.length-1;i++){
+      if(!bands[order[i]].length){
+        const next=order.slice(i+1).find(t=>bands[t].length);
+        if(next){bands[order[i]]=bands[next];bands[next]=[];}
+      }
+    }
+    DD._bands=bands;return bands;
+  }
+  const ranked=DD.pool.slice().sort((a,b)=>b.ovr-a.ovr||a.name.localeCompare(b.name));
+  const n=ranked.length;let i=0;
+  order.forEach((t,k)=>{
+    const count=(k===order.length-1)?n-i:Math.max(1,Math.round(n*DAILY_BAND_SHARE[t]));
+    bands[t]=ranked.slice(i,i+count);i+=count;
+  });
+  DD._bands=bands;return bands;
+}
+function dailyBandOf(p){
+  const b=dailyBands();
+  for(const t of ["Icon","Elite","Gold","Silver","Bronze"])if(b[t].some(x=>x.id===p.id))return t;
+  return "Silver";
+}
+/* ---- bond surfacing ----
+   Duo Hunt / Dynasty are impossible if partners never appear together: with 5-card
+   boards drawn from hundreds of players, the odds of being offered BOTH halves of a
+   bond are effectively nil. So on bond challenges we actively surface partners:
+   once you've drafted half a bond, the missing member(s) get a guaranteed slot on
+   later boards whenever they're position-eligible. Before any bond is started, we
+   seed one member of the day's target bond so the chain has somewhere to begin. */
+function dailyBondTargets(slot,taken){
+  const ch=DD.challenge;
+  if(!(ch.id==="duo-hunt"||ch.id==="dynasty"))return [];
+  const drafted=new Set(ALL_SLOTS.map(s=>DD.roster[s]).filter(x=>x!=null).map(id=>DB[id].name));
+  const wantTrio=ch.id==="dynasty";
+  const groups=DUOS.filter(g=>wantTrio?g.m.length===3:true);
+  const out=[];
+  /* 1) partners of bonds already started */
+  groups.forEach(g=>{
+    const have=g.m.filter(n=>drafted.has(n)).length;
+    if(have>0&&have<g.m.length){
+      g.m.filter(n=>!drafted.has(n)).forEach(n=>{
+        const c=DD.pool.find(p=>p.name===n&&eligible(p,slot)&&!taken.has(p.name));
+        if(c)out.push(c);
+      });
+    }
+  });
+  if(out.length)return out;
+  /* 2) nothing started yet — offer an entry point into a bond that's fully available */
+  const viable=groups.filter(g=>g.m.every(n=>DD.pool.some(p=>p.name===n)));
+  for(const g of viable){
+    for(const n of g.m){
+      const c=DD.pool.find(p=>p.name===n&&eligible(p,slot)&&!taken.has(p.name));
+      if(c){out.push(c);break;}
+    }
+    if(out.length>=2)break;
+  }
+  return out;
+}
 function dailyOptionsFor(slot){
-  /* seeded, deterministic option board of up to 5 from the day's pool for this slot */
+  /* seeded board of 5: tiers are drawn with DRAFT_ODDS against the day's OWN bands,
+     so every challenge keeps a real rarity curve instead of a flat shuffle */
   const taken=new Set(ALL_SLOTS.map(s=>DD.roster[s]).filter(x=>x!=null).map(id=>DB[id].name));
-  const boardNames=new Set();
-  const cands=dailyEligiblePool(slot).filter(p=>!taken.has(p.name));
-  /* shuffle deterministically via the day's board RNG, take 5 unique names */
-  const a=cands.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(DD.rng()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
-  const opts=[];
-  for(const p of a){if(opts.length>=5)break;if(!boardNames.has(p.name)){opts.push(p);boardNames.add(p.name);}}
+  const boardNames=new Set(),opts=[];
+  /* bond challenges: reserve up to 2 slots for partners so the bond is actually completable */
+  dailyBondTargets(slot,taken).slice(0,2).forEach(p=>{
+    if(!boardNames.has(p.name)){opts.push(p);boardNames.add(p.name);}
+  });
+  const bands=dailyBands();
+  const eligibleIn=t=>bands[t].filter(p=>eligible(p,slot)&&!taken.has(p.name)&&!boardNames.has(p.name));
+  const order=["Icon","Elite","Gold","Silver","Bronze"];
+  let guard=0;
+  while(opts.length<5&&guard++<200){
+    /* roll a band using the draft's rarity odds, then step down if it's empty */
+    let r=DD.rng(),acc=0,pick=null;
+    for(const t of order){acc+=DRAFT_ODDS[t]||0;if(r<=acc){pick=t;break;}}
+    if(!pick)pick="Silver";
+    let cands=eligibleIn(pick);
+    if(!cands.length){ /* walk outward to the nearest band that has someone */
+      const idx=order.indexOf(pick);
+      for(let d=1;d<order.length&&!cands.length;d++){
+        const lo=order[idx+d],hi=order[idx-d];
+        if(lo&&eligibleIn(lo).length){cands=eligibleIn(lo);break;}
+        if(hi&&eligibleIn(hi).length){cands=eligibleIn(hi);break;}
+      }
+    }
+    if(!cands.length)break;
+    const p=cands[Math.floor(DD.rng()*cands.length)];
+    opts.push(p);boardNames.add(p.name);
+  }
   return opts;
 }
 function dailyStart(dateKey){
   dateKey=dateKey||todayKey();
   const {pool,rng}=dailyDraftPool(dateKey);
-  DD={dateKey,challenge:dailyFor(dateKey),pool,rng,lockedEra:(dailyFor(dateKey).eraLock?viableEras()[dayIndex(dateKey)%viableEras().length]:null),
+  DD={dateKey,challenge:dailyFor(dateKey),pool,rng,_bands:null,_reband:undefined,franchise:DD_FRANCHISE,lockedEra:(dailyFor(dateKey).eraLock?viableEras()[dayIndex(dateKey)%viableEras().length]:null),
       stage:"picking",roster:emptyRoster(),taken:[],opts:null,slotOpts:{},activeSlot:null,lastSlot:null,done:false,
       submitted:!!DAILY.history[dateKey]};
 }
@@ -1824,9 +1954,54 @@ function dailyPickInto(pid){
   render();
 }
 function dailyClearActive(){DD.activeSlot=null;DD.opts=null;render();}
-function dailyFinalize(){
+/* ---- rearranging the finished daily board (same rules as Classic Draft) ----
+   You can't re-pick a different card, but you CAN move your 8 drafted players
+   between slots. Each move re-checks the day's constraint and re-scores. */
+function dailyOpenMove(slot){
+  if(!DD||!DD.done)return;
+  const cur=DB[DD.roster[slot]];
+  const fromBench=BENCH_SLOTS.includes(slot);
+  const canLand=(mover,dest)=>BENCH_SLOTS.includes(dest)||eligible(mover,dest);
+  const legalStarter=s2=>{
+    if(s2===slot)return false;
+    const occ=DB[DD.roster[s2]];
+    return canLand(cur,s2)&&canLand(occ,slot);
+  };
+  const rows=STARTER_SLOTS.filter(legalStarter).map(s2=>{
+    const occ=DB[DD.roster[s2]];
+    return `<button class="btn gold" onclick="doDailyMove('${slot}','${s2}')">
+      <span>Start at ${SLOT_LABEL[s2]}</span>
+      <small style="color:var(--dim)">swaps with ${esc(occ.name)} ${occ.ovr}</small></button>`;
+  }).join("");
+  let benchRow="";
+  if(!fromBench){
+    const open=BENCH_SLOTS.find(s2=>DD.roster[s2]==null);
+    if(open!=null)benchRow=`<button class="btn" onclick="doDailyMove('${slot}','${open}')"><span>Move to bench</span></button>`;
+    else{const t=BENCH_SLOTS.find(s2=>eligible(DB[DD.roster[s2]],slot));
+      if(t!=null){const occ=DB[DD.roster[t]];
+        benchRow=`<button class="btn" onclick="doDailyMove('${slot}','${t}')"><span>Move to bench</span><small style="color:var(--dim)">swaps with ${esc(occ.name)} ${occ.ovr}</small></button>`;}}
+  }
+  const none=(rows||benchRow)?"":`<div class="who" style="color:var(--dim)">No legal moves \u2014 nobody else can cover ${SLOT_LABEL[slot]} and ${esc(cur.name)} only fits ${cur.positions.join("/")}.</div>`;
+  $("#sheet").innerHTML=`<div class="sheetbox"><h3>Move \u00b7 ${esc(cur.name)} ${cur.ovr}</h3>
+    <div class="who">${fromBench?"On the bench":"Starting at "+SLOT_LABEL[slot]}. Rearrange your drafted eight \u2014 whoever's there trades places.</div>
+    <div class="swaprows">${rows}${benchRow}</div>${none}<button class="btn" onclick="closeSheet()">Cancel</button></div>`;
+  $("#sheet").classList.add("show");
+  $("#sheet").onclick=e=>{if(e.target.id==="sheet")closeSheet();};
+}
+function doDailyMove(a,b){
+  const pa=DB[DD.roster[a]],pb=DB[DD.roster[b]];
+  if(!eligible(pa,b)||!eligible(pb,a)){notice("Those positions don't fit.");return;}
+  [DD.roster[a],DD.roster[b]]=[DD.roster[b],DD.roster[a]];
+  DD.lastSlot=b;closeSheet();
+  dailyFinalize({rearrange:true}); /* re-check the constraint + re-score with the new arrangement */
+  render();
+  notice(esc(pa.name)+" \u2192 "+SLOT_LABEL[b]+".");
+}
+function dailyFinalize(opts){
+  const first=!(opts&&opts.rearrange);
   const v=dailyValidity();DD.finalValid=v.valid;
-  if(v.valid){const res=dailySubmit();DD.finalResult=res.ok?res:null;if(res.ok&&res.result.wins>=70)confetti(70);}
+  if(v.valid){const res=dailySubmit();DD.finalResult=res.ok?res:null;
+    if(res.ok&&first&&res.result.wins>=70)confetti(70);} /* celebrate once, not on every move */
   else DD.finalResult=null;
 }
 function dailyStarters(){return STARTER_SLOTS.map(s=>DD.roster[s]!=null?DB[DD.roster[s]]:null).filter(Boolean);}
@@ -1848,7 +2023,8 @@ function dailySubmit(){
     DAILY.streak=(prev===yKey)?(DAILY.streak+1):1;DAILY.lastPlayed=key;}
   const pb=DAILY.best[key];
   if(!pb||r.wins>pb.wins)DAILY.best[key]={wins:r.wins,ovr:r.ovr,chem:+r.chem.toFixed(1),title:r.identity.title};
-  DAILY.history[key]=(DAILY.history[key]||0)+1;DD.submitted=true;saveDaily();
+  if(!DD.submitted)DAILY.history[key]=(DAILY.history[key]||0)+1; /* count the day once, not per rearrange */
+  DD.submitted=true;saveDaily();
   if(typeof trophyRoster==="function")trophyRoster("daily",DD.roster);
   return {ok:true,result:r,best:DAILY.best[key],streak:DAILY.streak};
 }
@@ -1859,7 +2035,10 @@ function dailySlotHTML(slot){
   if(pid==null)return `<button class="slot slot-${slot} ${DD.activeSlot===slot?"eligible":""}" onclick="dailySlotTap('${slot}')">
     <div class="postag">${p==="B"?"BN":p}</div><div>${SLOT_LABEL[slot]}</div>
     <div style="font-size:8px;color:var(--cyan)">TAP TO DRAFT</div></button>`;
-  return `<div class="slot-${slot}" style="position:relative"><div class="${DD.lastSlot===slot?"snapin":""}">${cardHTML(DB[pid])}</div></div>`;
+  const movable=DD.done;
+  return `<div class="slot-${slot}" style="position:relative${movable?";cursor:pointer":""}" ${movable?`onclick="dailyOpenMove('${slot}')"`:""}>
+    <div class="${DD.lastSlot===slot?"snapin":""}">${cardHTML(DB[pid])}</div>
+    ${movable?`<div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:8px;letter-spacing:.15em;color:var(--cyan);pointer-events:none">TAP TO MOVE</div>`:""}</div>`;
 }
 function dailyHTML(){
   if(!DD||DD.dateKey!==todayKey())dailyStart();
@@ -1869,7 +2048,7 @@ function dailyHTML(){
   return `
   <div class="dailybanner">
     <div class="db-tag">DAILY DRAFT · ${DD.dateKey}</div>
-    <div class="db-main"><h2>${esc(ch.name)}${DD.lockedEra?` · ${eraLabel(DD.lockedEra)}`:""}</h2><p>${esc(ch.desc)}</p></div>
+    <div class="db-main"><h2>${esc(ch.name)}${DD.lockedEra?` · ${eraLabel(DD.lockedEra)}`:DD.franchise?` · ${esc(DD.franchise)}`:""}</h2><p>${esc(ch.desc)}</p></div>
     <div class="db-meta"><span>🔥 <b>${DAILY.streak||0}</b></span>${best?`<span>BEST <b>${best.wins}W</b></span>`:`<span>Unplayed</span>`}</div>
   </div>
   <div class="panel" style="margin-bottom:12px"><div class="scoreboard">
@@ -1883,12 +2062,12 @@ function dailyHTML(){
     </div>
     <div class="chemlegend">
       <div class="clg-h">TODAY'S RULE</div>
-      <div class="clg ck-duo"><i></i><div><b>${esc(ch.name)}${DD.lockedEra?` — ${eraLabel(DD.lockedEra)}`:""}</b><span>${DD.lockedEra?`Only ${eraLabel(DD.lockedEra)} players are offered today.`:esc(ch.hint)}</span></div></div>
+      <div class="clg ck-duo"><i></i><div><b>${esc(ch.name)}${DD.lockedEra?` — ${eraLabel(DD.lockedEra)}`:DD.franchise?` — ${esc(DD.franchise)}`:""}</b><span>${DD.lockedEra?`Only ${eraLabel(DD.lockedEra)} players are offered today.`:DD.franchise?`Only ${esc(DD.franchise)} players are offered today.`:esc(ch.hint)}</span></div></div>
       <div class="clg ${v.valid?"ck-style":"ck-team"}"><i></i><div><b>${v.full?(v.valid?"Constraint met":"Constraint NOT met"):"Draft all 5 starters"}</b><span>${v.full&&!v.valid?"draft again to satisfy it":v.valid?"scored & locked":"tap slots to draft"}</span></div></div>
     </div></div></div>
   <div class="court">
     <svg class="squadweb" aria-hidden="true"></svg>
-    <h3>${DD.done?"Final Board — locked in":"Tap an empty slot — PG · SG · SF · PF · C"}</h3>
+    <h3>${DD.done?"Final Board — tap a player to move them":"Tap an empty slot — PG · SG · SF · PF · C"}</h3>
     <div class="fiveslots">${["C","PF","SF","SG","PG"].map(s=>dailySlotHTML(s)).join("")}</div>
     <div class="benchlabel">BENCH — ANY POSITION</div>
     <div class="benchrow">${BENCH_SLOTS.map(s=>dailySlotHTML(s)).join("")}</div>
@@ -1915,15 +2094,767 @@ const $=s=>document.querySelector(s);
 function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;");}
 function initials(n){return n.split(" ").map(w=>w[0]).slice(0,2).join("");}
 function tagRow(lab,tags){return tags.length?`<div class="bk-lab">${lab}</div><div class="bk-val">${tags.map(t=>TAG_LABEL[t]||t).join(" · ")}</div>`:"";}
+/* ===== CARD ART SYSTEM =====
+   Player art is hosted as plain static files (no image-optimization quota) at
+   CARD_ART_BASE + slug + ".png", e.g. /cards/dwyane-wade.png. Any player without
+   a file simply keeps the initials design — add art one player at a time. */
+const CARD_ART_BASE="cards/"; /* relative to the deployed site root (Vercel /public/cards) */
+/* Set of slugs that HAVE art. Empty by default; add as you upload files, e.g.
+   CARD_ART.add("dwyane-wade"). Kept explicit so the game never fires a request
+   (and never shows a broken image) for art that isn't there yet. */
+const CARD_ART=new Set([
+  /* ===== CARD ART REGISTRY =====
+     Every player is listed below, commented out and grouped by tier.
+     TO ACTIVATE a player: upload cards/<slug>.png to the repo, then delete the
+     two slashes ("// ") in front of their line here and commit. That's it.
+     Leave a player commented out and they keep the initials card.
+     (Slugs are auto-generated to match the filename the game looks for.) */
+  /* ---------- ICON (36) ---------- */
+  // "allen-iverson",  // Allen Iverson (96 PHI '00s)
+  // "bill-russell",  // Bill Russell (98 BOS '60s)
+  // "bob-cousy",  // Bob Cousy (96 BOS '50s)
+  // "charles-barkley",  // Charles Barkley (96 PHX '90s)
+  // "chris-paul",  // Chris Paul (97 NOP '10s)
+  // "clyde-drexler",  // Clyde Drexler (96 POR '90s)
+  // "david-robinson",  // David Robinson (96 SAS '90s)
+  // "dirk-nowitzki",  // Dirk Nowitzki (98 DAL '00s)
+  // "dwyane-wade",  // Dwyane Wade (97 MIA '00s)
+  // "elgin-baylor",  // Elgin Baylor (96 LAL '60s)
+  // "giannis-antetokounmpo",  // Giannis Antetokounmpo (97 MIL '20s)
+  // "hakeem-olajuwon",  // Hakeem Olajuwon (99 HOU '90s)
+  // "jerry-west",  // Jerry West (97 LAL '60s)
+  // "john-stockton",  // John Stockton (97 UTA '90s)
+  // "julius-erving",  // Julius Erving (97 PHI '70s)
+  // "kareem-abdul-jabbar",  // Kareem Abdul-Jabbar (99 LAL '70s)
+  // "karl-malone",  // Karl Malone (97 UTA '90s)
+  // "kawhi-leonard",  // Kawhi Leonard (96 SAS '10s)
+  // "kevin-durant",  // Kevin Durant (97 OKC '10s)
+  // "kevin-garnett",  // Kevin Garnett (98 MIN '00s)
+  // "kobe-bryant",  // Kobe Bryant (99 LAL '00s)
+  // "larry-bird",  // Larry Bird (99 BOS '80s)
+  // "lebron-james",  // LeBron James (99 CLE '10s)
+  // "magic-johnson",  // Magic Johnson (99 LAL '80s)
+  // "michael-jordan",  // Michael Jordan (99 CHI '90s)
+  // "moses-malone",  // Moses Malone (97 HOU '80s)
+  // "nikola-jokic",  // Nikola Jokic (97 DEN '20s)
+  // "oscar-robertson",  // Oscar Robertson (97 MIL '60s)
+  // "scottie-pippen",  // Scottie Pippen (97 CHI '90s)
+  // "shai-gilgeous-alexander",  // Shai Gilgeous-Alexander (96 OKC '20s)
+  // "shaquille-oneal",  // Shaquille O'Neal (98 LAL '00s)
+  // "stephen-curry",  // Stephen Curry (98 GSW '10s)
+  // "steve-nash",  // Steve Nash (96 PHX '00s)
+  // "tim-duncan",  // Tim Duncan (98 SAS '00s)
+  // "vince-carter",  // Vince Carter (96 TOR '00s)
+  // "wilt-chamberlain",  // Wilt Chamberlain (99 GSW '60s)
+  /* ---------- ELITE (34) ---------- */
+  // "anthony-davis",  // Anthony Davis (94 NOP '10s)
+  // "anthony-edwards",  // Anthony Edwards (92 MIN '20s)
+  // "bob-pettit",  // Bob Pettit (94 ATL '50s)
+  // "carmelo-anthony",  // Carmelo Anthony (95 DEN '00s)
+  // "damian-lillard",  // Damian Lillard (94 POR '10s)
+  // "demarcus-cousins",  // DeMarcus Cousins (92 SAC '10s)
+  // "derrick-rose",  // Derrick Rose (95 CHI '10s)
+  // "dominique-wilkins",  // Dominique Wilkins (95 ATL '80s)
+  // "dwight-howard",  // Dwight Howard (93 ORL '00s)
+  // "elvin-hayes",  // Elvin Hayes (92 WAS '70s)
+  // "gary-payton",  // Gary Payton (95 OKC '90s)
+  // "george-gervin",  // George Gervin (94 SAS '70s)
+  // "george-mikan",  // George Mikan (94 LAL '50s)
+  // "isiah-thomas",  // Isiah Thomas (95 DET '80s)
+  // "james-harden",  // James Harden (95 HOU '10s)
+  // "james-worthy",  // James Worthy (95 LAL '80s)
+  // "jason-kidd",  // Jason Kidd (95 BKN '00s)
+  // "jayson-tatum",  // Jayson Tatum (94 BOS '20s)
+  // "jimmy-butler",  // Jimmy Butler (92 MIA '10s)
+  // "joel-embiid",  // Joel Embiid (95 PHI '20s)
+  // "john-havlicek",  // John Havlicek (93 BOS '60s)
+  // "kevin-mchale",  // Kevin McHale (92 BOS '80s)
+  // "kyrie-irving",  // Kyrie Irving (94 CLE '10s)
+  // "luka-doncic",  // Luka Doncic (95 DAL '20s)
+  // "patrick-ewing",  // Patrick Ewing (95 NYK '90s)
+  // "paul-pierce",  // Paul Pierce (94 BOS '00s)
+  // "pete-maravich",  // Pete Maravich (94 UTA '70s)
+  // "ray-allen",  // Ray Allen (94 BOS '00s)
+  // "reggie-miller",  // Reggie Miller (93 IND '90s)
+  // "rick-barry",  // Rick Barry (93 GSW '70s)
+  // "russell-westbrook",  // Russell Westbrook (95 OKC '10s)
+  // "tracy-mcgrady",  // Tracy McGrady (95 ORL '00s)
+  // "victor-wembanyama",  // Victor Wembanyama (93 SAS '20s)
+  // "walt-frazier",  // Walt Frazier (93 NYK '70s)
+  /* ---------- GOLD (114) ---------- */
+  // "adrian-dantley",  // Adrian Dantley (89 UTA '80s)
+  // "al-horford",  // Al Horford (86 ATL '10s)
+  // "al-jefferson",  // Al Jefferson (85 CHA '00s)
+  // "alex-english",  // Alex English (89 DEN '80s)
+  // "alonzo-mourning",  // Alonzo Mourning (90 MIA '90s)
+  // "alperen-sengun",  // Alperen Sengun (87 HOU '20s)
+  // "amare-stoudemire",  // Amar'e Stoudemire (88 PHX '00s)
+  // "andre-drummond",  // Andre Drummond (85 DET '20s)
+  // "andrew-bynum",  // Andrew Bynum (86 LAL '10s)
+  // "antawn-jamison",  // Antawn Jamison (87 WAS '00s)
+  // "antonio-mcdyess",  // Antonio McDyess (87 DEN '00s)
+  // "arvydas-sabonis",  // Arvydas Sabonis (85 POR '90s)
+  // "bam-adebayo",  // Bam Adebayo (89 MIA '20s)
+  // "ben-wallace",  // Ben Wallace (85 DET '00s)
+  // "bernard-king",  // Bernard King (90 NYK '80s)
+  // "bill-walton",  // Bill Walton (91 POR '70s)
+  // "blake-griffin",  // Blake Griffin (85 LAC '10s)
+  // "bradley-beal",  // Bradley Beal (85 WAS '10s)
+  // "brandon-ingram",  // Brandon Ingram (86 NOP '20s)
+  // "brandon-roy",  // Brandon Roy (88 POR '10s)
+  // "cade-cunningham",  // Cade Cunningham (89 DET '20s)
+  // "carlos-boozer",  // Carlos Boozer (86 UTA '00s)
+  // "chauncey-billups",  // Chauncey Billups (87 DET '00s)
+  // "chet-holmgren",  // Chet Holmgren (86 OKC '20s)
+  // "chris-bosh",  // Chris Bosh (90 MIA '10s)
+  // "chris-mullin",  // Chris Mullin (88 GSW '90s)
+  // "chris-webber",  // Chris Webber (91 SAC '00s)
+  // "clint-capela",  // Clint Capela (86 HOU '20s)
+  // "darius-garland",  // Darius Garland (85 CLE '20s)
+  // "dave-cowens",  // Dave Cowens (90 BOS '70s)
+  // "deaaron-fox",  // De'Aaron Fox (88 SAC '20s)
+  // "demar-derozan",  // DeMar DeRozan (87 TOR '10s)
+  // "dejounte-murray",  // Dejounte Murray (85 SAS '20s)
+  // "dennis-johnson",  // Dennis Johnson (85 BOS '80s)
+  // "dennis-rodman",  // Dennis Rodman (90 DET '90s)
+  // "deron-williams",  // Deron Williams (85 UTA '00s)
+  // "devin-booker",  // Devin Booker (91 PHX '20s)
+  // "dikembe-mutombo",  // Dikembe Mutombo (90 DEN '90s)
+  // "dolph-schayes",  // Dolph Schayes (91 PHI '50s)
+  // "domantas-sabonis",  // Domantas Sabonis (87 SAC '20s)
+  // "donovan-mitchell",  // Donovan Mitchell (90 CLE '20s)
+  // "draymond-green",  // Draymond Green (88 GSW '10s)
+  // "earl-monroe",  // Earl Monroe (89 NYK '70s)
+  // "elton-brand",  // Elton Brand (89 LAC '00s)
+  // "evan-mobley",  // Evan Mobley (87 CLE '20s)
+  // "franz-wagner",  // Franz Wagner (85 ORL '20s)
+  // "fred-vanvleet",  // Fred VanVleet (85 TOR '20s)
+  // "gilbert-arenas",  // Gilbert Arenas (87 WAS '00s)
+  // "glen-rice",  // Glen Rice (85 CHA '90s)
+  // "goran-dragic",  // Goran Dragic (85 PHX '10s)
+  // "gordon-hayward",  // Gordon Hayward (88 UTA '10s)
+  // "grant-hill",  // Grant Hill (91 DET '90s)
+  // "hassan-whiteside",  // Hassan Whiteside (85 MIA '10s)
+  // "isaiah-thomas",  // Isaiah Thomas (89 BOS '10s)
+  // "ja-morant",  // Ja Morant (90 MEM '20s)
+  // "jalen-brunson",  // Jalen Brunson (90 NYK '20s)
+  // "jalen-williams",  // Jalen Williams (88 OKC '20s)
+  // "jamal-murray",  // Jamal Murray (86 DEN '20s)
+  // "jaylen-brown",  // Jaylen Brown (89 BOS '20s)
+  // "jermaine-oneal",  // Jermaine O'Neal (91 IND '00s)
+  // "jerry-stackhouse",  // Jerry Stackhouse (85 DET '00s)
+  // "joakim-noah",  // Joakim Noah (87 CHI '10s)
+  // "joe-dumars",  // Joe Dumars (86 DET '80s)
+  // "joe-johnson",  // Joe Johnson (88 ATL '00s)
+  // "john-wall",  // John Wall (86 WAS '10s)
+  // "jrue-holiday",  // Jrue Holiday (85 MIL '20s)
+  // "julius-randle",  // Julius Randle (86 NYK '20s)
+  // "karl-anthony-towns",  // Karl-Anthony Towns (90 MIN '20s)
+  // "kemba-walker",  // Kemba Walker (88 CHA '20s)
+  // "kevin-johnson",  // Kevin Johnson (88 PHX '90s)
+  // "klay-thompson",  // Klay Thompson (89 GSW '10s)
+  // "kristaps-porzingis",  // Kristaps Porzingis (86 NYK '20s)
+  // "kyle-lowry",  // Kyle Lowry (85 TOR '10s)
+  // "lamarcus-aldridge",  // LaMarcus Aldridge (87 POR '10s)
+  // "lamelo-ball",  // LaMelo Ball (85 CHA '20s)
+  // "larry-johnson",  // Larry Johnson (85 CHA '90s)
+  // "manu-ginobili",  // Manu Ginobili (89 SAS '00s)
+  // "marc-gasol",  // Marc Gasol (86 MEM '10s)
+  // "marcus-camby",  // Marcus Camby (85 DEN '00s)
+  // "mark-price",  // Mark Price (86 CLE '90s)
+  // "michael-finley",  // Michael Finley (88 DAL '00s)
+  // "michael-redd",  // Michael Redd (85 MIL '00s)
+  // "mitch-richmond",  // Mitch Richmond (87 SAC '90s)
+  // "nate-thurmond",  // Nate Thurmond (90 GSW '60s)
+  // "nikola-vucevic",  // Nikola Vucevic (85 ORL '20s)
+  // "paolo-banchero",  // Paolo Banchero (87 ORL '20s)
+  // "pascal-siakam",  // Pascal Siakam (88 TOR '20s)
+  // "pau-gasol",  // Pau Gasol (90 LAL '00s)
+  // "paul-george",  // Paul George (91 IND '10s)
+  // "paul-millsap",  // Paul Millsap (87 ATL '10s)
+  // "penny-hardaway",  // Penny Hardaway (91 ORL '90s)
+  // "rajon-rondo",  // Rajon Rondo (85 BOS '10s)
+  // "rashard-lewis",  // Rashard Lewis (86 ORL '00s)
+  // "rasheed-wallace",  // Rasheed Wallace (85 DET '00s)
+  // "robert-parish",  // Robert Parish (87 BOS '80s)
+  // "robert-williams",  // Robert Williams (85 BOS '20s)
+  // "rudy-gay",  // Rudy Gay (86 MEM '10s)
+  // "rudy-gobert",  // Rudy Gobert (88 UTA '10s)
+  // "sam-jones",  // Sam Jones (85 BOS '60s)
+  // "scottie-barnes",  // Scottie Barnes (85 TOR '20s)
+  // "serge-ibaka",  // Serge Ibaka (85 OKC '10s)
+  // "shawn-kemp",  // Shawn Kemp (89 OKC '90s)
+  // "shawn-marion",  // Shawn Marion (86 PHX '00s)
+  // "stephon-marbury",  // Stephon Marbury (87 NYK '00s)
+  // "tim-hardaway",  // Tim Hardaway (88 GSW '90s)
+  // "tony-parker",  // Tony Parker (89 SAS '00s)
+  // "trae-young",  // Trae Young (88 ATL '20s)
+  // "tyrese-haliburton",  // Tyrese Haliburton (89 IND '20s)
+  // "tyrese-maxey",  // Tyrese Maxey (87 PHI '20s)
+  // "victor-oladipo",  // Victor Oladipo (88 IND '20s)
+  // "wes-unseld",  // Wes Unseld (89 WAS '70s)
+  // "willis-reed",  // Willis Reed (91 NYK '70s)
+  // "yao-ming",  // Yao Ming (91 HOU '00s)
+  // "zion-williamson",  // Zion Williamson (88 NOP '20s)
+  /* ---------- SILVER (496) ---------- */
+  // "aaron-brooks",  // Aaron Brooks (80 PHX '10s)
+  // "aaron-gordon",  // Aaron Gordon (82 DEN '20s)
+  // "aaron-holiday",  // Aaron Holiday (76 IND '20s)
+  // "abdel-nader",  // Abdel Nader (75 PHX '20s)
+  // "al-harrington",  // Al Harrington (82 GSW '00s)
+  // "al-thornton",  // Al Thornton (77 LAC '00s)
+  // "al-farouq-aminu",  // Al-Farouq Aminu (75 CHI '20s)
+  // "alan-williams",  // Alan Williams (75 PHX '10s)
+  // "alec-burks",  // Alec Burks (77 NYK '20s)
+  // "alex-caruso",  // Alex Caruso (76 CHI '20s)
+  // "alex-len",  // Alex Len (76 SAC '20s)
+  // "allen-crabbe",  // Allen Crabbe (75 BKN '10s)
+  // "allonzo-trier",  // Allonzo Trier (75 NYK '20s)
+  // "amir-coffey",  // Amir Coffey (75 LAC '20s)
+  // "amir-johnson",  // Amir Johnson (77 TOR '10s)
+  // "anderson-varejao",  // Anderson Varejao (77 CLE '00s)
+  // "andre-iguodala",  // Andre Iguodala (80 GSW '10s)
+  // "andre-miller",  // Andre Miller (83 DEN '00s)
+  // "andre-roberson",  // Andre Roberson (76 OKC '10s)
+  // "andrea-bargnani",  // Andrea Bargnani (79 TOR '00s)
+  // "andrei-kirilenko",  // Andrei Kirilenko (80 UTA '00s)
+  // "andres-nocioni",  // Andres Nocioni (84 CHI '00s)
+  // "andrew-bogut",  // Andrew Bogut (82 MIL '10s)
+  // "andrew-wiggins",  // Andrew Wiggins (78 GSW '20s)
+  // "andris-biedrins",  // Andris Biedrins (81 GSW '00s)
+  // "anfernee-simons",  // Anfernee Simons (75 POR '20s)
+  // "anthony-bennett",  // Anthony Bennett (76 CLE '10s)
+  // "anthony-carter",  // Anthony Carter (75 MIA '00s)
+  // "anthony-johnson",  // Anthony Johnson (77 IND '00s)
+  // "anthony-parker",  // Anthony Parker (80 TOR '00s)
+  // "antonio-daniels",  // Antonio Daniels (80 SAS '00s)
+  // "aron-baynes",  // Aron Baynes (78 TOR '20s)
+  // "arron-afflalo",  // Arron Afflalo (79 ORL '10s)
+  // "austin-reaves",  // Austin Reaves (80 LAL '20s)
+  // "austin-rivers",  // Austin Rivers (80 LAC '10s)
+  // "avery-bradley",  // Avery Bradley (83 LAC '10s)
+  // "avery-johnson",  // Avery Johnson (75 SAS '00s)
+  // "baron-davis",  // Baron Davis (82 GSW '00s)
+  // "ben-gordon",  // Ben Gordon (83 CHI '00s)
+  // "beno-udrih",  // Beno Udrih (75 SAC '00s)
+  // "bill-laimbeer",  // Bill Laimbeer (82 DET '80s)
+  // "bismack-biyombo",  // Bismack Biyombo (76 CHA '20s)
+  // "boban-marjanovic",  // Boban Marjanovic (75 DAL '20s)
+  // "bobby-portis",  // Bobby Portis (79 MIL '20s)
+  // "bobby-simmons",  // Bobby Simmons (78 MIL '00s)
+  // "bogdan-bogdanovic",  // Bogdan Bogdanovic (80 ATL '20s)
+  // "bojan-bogdanovic",  // Bojan Bogdanovic (81 UTA '20s)
+  // "brad-miller",  // Brad Miller (82 SAC '00s)
+  // "brandan-wright",  // Brandan Wright (75 PHX '10s)
+  // "brandon-bass",  // Brandon Bass (75 BOS '10s)
+  // "brandon-clarke",  // Brandon Clarke (80 MEM '20s)
+  // "brandon-jennings",  // Brandon Jennings (83 DET '10s)
+  // "brandon-knight",  // Brandon Knight (79 PHX '10s)
+  // "brandon-williams",  // Brandon Williams (75 POR '20s)
+  // "brendan-haywood",  // Brendan Haywood (80 WAS '00s)
+  // "brian-skinner",  // Brian Skinner (76 LAC '00s)
+  // "brook-lopez",  // Brook Lopez (83 MIL '20s)
+  // "bruce-brown",  // Bruce Brown (77 BKN '20s)
+  // "bryn-forbes",  // Bryn Forbes (75 DEN '20s)
+  // "buddy-hield",  // Buddy Hield (81 SAC '20s)
+  // "byron-scott",  // Byron Scott (79 LAL '80s)
+  // "cj-mccollum",  // CJ McCollum (83 POR '10s)
+  // "cam-reddish",  // Cam Reddish (76 NYK '20s)
+  // "cameron-johnson",  // Cameron Johnson (77 PHX '20s)
+  // "cameron-payne",  // Cameron Payne (76 PHX '20s)
+  // "caris-levert",  // Caris LeVert (83 IND '20s)
+  // "carl-landry",  // Carl Landry (76 SAC '10s)
+  // "carlos-arroyo",  // Carlos Arroyo (75 ORL '00s)
+  // "carlos-delfino",  // Carlos Delfino (78 TOR '00s)
+  // "caron-butler",  // Caron Butler (84 WAS '00s)
+  // "cedi-osman",  // Cedi Osman (75 CLE '20s)
+  // "chandler-hutchison",  // Chandler Hutchison (75 WAS '20s)
+  // "chandler-parsons",  // Chandler Parsons (79 DAL '10s)
+  // "channing-frye",  // Channing Frye (79 NYK '00s)
+  // "charles-oakley",  // Charles Oakley (78 NYK '90s)
+  // "charlie-bell",  // Charlie Bell (76 MIL '00s)
+  // "charlie-villanueva",  // Charlie Villanueva (79 MIL '00s)
+  // "chris-andersen",  // Chris Andersen (75 MIA '10s)
+  // "chris-boucher",  // Chris Boucher (79 TOR '20s)
+  // "chris-duhon",  // Chris Duhon (77 CHI '00s)
+  // "chris-kaman",  // Chris Kaman (84 LAC '00s)
+  // "chris-wilcox",  // Chris Wilcox (76 OKC '00s)
+  // "christian-wood",  // Christian Wood (83 HOU '20s)
+  // "chucky-atkins",  // Chucky Atkins (78 DET '00s)
+  // "chuma-okeke",  // Chuma Okeke (75 ORL '20s)
+  // "coby-white",  // Coby White (78 CHI '20s)
+  // "cody-zeller",  // Cody Zeller (78 POR '20s)
+  // "cole-anthony",  // Cole Anthony (77 ORL '20s)
+  // "collin-sexton",  // Collin Sexton (82 CLE '20s)
+  // "corey-brewer",  // Corey Brewer (75 HOU '10s)
+  // "corey-maggette",  // Corey Maggette (83 LAC '00s)
+  // "cory-joseph",  // Cory Joseph (75 DET '20s)
+  // "courtney-lee",  // Courtney Lee (76 MEM '10s)
+  // "dangelo-russell",  // D'Angelo Russell (84 MIN '20s)
+  // "daniel-gafford",  // Daniel Gafford (78 WAS '20s)
+  // "daniel-gibson",  // Daniel Gibson (77 CLE '00s)
+  // "daniel-theis",  // Daniel Theis (79 CHI '20s)
+  // "danilo-gallinari",  // Danilo Gallinari (83 ATL '20s)
+  // "danny-granger",  // Danny Granger (84 IND '10s)
+  // "danuel-house-jr",  // Danuel House Jr. (76 HOU '20s)
+  // "dario-saric",  // Dario Saric (78 PHI '10s)
+  // "darius-bazley",  // Darius Bazley (75 OKC '20s)
+  // "darko-milicic",  // Darko Milicic (76 MEM '00s)
+  // "darren-collison",  // Darren Collison (80 IND '10s)
+  // "david-lee",  // David Lee (84 GSW '10s)
+  // "david-nwaba",  // David Nwaba (76 HOU '20s)
+  // "david-west",  // David West (80 IND '10s)
+  // "davion-mitchell",  // Davion Mitchell (76 SAC '20s)
+  // "davis-bertans",  // Davis Bertans (79 WAS '20s)
+  // "deandre-hunter",  // De'Andre Hunter (80 ATL '20s)
+  // "deanthony-melton",  // De'Anthony Melton (75 MEM '20s)
+  // "deandre-jordan",  // DeAndre Jordan (78 LAC '10s)
+  // "demarre-carroll",  // DeMarre Carroll (75 BKN '10s)
+  // "desagana-diop",  // DeSagana Diop (75 DAL '00s)
+  // "deshawn-stevenson",  // DeShawn Stevenson (76 WAS '00s)
+  // "deandre-ayton",  // Deandre Ayton (84 PHX '20s)
+  // "dee-brown",  // Dee Brown (75 UTA '00s)
+  // "delon-wright",  // Delon Wright (76 ATL '20s)
+  // "delonte-west",  // Delonte West (80 BOS '00s)
+  // "deni-avdija",  // Deni Avdija (75 WAS '20s)
+  // "dennis-schroder",  // Dennis Schroder (80 HOU '20s)
+  // "dennis-smith-jr",  // Dennis Smith Jr. (76 DAL '10s)
+  // "denzel-valentine",  // Denzel Valentine (76 CHI '20s)
+  // "derrick-favors",  // Derrick Favors (80 UTA '10s)
+  // "derrick-jones-jr",  // Derrick Jones Jr. (75 POR '20s)
+  // "derrick-white",  // Derrick White (79 SAS '20s)
+  // "desmond-bane",  // Desmond Bane (76 MEM '20s)
+  // "devin-brown",  // Devin Brown (75 CLE '00s)
+  // "devin-harris",  // Devin Harris (83 BKN '10s)
+  // "devonte-graham",  // Devonte' Graham (79 CHA '20s)
+  // "dewayne-dedmon",  // Dewayne Dedmon (77 ATL '10s)
+  // "dillon-brooks",  // Dillon Brooks (78 MEM '20s)
+  // "dion-waiters",  // Dion Waiters (80 MIA '10s)
+  // "donte-divincenzo",  // Donte DiVincenzo (79 SAC '20s)
+  // "dorian-finney-smith",  // Dorian Finney-Smith (76 DAL '20s)
+  // "doug-mcdermott",  // Doug McDermott (76 SAS '20s)
+  // "drew-gooden",  // Drew Gooden (79 CLE '00s)
+  // "duncan-robinson",  // Duncan Robinson (78 MIA '20s)
+  // "dwight-powell",  // Dwight Powell (76 DAL '20s)
+  // "earl-boykins",  // Earl Boykins (75 MIL '00s)
+  // "earl-watson",  // Earl Watson (79 OKC '00s)
+  // "eddie-house",  // Eddie House (76 BOS '00s)
+  // "eddy-curry",  // Eddy Curry (79 NYK '00s)
+  // "edmond-sumner",  // Edmond Sumner (75 IND '20s)
+  // "elfrid-payton",  // Elfrid Payton (77 NYK '20s)
+  // "emeka-okafor",  // Emeka Okafor (84 CHA '00s)
+  // "eric-bledsoe",  // Eric Bledsoe (83 PHX '10s)
+  // "eric-gordon",  // Eric Gordon (82 HOU '10s)
+  // "eric-paschall",  // Eric Paschall (79 GSW '20s)
+  // "erick-dampier",  // Erick Dampier (83 GSW '00s)
+  // "ersan-ilyasova",  // Ersan Ilyasova (76 UTA '20s)
+  // "etan-thomas",  // Etan Thomas (77 WAS '00s)
+  // "evan-fournier",  // Evan Fournier (80 BOS '20s)
+  // "evan-turner",  // Evan Turner (82 IND '10s)
+  // "fabricio-oberto",  // Fabricio Oberto (77 SAS '00s)
+  // "facundo-campazzo",  // Facundo Campazzo (77 DEN '20s)
+  // "francisco-elson",  // Francisco Elson (75 SAS '00s)
+  // "francisco-garcia",  // Francisco Garcia (75 SAC '00s)
+  // "frank-kaminsky-iii",  // Frank Kaminsky III (76 PHX '20s)
+  // "furkan-korkmaz",  // Furkan Korkmaz (75 PHI '20s)
+  // "gary-harris",  // Gary Harris (81 DEN '10s)
+  // "gary-neal",  // Gary Neal (75 MIN '10s)
+  // "gary-trent-jr",  // Gary Trent Jr. (77 TOR '20s)
+  // "george-hill",  // George Hill (82 CLE '10s)
+  // "gerald-green",  // Gerald Green (78 PHX '10s)
+  // "gerald-henderson",  // Gerald Henderson (78 CHA '10s)
+  // "gerald-wallace",  // Gerald Wallace (84 POR '10s)
+  // "glen-davis",  // Glen Davis (75 LAC '10s)
+  // "glenn-robinson",  // Glenn Robinson (81 MIL '90s)
+  // "glenn-robinson-iii",  // Glenn Robinson III (75 SAC '20s)
+  // "gorgui-dieng",  // Gorgui Dieng (76 MIN '10s)
+  // "grayson-allen",  // Grayson Allen (80 UTA '10s)
+  // "greg-monroe",  // Greg Monroe (81 DET '10s)
+  // "greg-oden",  // Greg Oden (80 POR '00s)
+  // "greivis-vasquez",  // Greivis Vasquez (76 TOR '10s)
+  // "hakim-warrick",  // Hakim Warrick (77 MEM '00s)
+  // "harrison-barnes",  // Harrison Barnes (81 DAL '10s)
+  // "harry-giles-iii",  // Harry Giles III (75 POR '20s)
+  // "horace-grant",  // Horace Grant (80 CHI '90s)
+  // "ian-mahinmi",  // Ian Mahinmi (75 IND '10s)
+  // "iman-shumpert",  // Iman Shumpert (82 NYK '10s)
+  // "immanuel-quickley",  // Immanuel Quickley (78 NYK '20s)
+  // "isaac-okoro",  // Isaac Okoro (75 CLE '20s)
+  // "isaiah-hartenstein",  // Isaiah Hartenstein (75 LAC '20s)
+  // "isaiah-stewart",  // Isaiah Stewart (78 DET '20s)
+  // "ivica-zubac",  // Ivica Zubac (78 LAC '20s)
+  // "jj-redick",  // JJ Redick (79 PHI '10s)
+  // "jamychal-green",  // JaMychal Green (76 DEN '20s)
+  // "javale-mcgee",  // JaVale McGee (78 DEN '20s)
+  // "jabari-parker",  // Jabari Parker (81 MIL '10s)
+  // "jaden-mcdaniels",  // Jaden McDaniels (75 MIN '20s)
+  // "jae-crowder",  // Jae Crowder (80 UTA '10s)
+  // "jaesean-tate",  // Jae'Sean Tate (77 HOU '20s)
+  // "jahlil-okafor",  // Jahlil Okafor (76 DET '20s)
+  // "jakob-poeltl",  // Jakob Poeltl (77 SAS '20s)
+  // "jalen-green",  // Jalen Green (79 HOU '20s)
+  // "jalen-suggs",  // Jalen Suggs (77 ORL '20s)
+  // "jamaal-magloire",  // Jamaal Magloire (84 MIL '00s)
+  // "jamaal-tinsley",  // Jamaal Tinsley (80 IND '00s)
+  // "jamaal-wilkes",  // Jamaal Wilkes (79 LAL '80s)
+  // "jamal-crawford",  // Jamal Crawford (83 NYK '00s)
+  // "jamario-moon",  // Jamario Moon (78 TOR '00s)
+  // "jameer-nelson",  // Jameer Nelson (79 ORL '10s)
+  // "james-ennis-iii",  // James Ennis III (75 ORL '20s)
+  // "james-johnson",  // James Johnson (79 MIA '10s)
+  // "james-jones",  // James Jones (75 POR '00s)
+  // "james-posey",  // James Posey (81 DEN '00s)
+  // "james-wiseman",  // James Wiseman (77 DET '20s)
+  // "jared-dudley",  // Jared Dudley (75 PHX '10s)
+  // "jared-sullinger",  // Jared Sullinger (78 BOS '10s)
+  // "jaren-jackson-jr",  // Jaren Jackson Jr. (83 MEM '20s)
+  // "jarred-vanderbilt",  // Jarred Vanderbilt (79 MIN '20s)
+  // "jarrett-allen",  // Jarrett Allen (84 CLE '20s)
+  // "jarrett-jack",  // Jarrett Jack (79 CLE '10s)
+  // "jarron-collins",  // Jarron Collins (77 UTA '00s)
+  // "jason-kapono",  // Jason Kapono (78 TOR '00s)
+  // "jason-maxiell",  // Jason Maxiell (77 DET '00s)
+  // "jason-richardson",  // Jason Richardson (79 GSW '00s)
+  // "jason-terry",  // Jason Terry (79 DAL '00s)
+  // "jason-thompson",  // Jason Thompson (75 SAC '10s)
+  // "jason-williams",  // Jason Williams (76 SAC '00s)
+  // "jaxson-hayes",  // Jaxson Hayes (76 NOP '20s)
+  // "jeff-foster",  // Jeff Foster (76 IND '00s)
+  // "jeff-green",  // Jeff Green (79 BOS '10s)
+  // "jeff-hornacek",  // Jeff Hornacek (80 UTA '90s)
+  // "jeff-teague",  // Jeff Teague (79 MIN '10s)
+  // "jerami-grant",  // Jerami Grant (82 DET '20s)
+  // "jeremy-lamb",  // Jeremy Lamb (78 SAC '20s)
+  // "jim-jackson",  // Jim Jackson (82 ATL '00s)
+  // "jodie-meeks",  // Jodie Meeks (75 DET '10s)
+  // "joe-harris",  // Joe Harris (79 BKN '20s)
+  // "joe-ingles",  // Joe Ingles (80 POR '20s)
+  // "joe-smith",  // Joe Smith (83 MIN '00s)
+  // "joel-przybilla",  // Joel Przybilla (79 POR '00s)
+  // "john-collins",  // John Collins (82 ATL '20s)
+  // "john-henson",  // John Henson (75 DET '20s)
+  // "john-salmons",  // John Salmons (76 SAC '00s)
+  // "john-starks",  // John Starks (76 NYK '90s)
+  // "jon-leuer",  // Jon Leuer (75 DET '10s)
+  // "jonas-valanciunas",  // Jonas Valanciunas (83 NOP '20s)
+  // "jonathan-isaac",  // Jonathan Isaac (82 ORL '20s)
+  // "jonathan-kuminga",  // Jonathan Kuminga (75 GSW '20s)
+  // "jonathon-simmons",  // Jonathon Simmons (75 ORL '10s)
+  // "jordan-clarkson",  // Jordan Clarkson (79 UTA '20s)
+  // "jordan-crawford",  // Jordan Crawford (76 GSW '10s)
+  // "jordan-hill",  // Jordan Hill (76 LAL '10s)
+  // "jordan-mclaughlin",  // Jordan McLaughlin (75 MIN '20s)
+  // "jordan-poole",  // Jordan Poole (76 GSW '20s)
+  // "jose-calderon",  // Jose Calderon (82 TOR '00s)
+  // "josh-childress",  // Josh Childress (80 ATL '00s)
+  // "josh-giddey",  // Josh Giddey (75 OKC '20s)
+  // "josh-hart",  // Josh Hart (77 POR '20s)
+  // "josh-howard",  // Josh Howard (77 DAL '00s)
+  // "josh-jackson",  // Josh Jackson (78 PHX '10s)
+  // "josh-richardson",  // Josh Richardson (80 DAL '20s)
+  // "josh-smith",  // Josh Smith (84 ATL '10s)
+  // "juan-toscano-anderson",  // Juan Toscano-Anderson (75 GSW '20s)
+  // "juancho-hernangomez",  // Juancho Hernangomez (75 UTA '20s)
+  // "justin-holiday",  // Justin Holiday (75 IND '20s)
+  // "justise-winslow",  // Justise Winslow (77 MEM '20s)
+  // "jusuf-nurkic",  // Jusuf Nurkic (84 POR '20s)
+  // "juwan-howard",  // Juwan Howard (82 WAS '00s)
+  // "kj-martin",  // KJ Martin (76 HOU '20s)
+  // "keldon-johnson",  // Keldon Johnson (80 SAS '20s)
+  // "kelly-olynyk",  // Kelly Olynyk (78 DET '20s)
+  // "kelly-oubre-jr",  // Kelly Oubre Jr. (81 GSW '20s)
+  // "kendrick-nunn",  // Kendrick Nunn (78 WAS '20s)
+  // "kenneth-faried",  // Kenneth Faried (81 DEN '10s)
+  // "kenny-thomas",  // Kenny Thomas (79 SAC '00s)
+  // "kentavious-caldwell-pope",  // Kentavious Caldwell-Pope (79 LAL '10s)
+  // "kenyon-martin",  // Kenyon Martin (78 BKN '00s)
+  // "kevin-huerter",  // Kevin Huerter (77 ATL '20s)
+  // "kevin-love",  // Kevin Love (84 CLE '10s)
+  // "kevin-martin",  // Kevin Martin (84 SAC '00s)
+  // "kevin-porter-jr",  // Kevin Porter Jr. (77 HOU '20s)
+  // "khem-birch",  // Khem Birch (76 TOR '20s)
+  // "khris-middleton",  // Khris Middleton (84 MIL '20s)
+  // "kirk-hinrich",  // Kirk Hinrich (84 CHI '00s)
+  // "kris-dunn",  // Kris Dunn (76 ATL '20s)
+  // "kris-humphries",  // Kris Humphries (75 BOS '10s)
+  // "kurt-thomas",  // Kurt Thomas (79 PHX '00s)
+  // "kwame-brown",  // Kwame Brown (76 LAL '00s)
+  // "kyle-anderson",  // Kyle Anderson (79 MEM '20s)
+  // "kyle-korver",  // Kyle Korver (81 PHI '00s)
+  // "kyle-kuzma",  // Kyle Kuzma (77 WAS '20s)
+  // "lamar-odom",  // Lamar Odom (80 LAL '00s)
+  // "lance-stephenson",  // Lance Stephenson (81 IND '10s)
+  // "langston-galloway",  // Langston Galloway (75 PHX '20s)
+  // "larry-hughes",  // Larry Hughes (82 CLE '00s)
+  // "larry-nance-jr",  // Larry Nance Jr. (79 CLE '20s)
+  // "larry-sanders",  // Larry Sanders (79 MIL '10s)
+  // "latrell-sprewell",  // Latrell Sprewell (81 NYK '90s)
+  // "lauri-markkanen",  // Lauri Markkanen (80 CHI '20s)
+  // "leandro-barbosa",  // Leandro Barbosa (81 PHX '00s)
+  // "leon-powe",  // Leon Powe (76 BOS '00s)
+  // "linas-kleiza",  // Linas Kleiza (76 DEN '00s)
+  // "lindsey-hunter",  // Lindsey Hunter (79 MIL '00s)
+  // "lonnie-walker-iv",  // Lonnie Walker IV (75 SAS '20s)
+  // "lonzo-ball",  // Lonzo Ball (82 CHI '20s)
+  // "lou-williams",  // Lou Williams (78 LAC '10s)
+  // "luc-richard-mbah-a-moute",  // Luc Richard Mbah a Moute (76 HOU '10s)
+  // "luguentz-dort",  // Luguentz Dort (78 OKC '20s)
+  // "luis-scola",  // Luis Scola (79 IND '10s)
+  // "luke-kennard",  // Luke Kennard (78 LAC '20s)
+  // "luke-ridnour",  // Luke Ridnour (78 OKC '00s)
+  // "luke-walton",  // Luke Walton (76 LAL '00s)
+  // "luol-deng",  // Luol Deng (84 CHI '00s)
+  // "malcolm-brogdon",  // Malcolm Brogdon (83 IND '20s)
+  // "malik-beasley",  // Malik Beasley (80 MIN '20s)
+  // "malik-monk",  // Malik Monk (76 LAL '20s)
+  // "marcin-gortat",  // Marcin Gortat (81 WAS '10s)
+  // "marco-belinelli",  // Marco Belinelli (75 SAS '10s)
+  // "marcus-banks",  // Marcus Banks (79 BOS '00s)
+  // "marcus-morris-sr",  // Marcus Morris Sr. (78 LAC '20s)
+  // "marcus-smart",  // Marcus Smart (80 BOS '20s)
+  // "marcus-thornton",  // Marcus Thornton (76 PHX '10s)
+  // "mario-chalmers",  // Mario Chalmers (75 MIA '10s)
+  // "mark-blount",  // Mark Blount (79 MIN '00s)
+  // "markelle-fultz",  // Markelle Fultz (80 PHI '10s)
+  // "markieff-morris",  // Markieff Morris (78 WAS '10s)
+  // "marko-jaric",  // Marko Jaric (78 MIN '00s)
+  // "marquese-chriss",  // Marquese Chriss (76 GSW '20s)
+  // "marquis-daniels",  // Marquis Daniels (78 DAL '00s)
+  // "martell-webster",  // Martell Webster (77 POR '00s)
+  // "marvin-bagley-iii",  // Marvin Bagley III (81 SAC '20s)
+  // "marvin-williams",  // Marvin Williams (79 ATL '00s)
+  // "mason-plumlee",  // Mason Plumlee (79 CHA '20s)
+  // "matisse-thybulle",  // Matisse Thybulle (75 PHI '20s)
+  // "matt-barnes",  // Matt Barnes (76 LAC '10s)
+  // "matt-harpring",  // Matt Harpring (82 UTA '00s)
+  // "maurice-cheeks",  // Maurice Cheeks (80 PHI '80s)
+  // "maurice-evans",  // Maurice Evans (75 LAL '00s)
+  // "maxi-kleber",  // Maxi Kleber (76 DAL '20s)
+  // "mehmet-okur",  // Mehmet Okur (83 UTA '00s)
+  // "melvin-ely",  // Melvin Ely (76 CHA '00s)
+  // "metta-world-peace",  // Metta World Peace (80 IND '00s)
+  // "meyers-leonard",  // Meyers Leonard (75 MIL '20s)
+  // "michael-beasley",  // Michael Beasley (82 MIA '00s)
+  // "michael-carter-williams",  // Michael Carter-Williams (80 MIL '10s)
+  // "michael-kidd-gilchrist",  // Michael Kidd-Gilchrist (77 CHA '10s)
+  // "michael-porter-jr",  // Michael Porter Jr. (80 DEN '20s)
+  // "mikal-bridges",  // Mikal Bridges (82 PHX '20s)
+  // "mike-bibby",  // Mike Bibby (79 SAC '00s)
+  // "mike-conley",  // Mike Conley (83 MEM '10s)
+  // "mike-dunleavy-jr",  // Mike Dunleavy Jr. (83 GSW '00s)
+  // "mike-james",  // Mike James (84 MIN '00s)
+  // "mike-miller",  // Mike Miller (82 MIN '00s)
+  // "miles-bridges",  // Miles Bridges (78 CHA '20s)
+  // "miles-plumlee",  // Miles Plumlee (78 MIL '10s)
+  // "milos-teodosic",  // Milos Teodosic (77 LAC '10s)
+  // "mitchell-robinson",  // Mitchell Robinson (81 NYK '20s)
+  // "mo-bamba",  // Mo Bamba (76 ORL '20s)
+  // "monta-ellis",  // Monta Ellis (84 GSW '10s)
+  // "monte-morris",  // Monte Morris (78 DEN '20s)
+  // "montrezl-harrell",  // Montrezl Harrell (82 LAL '20s)
+  // "moritz-wagner",  // Moritz Wagner (76 ORL '20s)
+  // "morris-peterson",  // Morris Peterson (80 TOR '00s)
+  // "moses-brown",  // Moses Brown (77 CLE '20s)
+  // "myles-turner",  // Myles Turner (84 IND '10s)
+  // "nate-wolters",  // Nate Wolters (75 MIL '10s)
+  // "naz-reid",  // Naz Reid (76 MIN '20s)
+  // "nazr-mohammed",  // Nazr Mohammed (75 DET '00s)
+  // "nemanja-bjelica",  // Nemanja Bjelica (78 MIA '20s)
+  // "nenad-krstic",  // Nenad Krstic (77 BKN '00s)
+  // "nerlens-noel",  // Nerlens Noel (78 NYK '20s)
+  // "nic-claxton",  // Nic Claxton (76 BKN '20s)
+  // "nick-collison",  // Nick Collison (75 OKC '00s)
+  // "nick-young",  // Nick Young (78 LAL '10s)
+  // "nickeil-alexander-walker",  // Nickeil Alexander-Walker (75 UTA '20s)
+  // "nicolas-batum",  // Nicolas Batum (79 CHA '10s)
+  // "nicolo-melli",  // Nicolo Melli (75 DAL '20s)
+  // "nikola-mirotic",  // Nikola Mirotic (76 NOP '10s)
+  // "nikola-pekovic",  // Nikola Pekovic (81 MIN '10s)
+  // "norman-powell",  // Norman Powell (80 LAC '20s)
+  // "norris-cole",  // Norris Cole (75 NOP '10s)
+  // "og-anunoby",  // OG Anunoby (79 TOR '20s)
+  // "obi-toppin",  // Obi Toppin (76 NYK '20s)
+  // "omer-asik",  // Omer Asik (76 NOP '10s)
+  // "onyeka-okongwu",  // Onyeka Okongwu (76 ATL '20s)
+  // "oshae-brissett",  // Oshae Brissett (76 IND '20s)
+  // "otto-porter-jr",  // Otto Porter Jr. (80 WAS '10s)
+  // "pj-tucker",  // P.J. Tucker (76 MIL '20s)
+  // "pj-washington",  // PJ Washington (78 CHA '20s)
+  // "patrick-beverley",  // Patrick Beverley (79 LAC '10s)
+  // "patrick-patterson",  // Patrick Patterson (75 OKC '10s)
+  // "patrick-williams",  // Patrick Williams (75 CHI '20s)
+  // "payton-pritchard",  // Payton Pritchard (76 BOS '20s)
+  // "peja-stojakovic",  // Peja Stojakovic (84 SAC '00s)
+  // "precious-achiuwa",  // Precious Achiuwa (75 TOR '20s)
+  // "primoz-brezec",  // Primoz Brezec (81 CHA '00s)
+  // "quentin-richardson",  // Quentin Richardson (81 NYK '00s)
+  // "quinton-ross",  // Quinton Ross (75 LAC '00s)
+  // "rj-barrett",  // RJ Barrett (83 NYK '20s)
+  // "rafer-alston",  // Rafer Alston (79 HOU '00s)
+  // "raja-bell",  // Raja Bell (80 PHX '00s)
+  // "ramon-sessions",  // Ramon Sessions (76 CHA '10s)
+  // "randy-foye",  // Randy Foye (80 MIN '00s)
+  // "rasual-butler",  // Rasual Butler (76 NOP '00s)
+  // "raul-neto",  // Raul Neto (75 WAS '20s)
+  // "raymond-felton",  // Raymond Felton (80 CHA '00s)
+  // "reggie-jackson",  // Reggie Jackson (80 LAC '20s)
+  // "richard-hamilton",  // Richard Hamilton (81 DET '00s)
+  // "richard-jefferson",  // Richard Jefferson (78 BKN '00s)
+  // "richaun-holmes",  // Richaun Holmes (79 SAC '20s)
+  // "ricky-davis",  // Ricky Davis (84 MIN '00s)
+  // "ricky-rubio",  // Ricky Rubio (79 MIN '20s)
+  // "rip-hamilton",  // Rip Hamilton (82 DET '00s)
+  // "robert-covington",  // Robert Covington (79 POR '20s)
+  // "robin-lopez",  // Robin Lopez (77 POR '10s)
+  // "rodney-hood",  // Rodney Hood (78 CLE '10s)
+  // "rodney-stuckey",  // Rodney Stuckey (80 DET '10s)
+  // "rondae-hollis-jefferson",  // Rondae Hollis-Jefferson (76 POR '20s)
+  // "roy-hibbert",  // Roy Hibbert (78 IND '10s)
+  // "royce-oneale",  // Royce O'Neale (76 UTA '20s)
+  // "rui-hachimura",  // Rui Hachimura (79 WAS '20s)
+  // "ryan-anderson",  // Ryan Anderson (78 HOU '10s)
+  // "ryan-gomes",  // Ryan Gomes (77 MIN '00s)
+  // "saben-lee",  // Saben Lee (75 DET '20s)
+  // "saddiq-bey",  // Saddiq Bey (78 DET '20s)
+  // "sam-cassell",  // Sam Cassell (82 HOU '90s)
+  // "samuel-dalembert",  // Samuel Dalembert (81 PHI '00s)
+  // "sean-williams",  // Sean Williams (76 BKN '00s)
+  // "sebastian-telfair",  // Sebastian Telfair (78 POR '00s)
+  // "seth-curry",  // Seth Curry (78 PHI '20s)
+  // "shabazz-muhammad",  // Shabazz Muhammad (75 MIL '10s)
+  // "shabazz-napier",  // Shabazz Napier (76 WAS '20s)
+  // "shake-milton",  // Shake Milton (76 PHI '20s)
+  // "shannon-brown",  // Shannon Brown (77 PHX '10s)
+  // "skal-labissiere",  // Skal Labissiere (76 SAC '10s)
+  // "speedy-claxton",  // Speedy Claxton (75 NOP '00s)
+  // "spencer-dinwiddie",  // Spencer Dinwiddie (83 BKN '20s)
+  // "spencer-hawes",  // Spencer Hawes (76 LAC '10s)
+  // "stephen-jackson",  // Stephen Jackson (84 CHA '10s)
+  // "steven-adams",  // Steven Adams (82 NOP '20s)
+  // "tj-mcconnell",  // T.J. McConnell (78 IND '20s)
+  // "taj-gibson",  // Taj Gibson (80 CHI '10s)
+  // "talen-horton-tucker",  // Talen Horton-Tucker (76 LAL '20s)
+  // "taurean-prince",  // Taurean Prince (75 ATL '10s)
+  // "tayshaun-prince",  // Tayshaun Prince (83 DET '00s)
+  // "terance-mann",  // Terance Mann (77 LAC '20s)
+  // "terence-davis",  // Terence Davis (76 SAC '20s)
+  // "terrence-jones",  // Terrence Jones (77 HOU '10s)
+  // "terrence-ross",  // Terrence Ross (78 ORL '20s)
+  // "terrence-williams",  // Terrence Williams (76 BOS '10s)
+  // "terry-rozier",  // Terry Rozier (82 CHA '20s)
+  // "thabo-sefolosha",  // Thabo Sefolosha (75 UTA '10s)
+  // "thaddeus-young",  // Thaddeus Young (79 TOR '20s)
+  // "theo-ratliff",  // Theo Ratliff (84 PHI '00s)
+  // "thomas-bryant",  // Thomas Bryant (79 WAS '20s)
+  // "thomas-robinson",  // Thomas Robinson (75 PHI '10s)
+  // "thon-maker",  // Thon Maker (75 MIL '10s)
+  // "tiago-splitter",  // Tiago Splitter (77 SAS '10s)
+  // "tim-hardaway-jr",  // Tim Hardaway Jr. (80 NYK '10s)
+  // "tim-thomas",  // Tim Thomas (80 MIL '00s)
+  // "tobias-harris",  // Tobias Harris (83 PHI '20s)
+  // "tomas-satoransky",  // Tomas Satoransky (76 CHI '20s)
+  // "tommy-heinsohn",  // Tommy Heinsohn (81 BOS '60s)
+  // "toni-kukoc",  // Toni Kukoc (80 CHI '90s)
+  // "tony-battie",  // Tony Battie (76 BOS '00s)
+  // "tony-bradley",  // Tony Bradley (75 OKC '20s)
+  // "tony-snell",  // Tony Snell (75 NOP '20s)
+  // "torrey-craig",  // Torrey Craig (76 PHX '20s)
+  // "travis-outlaw",  // Travis Outlaw (75 POR '00s)
+  // "trenton-hassell",  // Trenton Hassell (79 MIN '00s)
+  // "treveon-graham",  // Treveon Graham (76 CHA '10s)
+  // "trevor-ariza",  // Trevor Ariza (79 NOP '10s)
+  // "trevor-booker",  // Trevor Booker (76 IND '10s)
+  // "trey-burke",  // Trey Burke (76 DAL '20s)
+  // "trey-lyles",  // Trey Lyles (75 SAS '20s)
+  // "tristan-thompson",  // Tristan Thompson (79 BOS '20s)
+  // "troy-brown-jr",  // Troy Brown Jr. (78 CHI '20s)
+  // "troy-murphy",  // Troy Murphy (83 GSW '00s)
+  // "ty-jerome",  // Ty Jerome (75 OKC '20s)
+  // "ty-lawson",  // Ty Lawson (82 DEN '10s)
+  // "tyler-herro",  // Tyler Herro (82 MIA '20s)
+  // "tyler-johnson",  // Tyler Johnson (77 MIA '10s)
+  // "tyler-ulis",  // Tyler Ulis (75 PHX '10s)
+  // "tyreke-evans",  // Tyreke Evans (82 SAC '10s)
+  // "tyrus-thomas",  // Tyrus Thomas (77 CHI '00s)
+  // "tyson-chandler",  // Tyson Chandler (81 NOP '00s)
+  // "tyus-jones",  // Tyus Jones (76 MEM '20s)
+  // "vlade-divac",  // Vlade Divac (82 SAC '00s)
+  // "vladimir-radmanovic",  // Vladimir Radmanovic (78 LAL '00s)
+  // "wayne-ellington",  // Wayne Ellington (75 LAL '20s)
+  // "wendell-carter-jr",  // Wendell Carter Jr. (80 ORL '20s)
+  // "wesley-matthews",  // Wesley Matthews (78 POR '10s)
+  // "will-barton",  // Will Barton (79 DEN '20s)
+  // "willie-cauley-stein",  // Willie Cauley-Stein (77 DAL '20s)
+  // "willy-hernangomez",  // Willy Hernangomez (77 CHA '10s)
+  // "wilson-chandler",  // Wilson Chandler (80 DEN '10s)
+  // "xavier-tillman",  // Xavier Tillman (76 MEM '20s)
+  // "zach-collins",  // Zach Collins (75 SAS '20s)
+  // "zach-lavine",  // Zach LaVine (84 CHI '20s)
+  // "zach-randolph",  // Zach Randolph (84 MEM '10s)
+  // "zaza-pachulia",  // Zaza Pachulia (76 GSW '10s)
+  // "zydrunas-ilgauskas",  // Zydrunas Ilgauskas (84 CLE '00s)
+  /* ---------- BRONZE (27) ---------- */
+  // "boris-diaw",  // Boris Diaw (72 SAS '10s)
+  // "brian-scalabrine",  // Brian Scalabrine (45 BOS '00s)
+  // "bruce-bowen",  // Bruce Bowen (68 SAS '00s)
+  // "danny-green",  // Danny Green (70 SAS '10s)
+  // "derek-fisher",  // Derek Fisher (70 LAL '00s)
+  // "gary-payton-ii",  // Gary Payton II (64 GSW '20s)
+  // "jr-smith",  // JR Smith (72 CLE '10s)
+  // "jeremy-lin",  // Jeremy Lin (70 NYK '10s)
+  // "john-paxson",  // John Paxson (68 CHI '90s)
+  // "kendrick-perkins",  // Kendrick Perkins (62 BOS '00s)
+  // "kevon-looney",  // Kevon Looney (66 GSW '20s)
+  // "kurt-rambis",  // Kurt Rambis (60 LAL '80s)
+  // "manute-bol",  // Manute Bol (58 WAS '80s)
+  // "mark-madsen",  // Mark Madsen (44 LAL '00s)
+  // "matt-bonner",  // Matt Bonner (55 SAS '10s)
+  // "michael-cooper",  // Michael Cooper (74 LAL '80s)
+  // "muggsy-bogues",  // Muggsy Bogues (72 CHA '90s)
+  // "nate-robinson",  // Nate Robinson (70 NYK '00s)
+  // "patty-mills",  // Patty Mills (68 SAS '10s)
+  // "robert-horry",  // Robert Horry (74 LAL '00s)
+  // "shane-battier",  // Shane Battier (72 MIA '10s)
+  // "shaun-livingston",  // Shaun Livingston (66 GSW '10s)
+  // "shawn-bradley",  // Shawn Bradley (60 DAL '90s)
+  // "spud-webb",  // Spud Webb (68 ATL '80s)
+  // "steve-kerr",  // Steve Kerr (72 CHI '90s)
+  // "tony-allen",  // Tony Allen (70 MEM '10s)
+  // "udonis-haslem",  // Udonis Haslem (66 MIA '10s)
+]);
+function cardSlug(name){
+  return name.toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"") /* strip accents: Doncic -> doncic */
+    .replace(/[.'\u2019]/g,"")      /* drop periods & apostrophes */
+    .replace(/[^a-z0-9]+/g,"-")     /* everything else -> hyphen */
+    .replace(/^-+|-+$/g,"");
+}
+function cardArtURL(p){const s=cardSlug(p.name);return CARD_ART.has(s)?CARD_ART_BASE+s+".png":null;}
+/* Dev helper: run artStatus() in the console to see coverage + copy-paste slugs.
+   Lists how many players have art and prints the slug for any name you pass. */
+function artStatus(filter){
+  const all=[...new Set(DB.map(p=>p.name))];
+  const withArt=all.filter(n=>CARD_ART.has(cardSlug(n)));
+  const without=all.filter(n=>!CARD_ART.has(cardSlug(n)));
+  console.log(`Card art: ${withArt.length}/${all.length} players covered (${(withArt.length/all.length*100).toFixed(1)}%).`);
+  if(filter){const hits=all.filter(n=>n.toLowerCase().includes(filter.toLowerCase()));
+    console.log("Slugs for \""+filter+"\":");hits.forEach(n=>console.log("  "+n+"  ->  "+cardSlug(n)+".png"+(CARD_ART.has(cardSlug(n))?"  [HAS ART]":"")));}
+  else console.log("Tip: artStatus(\"wade\") to get the exact filename for a player.");
+  return {covered:withArt.length,total:all.length,missing:without.length};
+}
+
+function hasArt(p){return CARD_ART.has(cardSlug(p.name));}
 function cardHTML(p,attrs,badge){
   /* front face: completely clean — no chemistry text */
+  const art=cardArtURL(p);
   const front=`
-  <div class="card t-${p.tier}" ${attrs||""}>
-    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+  <div class="card t-${p.tier}${art?" hasart":""}" ${attrs||""}>
+    ${art?`<div class="cardart" style="background-image:url('${art}')"></div><div class="cardart-fade"></div>`:""}
+    <div class="card-top" style="display:flex;justify-content:space-between;align-items:flex-start">
       <div><div class="ovr">${p.ovr}</div><div class="pos" style="font-size:${p.positions.length>2?7.5:9}px">${p.positions.join("/")}</div></div>
     </div>
     <button class="infobtn" onclick="flip3d(event)" title="Chemistry tags">ⓘ</button>
-    <div class="ini">${initials(esc(p.name))}</div>
+    ${art?"":`<div class="ini">${initials(esc(p.name))}</div>`}
     <div class="nm">${esc(p.name)}</div>
     <div class="meta">${p.team} · ${p.era} · ${p.tier.toUpperCase()}</div>
     ${badge||""}
@@ -2561,25 +3492,49 @@ function imgCard(p,cx,cy,w,h){
   c.save();
   if(t.glow){c.shadowColor=t.ink;c.shadowBlur=t.glow;}
   rrPath(x,y,w,h,16);c.fillStyle=g;c.fill();
+  const art=IMG_ART[cardSlug(p.name)];
+  if(art){c.save();rrPath(x,y,w,h,16);c.clip();
+    /* cover-fit the art into the card rect */
+    const ar=art.width/art.height,cr=w/h;let dw,dh;
+    if(ar>cr){dh=h;dw=h*ar;}else{dw=w;dh=w/ar;}
+    c.drawImage(art,x+(w-dw)/2,y+(h-dh)/2,dw,dh);
+    /* bottom fade for text legibility */
+    const fg=c.createLinearGradient(x,y,x,y+h);fg.addColorStop(0,"rgba(0,0,0,.2)");fg.addColorStop(.4,"rgba(0,0,0,0)");fg.addColorStop(.72,"rgba(0,0,0,.55)");fg.addColorStop(1,"rgba(0,0,0,.92)");
+    c.fillStyle=fg;c.fillRect(x,y,w,h);c.restore();}
   c.lineWidth=4;c.strokeStyle=t.ink;c.stroke();
   c.restore();
+  c.save();if(art)c.shadowColor="rgba(0,0,0,.9)",c.shadowBlur=6;
   c.fillStyle=t.ink;c.font="900 "+Math.round(w*.24)+"px "+IMG_FONT;c.textAlign="left";
   c.fillText(p.ovr,x+14,y+Math.round(w*.26));
-  c.fillStyle="#9a9aa4";c.font=Math.round(w*.085)+"px Arial";
+  c.fillStyle=art?"#e8e8ec":"#9a9aa4";c.font=Math.round(w*.085)+"px Arial";
   c.fillText(p.positions.join("/"),x+15,y+Math.round(w*.36));
-  const ini=p.name.split(" ").map(s=>s[0]).join("").slice(0,2).toUpperCase();
-  c.beginPath();c.arc(cx,y+h*.46,w*.19,0,7);c.strokeStyle=t.ink;c.lineWidth=2.5;c.stroke();
-  c.fillStyle="#fff";c.font="700 "+Math.round(w*.15)+"px Arial";c.textAlign="center";
-  c.fillText(ini,cx,y+h*.46+w*.055);
+  if(!art){const ini=p.name.split(" ").map(s=>s[0]).join("").slice(0,2).toUpperCase();
+    c.beginPath();c.arc(cx,y+h*.46,w*.19,0,7);c.strokeStyle=t.ink;c.lineWidth=2.5;c.stroke();
+    c.fillStyle="#fff";c.font="700 "+Math.round(w*.15)+"px Arial";c.textAlign="center";
+    c.fillText(ini,cx,y+h*.46+w*.055);}
+  c.restore();
   let fs=Math.round(w*.115);c.font="700 "+fs+"px Arial";
   while(c.measureText(p.name).width>w-18&&fs>11){fs--;c.font="700 "+fs+"px Arial";}
   c.fillText(p.name,cx,y+h*.72);
   c.fillStyle="#8a8a94";c.font=Math.round(w*.075)+"px Arial";
   c.fillText(p.team+" \u00b7 "+p.era+" \u00b7 "+p.tier.toUpperCase(),cx,y+h-14);
 }
+/* art image cache for the share canvas (slug -> loaded Image) */
+const IMG_ART={};
+function preloadRosterArt(roster){
+  const slugs=[...new Set(ALL_SLOTS.map(s=>roster[s]).filter(id=>id!=null).map(id=>cardSlug(DB[id].name)).filter(s=>CARD_ART.has(s)))];
+  return Promise.all(slugs.map(s=>new Promise(done=>{
+    if(IMG_ART[s]){done();return;}
+    const im=new Image();im.crossOrigin="anonymous"; /* needed so the canvas stays exportable */
+    im.onload=()=>{IMG_ART[s]=im;done();};
+    im.onerror=()=>{done();}; /* missing/blocked art — silently fall back to initials */
+    im.src=CARD_ART_BASE+s+".png";
+  })));
+}
 function drawRosterCanvas(modeKey,roster,eraLocked){
-  return new Promise(res=>{
+  return new Promise(async res=>{
     try{
+      await preloadRosterArt(roster); /* load any player art before painting so it appears on the export */
       const cv=document.createElement("canvas");cv.width=1080;cv.height=1350;
       const c=cv.getContext("2d");if(!c){res(null);return;}
       IMG_CTX=c;
@@ -2915,6 +3870,5 @@ const __sh=parseShare();
 if(__sh){SHARED=__sh;screen="share";}
 render();
 </script>
-<script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>
