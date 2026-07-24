@@ -180,7 +180,10 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .cardart-scrim{position:absolute;top:0;left:0;width:78%;height:46%;z-index:1;pointer-events:none;
   background:radial-gradient(120% 110% at 0% 0%,rgba(0,0,0,.82) 0%,rgba(0,0,0,.55) 38%,rgba(0,0,0,0) 72%)}
 .card.hasart .card-top,.card.hasart .infobtn,.card.hasart .nm,.card.hasart .meta{position:relative;z-index:2}
-.card.hasart .ovr{text-shadow:0 2px 8px rgba(0,0,0,.95),0 0 2px rgba(0,0,0,.9);font-size:29px}
+/* art cards: keep each tier's own OVR colour/gradient intact. text-shadow can't render
+   on gradient-clipped text (Icon uses background-clip:text + transparent colour), so use
+   a drop-shadow FILTER — it works for both solid-colour and gradient OVRs. */
+.card.hasart .ovr{font-size:29px;filter:drop-shadow(0 2px 5px rgba(0,0,0,.95)) drop-shadow(0 0 2px rgba(0,0,0,.85))}
 .card.hasart .pos{color:#f2f2f6;font-weight:700;text-shadow:0 1px 5px rgba(0,0,0,.95),0 0 2px rgba(0,0,0,.9)}
 .card.hasart .infobtn{top:5px;right:5px;background:rgba(0,0,0,.55);border-color:rgba(255,255,255,.35);color:#fff}
 .card.hasart .nm{text-shadow:0 1px 6px rgba(0,0,0,.95)}
@@ -227,6 +230,7 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
   linear-gradient(120deg,var(--icon2),var(--icon3),var(--icon1),var(--icon2)) border-box;
   box-shadow:0 0 22px rgba(255,140,205,.55)}
 .t-Icon .ovr{background:linear-gradient(180deg,#ffffff,var(--icon2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.card.hasart.t-Icon .ovr{background:linear-gradient(180deg,#ffffff,#ff7ac8);-webkit-background-clip:text;background-clip:text;color:transparent}
 .t-Icon .ini{border-color:var(--icon2);background:#2a1526;color:#ffd7ef}
 .t-Icon::after{content:"";position:absolute;top:-60%;left:-60%;width:70%;height:220%;transform:rotate(22deg);
   background:linear-gradient(90deg,transparent,rgba(255,255,255,.32),transparent);animation:sheen 3.2s infinite}
