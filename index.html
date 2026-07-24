@@ -174,11 +174,15 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .card:active{transform:scale(.96)}
 /* ---- card art layer ---- */
 .card.hasart{background:#0a0a0a}
-.cardart{position:absolute;inset:0;background-size:cover;background-position:center top;z-index:0}
+.cardart{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top;z-index:0;display:block}
 .cardart-fade{position:absolute;inset:0;z-index:1;background:linear-gradient(to bottom,rgba(0,0,0,.15) 0%,rgba(0,0,0,0) 32%,rgba(0,0,0,.55) 70%,rgba(0,0,0,.9) 100%)}
+/* top-left scrim: keeps the OVR + positions legible over light artwork */
+.cardart-scrim{position:absolute;top:0;left:0;width:78%;height:46%;z-index:1;pointer-events:none;
+  background:radial-gradient(120% 110% at 0% 0%,rgba(0,0,0,.82) 0%,rgba(0,0,0,.55) 38%,rgba(0,0,0,0) 72%)}
 .card.hasart .card-top,.card.hasart .infobtn,.card.hasart .nm,.card.hasart .meta{position:relative;z-index:2}
-.card.hasart .ovr{text-shadow:0 2px 6px rgba(0,0,0,.9)}
-.card.hasart .pos{color:#e8e8ec;text-shadow:0 1px 4px rgba(0,0,0,.9)}
+.card.hasart .ovr{text-shadow:0 2px 8px rgba(0,0,0,.95),0 0 2px rgba(0,0,0,.9);font-size:29px}
+.card.hasart .pos{color:#f2f2f6;font-weight:700;text-shadow:0 1px 5px rgba(0,0,0,.95),0 0 2px rgba(0,0,0,.9)}
+.card.hasart .infobtn{top:5px;right:5px;background:rgba(0,0,0,.55);border-color:rgba(255,255,255,.35);color:#fff}
 .card.hasart .nm{text-shadow:0 1px 6px rgba(0,0,0,.95)}
 .card.hasart .meta{color:#d8d8e0;text-shadow:0 1px 4px rgba(0,0,0,.9)}
 .card .ovr{font-family:var(--disp);font-size:26px;line-height:1;letter-spacing:.02em}
@@ -2829,6 +2833,23 @@ function cardSlug(name){
     .replace(/[^a-z0-9]+/g,"-")     /* everything else -> hyphen */
     .replace(/^-+|-+$/g,"");
 }
+/* iOS hides file extensions, so uploads often land as "name.png.PNG", "name.PNG",
+   or a JPEG that was never actually converted. Rather than fight the filename on
+   every upload, the card tries a list of likely variants and uses whichever exists. */
+const CARD_ART_EXTS=[".png",".PNG",".png.PNG",".png.png",".jpg",".jpeg",".JPG",".webp"];
+function cardArtVariants(p){const s=cardSlug(p.name);return CARD_ART_EXTS.map(e=>CARD_ART_BASE+s+e);}
+function cardArtFail(img){
+  const i=(+img.dataset.v||0)+1,slug=img.dataset.slug;
+  if(i<CARD_ART_EXTS.length){img.dataset.v=i;img.src=CARD_ART_BASE+slug+CARD_ART_EXTS[i];return;}
+  /* out of variants: hide the art layer and restore the initials look */
+  const card=img.closest(".card");if(card){card.classList.remove("hasart");
+    const fade=card.querySelector(".cardart-fade");if(fade)fade.remove();
+    if(!card.querySelector(".ini")){const nm=card.querySelector(".nm");
+      const ini=document.createElement("div");ini.className="ini";
+      ini.textContent=(nm?nm.textContent:"").split(" ").map(s=>s[0]||"").join("").slice(0,2).toUpperCase();
+      card.insertBefore(ini,nm);}}
+  img.remove();
+}
 function cardArtURL(p){const s=cardSlug(p.name);return CARD_ART.has(s)?CARD_ART_BASE+s+".png":null;}
 /* Dev helper: run artStatus() in the console to see coverage + copy-paste slugs.
    Lists how many players have art and prints the slug for any name you pass. */
@@ -2847,9 +2868,12 @@ function hasArt(p){return CARD_ART.has(cardSlug(p.name));}
 function cardHTML(p,attrs,badge){
   /* front face: completely clean — no chemistry text */
   const art=cardArtURL(p);
+  const variants=art?cardArtVariants(p):null;
+  /* onerror walks CARD_ART_EXTS; if every variant fails we drop back to the initials card */
+  const fallbackJS=art?`onerror="cardArtFail(this)" data-v="0" data-slug="${cardSlug(p.name)}"`:"";
   const front=`
   <div class="card t-${p.tier}${art?" hasart":""}" ${attrs||""}>
-    ${art?`<div class="cardart" style="background-image:url('${art}')"></div><div class="cardart-fade"></div>`:""}
+    ${art?`<img class="cardart" src="${variants[0]}" ${fallbackJS} alt=""><div class="cardart-fade"></div><div class="cardart-scrim"></div>`:""}
     <div class="card-top" style="display:flex;justify-content:space-between;align-items:flex-start">
       <div><div class="ovr">${p.ovr}</div><div class="pos" style="font-size:${p.positions.length>2?7.5:9}px">${p.positions.join("/")}</div></div>
     </div>
@@ -3525,10 +3549,15 @@ function preloadRosterArt(roster){
   const slugs=[...new Set(ALL_SLOTS.map(s=>roster[s]).filter(id=>id!=null).map(id=>cardSlug(DB[id].name)).filter(s=>CARD_ART.has(s)))];
   return Promise.all(slugs.map(s=>new Promise(done=>{
     if(IMG_ART[s]){done();return;}
-    const im=new Image();im.crossOrigin="anonymous"; /* needed so the canvas stays exportable */
-    im.onload=()=>{IMG_ART[s]=im;done();};
-    im.onerror=()=>{done();}; /* missing/blocked art — silently fall back to initials */
-    im.src=CARD_ART_BASE+s+".png";
+    let i=0; /* walk the same extension variants the HTML cards use */
+    const tryNext=()=>{
+      if(i>=CARD_ART_EXTS.length){done();return;} /* none found — initials on the export */
+      const im=new Image();im.crossOrigin="anonymous"; /* keeps the canvas exportable */
+      im.onload=()=>{IMG_ART[s]=im;done();};
+      im.onerror=()=>{i++;tryNext();};
+      im.src=CARD_ART_BASE+s+CARD_ART_EXTS[i];
+    };
+    tryNext();
   })));
 }
 function drawRosterCanvas(modeKey,roster,eraLocked){
