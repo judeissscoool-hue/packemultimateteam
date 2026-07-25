@@ -449,6 +449,55 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .btn.erabtn{background:var(--panel2);border:1px solid var(--cyan);color:var(--cyan);padding:8px 16px;font-size:13px}
 .btn.erabtn:hover{background:var(--cyan);color:#04121a}
 .erabadge{background:linear-gradient(90deg,rgba(53,214,255,.16),transparent);border:1px solid rgba(53,214,255,.4);color:var(--cyan);border-radius:10px;padding:8px 14px;font-size:12px;letter-spacing:.08em;text-align:center;margin-bottom:10px;font-weight:700}
+
+/* ===== beta banner + credits pill ===== */
+#betabar{position:sticky;top:0;z-index:40;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;
+  background:linear-gradient(90deg,rgba(255,197,61,.14),rgba(53,214,255,.12));border-bottom:1px solid rgba(255,197,61,.28);
+  padding:7px 12px;font-size:11px;letter-spacing:.06em;color:#e9e2cf}
+#betabar button{background:none;border:none;color:var(--cyan);font:inherit;text-decoration:underline;cursor:pointer;padding:0}
+#crpill{margin-left:auto;background:rgba(0,0,0,.35);border:1px solid rgba(255,197,61,.45);color:var(--gold);
+  border-radius:999px;padding:3px 10px;font-weight:800;cursor:pointer;white-space:nowrap}
+.credittoast{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;z-index:80;
+  background:linear-gradient(180deg,#241d08,#14100a);border:1px solid rgba(255,197,61,.6);border-radius:12px;
+  padding:9px 16px;display:flex;align-items:center;gap:10px;box-shadow:0 10px 30px rgba(0,0,0,.6);
+  animation:crpop .3s ease-out, crfade .4s ease-in 2.2s forwards}
+.credittoast b{font-family:var(--disp);font-size:18px;color:var(--gold)}
+.credittoast span{font-size:11px;color:#cfc9bb}
+@keyframes crpop{from{opacity:0;transform:translate(-50%,14px) scale(.94)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
+@keyframes crfade{to{opacity:0;transform:translate(-50%,-8px)}}
+/* ===== shop ===== */
+.shophero{display:flex;align-items:center;gap:16px;background:linear-gradient(135deg,#1a1508,#141414 60%,#0d1a20);
+  border:1px solid rgba(255,197,61,.3);border-radius:16px;padding:18px;margin-bottom:12px;flex-wrap:wrap}
+.shophero h2{font-size:26px;margin-bottom:4px}.shophero p{font-size:12px;color:#c8c8d0;line-height:1.5;max-width:460px}
+.crbig{margin-left:auto;text-align:right;font-family:var(--disp);font-size:34px;color:var(--gold);line-height:1}
+.crbig small{display:block;font-family:inherit;font-size:9px;letter-spacing:.2em;color:var(--dim);margin-top:4px}
+.soonbar{background:var(--panel2);border:1px dashed rgba(255,197,61,.4);border-radius:10px;padding:10px 14px;
+  font-size:12px;color:#d8d2c2;text-align:center;margin-bottom:16px}
+.shopcat{margin-bottom:20px}.shopcat h3{font-size:13px;letter-spacing:.16em;color:var(--dim);margin-bottom:8px}
+.shopgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.shopitem{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+.shopitem.locked{opacity:.72}
+.si-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:4px}
+.si-top b{font-size:14px}.si-cost{font-family:var(--disp);font-size:13px;color:var(--gold)}
+.shopitem p{font-size:11px;color:var(--dim);line-height:1.45;margin-bottom:10px}
+.shopitem .btn{width:100%;font-size:12px}
+.earnlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px}
+.earnlist>div{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;gap:10px;align-items:baseline}
+.earnlist b{font-family:var(--disp);font-size:16px;color:var(--gold);min-width:58px}
+.earnlist span{font-size:11px;color:var(--dim);line-height:1.4}
+/* ===== updates ===== */
+.uphero{background:linear-gradient(135deg,#0d1a20,#141414 60%,#1a1508);border:1px solid rgba(53,214,255,.3);
+  border-radius:16px;padding:18px;margin-bottom:14px}
+.uphero .up-tag{font-size:10px;letter-spacing:.22em;color:var(--cyan);margin-bottom:6px}
+.uphero h2{font-size:26px;margin-bottom:4px}.uphero p{font-size:12px;color:#c8c8d0;line-height:1.5;max-width:520px}
+.upblock{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px}
+.upblock h3{font-size:13px;letter-spacing:.12em;margin-bottom:8px}
+.upblock.done h3{color:#7dffc0}.upblock.wip h3{color:var(--gold)}.upblock.soon h3{color:var(--cyan)}
+.upblock ul{list-style:none;display:flex;flex-direction:column;gap:6px}
+.upblock li{font-size:12.5px;color:#cfcfd6;padding-left:14px;position:relative;line-height:1.45}
+.upblock li:before{content:"\2022";position:absolute;left:0;color:var(--dim)}
+.upnote{text-align:center;font-size:11px;color:var(--dim);margin-top:6px}
+@media(max-width:560px){.shophero{gap:10px}.crbig{margin-left:0;text-align:left;font-size:28px}}
 /* ===== PHASE 5: DAILY CHALLENGE (draft-format) ===== */
 .dailybanner{display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#1a1508,#171717 55%,#0d1a20);border:1px solid rgba(255,197,61,.3);border-radius:14px;padding:12px 16px;margin-bottom:12px}
 .dailybanner .db-tag{font-size:9px;letter-spacing:.2em;color:var(--gold)}
@@ -496,6 +545,7 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
   </g>
 </svg></div>
 <div id="arena"></div>
+<div id="betabar">BETA · in active development — <button onclick="setScreen('updates')">see what's coming</button><span id="crpill" onclick="setScreen('shop')"></span></div>
 <div id="app"></div>
 <div id="overlay"></div>
 <div id="sheet"></div>
@@ -1672,13 +1722,13 @@ function baseTrophies(){const a=[];const add=(id,n,tier,cat,desc,fn,hidden=false
  add("starting-something","Starting Something","Silver","Iconic Teams","Complete one Iconic Team entry.",()=>trophyProgress(ICONIC_TEAMS.filter(g=>setProgressSoft(g.m).done).length,1));add("champ-dna","Championship DNA","Gold","Iconic Teams","Complete five champion-team entries.",()=>trophyProgress(ICONIC_TEAMS.filter(g=>g.kind==="Champion"&&setProgressSoft(g.m).done).length,5));add("basketball-museum","Basketball Museum","Immortal","Iconic Teams","Complete every Iconic Team entry.",()=>trophyProgress(ICONIC_TEAMS.filter(g=>setProgressSoft(g.m).done).length,ICONIC_TEAMS.length));
  return a;}
 function allTrophies(){return baseTrophies();}
-function evaluateTrophies(show=true){markActivations();const now=Date.now(),fresh=[];allTrophies().forEach(t=>{const p=t.fn();if(p.done&&!T.unlocked[t.id]){T.unlocked[t.id]={at:now};fresh.push(t);}});saveTrophies();if(show&&fresh.length)showUnlocks(fresh);}
+function evaluateTrophies(show=true){markActivations();const now=Date.now(),fresh=[];allTrophies().forEach(t=>{const p=t.fn();if(p.done&&!T.unlocked[t.id]){T.unlocked[t.id]={at:now};fresh.push(t);}});saveTrophies();if(fresh.length&&typeof creditsForTrophy==="function")fresh.forEach(creditsForTrophy);if(show&&fresh.length)showUnlocks(fresh);}
 function showUnlocks(items){items.slice(0,4).forEach((t,i)=>setTimeout(()=>{const d=document.createElement("div");d.className="unlocktoast";d.innerHTML=`<b>TROPHY UNLOCKED · ${t.tier}</b><span>${esc(t.n)} — ${esc(t.desc)}</span>`;document.body.appendChild(d);setTimeout(()=>d.remove(),3600);},i*500));}
 function trophySummary(){const ts=allTrophies(),done=ts.filter(t=>T.unlocked[t.id]);return {done:done.length,total:ts.length,pts:done.reduce((a,t)=>a+TROPHY_POINTS[t.tier],0)};}
 function trophyTile(t){const p=t.fn(),u=T.unlocked[t.id],pct=Math.round(100*p.cur/Math.max(1,p.max)),secret=t.hidden&&!u;const miss=p.missing&&p.missing.length?`Missing: ${p.missing.slice(0,4).join(", ")}${p.missing.length>4?` +${p.missing.length-4}`:""}`:"";return `<div class="trophy t-${t.tier}T ${u?"done":""} ${secret?"hidden":""}"><div class="tier">${t.tier} · ${TROPHY_POINTS[t.tier]} TP</div><h3>${secret?"Hidden Trophy":esc(t.n)}</h3><p>${secret?"A secret challenge waits to be discovered.":esc(t.desc)}</p><div class="prog"><i style="width:${pct}%"></i></div><div class="footrow"><span>${p.cur} / ${p.max}</span><span>${u?"UNLOCKED":miss||"IN PROGRESS"}</span></div></div>`;}
 function archiveTile(g,type){const p=setProgressSoft(g.m),tgt=setTarget(g.m),act=type==="chem"?T.activatedChem[g.l]:type==="whatif"?T.activatedWhatIf[g.id]:T.activatedTeams[g.id];const own=ownedNames();return `<div class="archive ${p.done?"complete":""} ${act?"activated":""}"><h3>${esc(g.n||g.l)}</h3><div class="state">${type==="whatif"?esc(g.cred)+" · ":type==="teams"?esc(g.kind)+" · ":""}${act?"ARCHIVE ACTIVATED":p.done?"READY TO ASSEMBLE":p.cur?"DISCOVERED":"UNKNOWN"}</div><div class="members">${g.m.map(n=>{const avail=DB.some(x=>x.name===n);return `<span class="member ${!avail?"":" "+(own.has(n)?"ok":"miss")}" style="${!avail?"color:#777":""}">${!avail?"⊘":own.has(n)?"✓":"○"} ${esc(n)}${!avail?" (not yet in card pool)":""}</span>`}).join(" · ")}</div><div class="prog"><i style="width:${100*p.cur/p.max}%"></i></div><div class="footrow"><span>${p.cur}/${p.max} needed${tgt.available>tgt.need?` (of ${tgt.available})`:""}</span><span>${p.missing.slice(0,2).join(", ")}</span></div></div>`;}
 function trophyHTML(){evaluateTrophies(false);const sum=trophySummary(),cats=["Featured",...new Set(allTrophies().map(t=>t.cat)),"Archives"];let body;if(TROPHY_FILTER==="Archives"){const list=ARCHIVE_TAB==="chem"?DUOS:ARCHIVE_TAB==="whatif"?WHAT_IF:ICONIC_TEAMS;body=`<div class="archivetabs"><button class="btn ${ARCHIVE_TAB==="chem"?"on":""}" onclick="ARCHIVE_TAB='chem';render()">Chemistry Archive (${Object.keys(T.activatedChem).length}/${DUOS.length})</button><button class="btn ${ARCHIVE_TAB==="whatif"?"on":""}" onclick="ARCHIVE_TAB='whatif';render()">What If (${WHAT_IF.filter(g=>setProgressSoft(g.m).done).length}/${WHAT_IF.length})</button><button class="btn ${ARCHIVE_TAB==="teams"?"on":""}" onclick="ARCHIVE_TAB='teams';render()">Iconic Teams (${ICONIC_TEAMS.filter(g=>setProgressSoft(g.m).done).length}/${ICONIC_TEAMS.length})</button></div><div class="archivegrid">${list.map(g=>archiveTile(g,ARCHIVE_TAB)).join("")}</div>`;}else{let ts=allTrophies();if(TROPHY_FILTER==="Featured")ts=ts.filter(t=>T.unlocked[t.id]||["Collection","Records","Chemistry","What If","Iconic Teams"].includes(t.cat)).slice(0,30);else ts=ts.filter(t=>t.cat===TROPHY_FILTER);body=`<div class="trophygrid">${ts.map(trophyTile).join("")}</div>`;}return `<div class="trophyhero"><div><h2>Trophy Case</h2><p style="font-size:12px;color:var(--dim);line-height:1.5">Permanent progression across every run. Collection Ledger: <b style="color:var(--ink)">${ownedNames().size}</b> unique players · resets never erase discoveries.</p></div><div class="tpbig">${sum.pts}<small>TROPHY POINTS · ${sum.done}/${sum.total}</small></div></div><div class="trophyfilters">${cats.map(c=>`<button class="${TROPHY_FILTER===c?"on":""}" onclick="TROPHY_FILTER='${c}';render()">${c}</button>`).join("")}</div>${body}<div class="notice" id="notice"></div>`;}
-function trophyPack(cards){T.stats.packs++;cards.forEach(c=>{ledgerAdd(c);if(c.tier==="Icon")T.stats.iconsPulled++;if(c.tier==="Elite")T.stats.elitePulled++;if(c.tier==="Gold")T.stats.goldPulled++;if(c.ovr===99)T.stats.pulled99++;});const hi=cards.filter(c=>tierRank(c.tier)>=tierRank("Elite")).length,ic=cards.filter(c=>c.tier==="Icon").length;if(hi>=2)T.stats.doubleElite++;if(hi>=3)T.stats.threeElite++;if(ic>=2)T.stats.doubleIcon++;evaluateTrophies();}
+function trophyPack(cards){T.stats.packs++;let fresh=0;cards.forEach(c=>{if(!T.seenNames[c.name])fresh++;ledgerAdd(c);if(c.tier==="Icon")T.stats.iconsPulled++;if(c.tier==="Elite")T.stats.elitePulled++;if(c.tier==="Gold")T.stats.goldPulled++;if(c.ovr===99)T.stats.pulled99++;});const hi=cards.filter(c=>tierRank(c.tier)>=tierRank("Elite")).length,ic=cards.filter(c=>c.tier==="Icon").length;if(hi>=2)T.stats.doubleElite++;if(hi>=3)T.stats.threeElite++;if(ic>=2)T.stats.doubleIcon++;if(typeof creditsForDiscovery==="function")creditsForDiscovery(fresh);evaluateTrophies();}
 function trophyRoster(mode,r,opts){const o=teamOVR(r);const ranked=!(opts&&opts.eraLocked); /* era-locked drafts don't count toward win/record prestige */
   if(o.ready&&ranked){const w=projection(o.eff).wins;T.stats.maxWins=Math.max(T.stats.maxWins,w);T.stats.maxChem=Math.max(T.stats.maxChem,o.chem.bonus);if(w===82){const sig=ALL_SLOTS.map(s=>r[s]??"x").join(",");if(T.last82[mode]!==sig){T.last82[mode]=sig;if(mode==="draft")T.stats.draft82++;else if(mode==="classic")T.stats.pack82++;}}}
   evaluateTrophies();}
@@ -2025,6 +2075,7 @@ function dailySubmit(){
   const v=dailyValidity();
   if(!v.valid)return {ok:false,reason:v.reason};
   const r=dailyResult(),key=DD.dateKey,prev=DAILY.lastPlayed;
+  const alreadyToday=!!DD.submitted; /* rearranging a locked board must not re-pay credits */
   if(prev!==key){ /* yesterday relative to the SUBMITTED day, not the wall clock */
     const [yy,mm,ddN]=key.split("-").map(Number);const y=new Date(Date.UTC(yy,mm-1,ddN-1));
     const yKey=y.getUTCFullYear()+"-"+String(y.getUTCMonth()+1).padStart(2,"0")+"-"+String(y.getUTCDate()).padStart(2,"0");
@@ -2033,6 +2084,7 @@ function dailySubmit(){
   if(!pb||r.wins>pb.wins)DAILY.best[key]={wins:r.wins,ovr:r.ovr,chem:+r.chem.toFixed(1),title:r.identity.title};
   if(!DD.submitted)DAILY.history[key]=(DAILY.history[key]||0)+1; /* count the day once, not per rearrange */
   DD.submitted=true;saveDaily();
+  if(!alreadyToday&&typeof creditsForDaily==="function")creditsForDaily(DAILY.streak);
   if(typeof trophyRoster==="function")trophyRoster("daily",DD.roster);
   return {ok:true,result:r,best:DAILY.best[key],streak:DAILY.streak};
 }
@@ -2096,6 +2148,151 @@ function dailyHTML(){
 }
 
 
+
+/* ================= CREDITS ECONOMY =================
+   Earned only by playing — never purchasable. Rates are tuned for fast sessions:
+   a draft takes ~2 minutes, so per-run payouts keep the core loop rewarding, while
+   a soft daily cap on repeat runs stops mindless farming from trivialising the shop. */
+const CREDITS_KEY="atu-credits-v1";
+function emptyCredits(){return {bal:0,earned:0,day:null,runs:{draft:0,pack:0},log:[]};}
+let CR=sGet(CREDITS_KEY)||emptyCredits();
+/* heal anything malformed from an older/corrupt save so earning can never break */
+if(!CR||typeof CR!=="object")CR=emptyCredits();
+if(typeof CR.bal!=="number"||!isFinite(CR.bal))CR.bal=0;
+if(typeof CR.earned!=="number"||!isFinite(CR.earned))CR.earned=0;
+if(!CR.runs||typeof CR.runs!=="object")CR.runs={draft:0,pack:0};
+if(typeof CR.runs.draft!=="number")CR.runs.draft=0;
+if(typeof CR.runs.pack!=="number")CR.runs.pack=0;
+if(!Array.isArray(CR.log))CR.log=[];
+function saveCredits(){sSet(CREDITS_KEY,CR);}
+function creditsRollDay(){ /* reset the per-day run counters at local midnight */
+  const k=todayKey();
+  if(CR.day!==k){CR.day=k;CR.runs={draft:0,pack:0};saveCredits();}
+}
+const CREDIT_RATES={
+  draftRun:60, draftRunAfterCap:15, draftDailyCap:5,   /* full payout for the first 5 drafts a day */
+  packRun:45,  packRunAfterCap:12, packDailyCap:5,
+  daily:250, streakStep:30, streakMax:250,
+  trophy:{Bronze:20,Silver:40,Gold:80,Diamond:150,Immortal:350},
+  discovery:8,
+  record:{70:150,75:300,80:600,82:1500}
+};
+function awardCredits(amount,reason){
+  amount=Math.max(0,Math.round(amount));if(!amount)return 0;
+  creditsRollDay();
+  CR.bal+=amount;CR.earned+=amount;
+  CR.log.unshift({n:amount,r:reason,t:Date.now()});CR.log=CR.log.slice(0,40);
+  saveCredits();
+  creditToast(amount,reason);
+  return amount;
+}
+function creditToast(n,reason){
+  if(typeof document==="undefined")return;
+  const d=document.createElement("div");d.className="credittoast";
+  d.innerHTML=`<b>+${n} CR</b><span>${esc(reason)}</span>`;
+  document.body.appendChild(d);setTimeout(()=>d.remove(),2600);
+}
+/* ---- earn hooks ---- */
+function creditsForRun(kind){ /* kind: "draft" | "pack" */
+  creditsRollDay();
+  const cap=kind==="draft"?CREDIT_RATES.draftDailyCap:CREDIT_RATES.packDailyCap;
+  const full=kind==="draft"?CREDIT_RATES.draftRun:CREDIT_RATES.packRun;
+  const after=kind==="draft"?CREDIT_RATES.draftRunAfterCap:CREDIT_RATES.packRunAfterCap;
+  const n=CR.runs[kind]||0;CR.runs[kind]=n+1;saveCredits();
+  const amt=n<cap?full:after;
+  awardCredits(amt,n<cap?(kind==="draft"?"Draft completed":"Squad locked in"):"Extra run today");
+}
+function creditsForTrophy(t){const v=CREDIT_RATES.trophy[t.tier]||20;awardCredits(v,t.tier+" trophy: "+t.n);}
+function creditsForDiscovery(count){if(count>0)awardCredits(CREDIT_RATES.discovery*count,count+" new player"+(count>1?"s":"")+" discovered");}
+function creditsForDaily(streak){
+  const bonus=Math.min(CREDIT_RATES.streakMax,Math.max(0,(streak-1)*CREDIT_RATES.streakStep));
+  awardCredits(CREDIT_RATES.daily+bonus,bonus?`Daily challenge (+${bonus} streak bonus)`:"Daily challenge");
+}
+function creditsForRecord(wins){
+  creditsRollDay();
+  T.creditRecords=T.creditRecords||{};
+  /* award EVERY milestone newly crossed by this result, each one exactly once ever */
+  [70,75,80,82].forEach(w=>{
+    if(wins>=w&&!T.creditRecords[w]){
+      T.creditRecords[w]=1;saveTrophies();
+      awardCredits(CREDIT_RATES.record[w],w===82?"82–0 CLUB":w+"+ win season");
+    }
+  });
+}
+
+
+
+/* ================= SHOP (placeholder until accessories ship) ================= */
+const SHOP_ITEMS=[
+  {id:"frame-chrome",name:"Chrome Frame",cat:"Card Frames",cost:1200,desc:"Brushed metal edge with a moving highlight."},
+  {id:"frame-holo",name:"Holo Frame",cat:"Card Frames",cost:2500,desc:"Shifting rainbow foil, like a graded chase card."},
+  {id:"bg-galaxy",name:"Galaxy Backdrop",cat:"Backgrounds",cost:1500,desc:"Deep space wash behind your player art."},
+  {id:"bg-court",name:"Hardwood Backdrop",cat:"Backgrounds",cost:900,desc:"Classic parquet floor tone."},
+  {id:"aura-flame",name:"Flame Aura",cat:"Effects",cost:2000,desc:"Embers drifting up behind the card."},
+  {id:"aura-ice",name:"Frost Aura",cat:"Effects",cost:2000,desc:"Cold mist and a pale blue glow."},
+  {id:"plate-gold",name:"Gold Name Plate",cat:"Name Plates",cost:800,desc:"Engraved gold banner for the player name."},
+  {id:"plate-neon",name:"Neon Name Plate",cat:"Name Plates",cost:800,desc:"Backlit neon strip in your squad colour."},
+];
+function shopHTML(){
+  creditsRollDay();
+  const cats=[...new Set(SHOP_ITEMS.map(i=>i.cat))];
+  return `
+  <div class="shophero">
+    <div><h2>Shop</h2><p>Everything here is earned by playing \u2014 credits can't be bought.
+      <b style="color:var(--gold)">Mythic skins are never purchasable</b>; they're chase rewards only.</p></div>
+    <div class="crbig">${CR.bal.toLocaleString()}<small>CREDITS</small></div>
+  </div>
+  <div class="soonbar">🚧 The shop opens soon \u2014 items below are a preview. Credits you earn now are banked and ready to spend on day one.</div>
+  ${cats.map(c=>`<div class="shopcat"><h3>${esc(c)}</h3><div class="shopgrid">
+    ${SHOP_ITEMS.filter(i=>i.cat===c).map(i=>`<div class="shopitem locked">
+      <div class="si-top"><b>${esc(i.name)}</b><span class="si-cost">${i.cost.toLocaleString()} CR</span></div>
+      <p>${esc(i.desc)}</p>
+      <button class="btn" disabled>Coming soon</button></div>`).join("")}
+  </div></div>`).join("")}
+  <div class="shopcat"><h3>How to earn credits</h3><div class="earnlist">
+    <div><b>+${CREDIT_RATES.daily}</b><span>Daily challenge (plus up to +${CREDIT_RATES.streakMax} streak bonus)</span></div>
+    <div><b>+${CREDIT_RATES.draftRun}</b><span>Each completed draft (first ${CREDIT_RATES.draftDailyCap} a day, then +${CREDIT_RATES.draftRunAfterCap})</span></div>
+    <div><b>+${CREDIT_RATES.packRun}</b><span>Each pack opened (first ${CREDIT_RATES.packDailyCap} a day, then +${CREDIT_RATES.packRunAfterCap})</span></div>
+    <div><b>+${CREDIT_RATES.discovery}</b><span>Every new player discovered</span></div>
+    <div><b>+20 \u2192 350</b><span>Each trophy unlocked, by tier</span></div>
+    <div><b>+1500</b><span>Joining the 82\u20130 Club</span></div>
+  </div></div>
+  <div class="notice" id="notice"></div>`;
+}
+
+/* ================= UPDATES / ROADMAP ================= */
+const UPDATES={
+  shipped:[
+    "740-card all-time player pool",
+    "Chemistry system with iconic duos & trios",
+    "Classic Draft + era-by-era drafting",
+    "Daily Challenge \u2014 new rule every day, 14-day cycle",
+    "Trophy Case \u2014 115 trophies, archives and hidden challenges",
+    "Shareable squad images with record titles",
+    "Credits earned from playing",
+  ],
+  progress:[
+    "Player artwork \u2014 rolling out card by card",
+    "Database update \u2014 2K24\u20132K26 players and ratings",
+    "Shop items \u2014 frames, backdrops and effects",
+  ],
+  next:[
+    "Mythic card skins (earned, never purchasable)",
+    "More daily challenge types",
+  ]
+};
+function updatesHTML(){
+  const row=(title,items,cls)=>`<div class="upblock ${cls}"><h3>${title}</h3><ul>${items.map(i=>`<li>${esc(i)}</li>`).join("")}</ul></div>`;
+  return `
+  <div class="uphero"><div class="up-tag">BETA \u00b7 IN ACTIVE DEVELOPMENT</div>
+    <h2>What's happening</h2>
+    <p>All-Time Ultimate is in open beta. Things will change, break and improve \u2014 progress and credits carry over.</p></div>
+  ${row("\u2713 Shipped",UPDATES.shipped,"done")}
+  ${row("\u25d0 In progress",UPDATES.progress,"wip")}
+  ${row("\u25cb Coming next",UPDATES.next,"soon")}
+  <div class="upnote">Found a bug or got an idea? The game is being built in the open \u2014 check back often.</div>
+  <div class="notice" id="notice"></div>`;
+}
 
 /* ================= SMALL HELPERS ================= */
 const $=s=>document.querySelector(s);
@@ -2920,6 +3117,8 @@ function renderTabs(){
   else if(screen==="classic")items=[["landing","☰ Modes"],["classic","Pack Mode"],["trophies","🏆 Trophies"]];
   else if(screen==="trophies")items=[["landing","☰ Modes"],["trophies","🏆 Trophies"]];
   else if(screen==="daily")items=[["landing","☰ Modes"],["daily","🗓 Daily"],["trophies","🏆 Trophies"]];
+  else if(screen==="shop")items=[["landing","☰ Modes"],["shop","🛒 Shop"],["trophies","🏆 Trophies"]];
+  else if(screen==="updates")items=[["landing","☰ Modes"],["updates","📋 Updates"]];
   else items=[["landing","☰ Modes"],["team","My Team"],["packs","Packs"],["rare","Rare Pull"],["trophies","🏆 Trophies"]];
   bar.innerHTML=items.map(([k,l])=>`<button class="${screen===k?"on":""}" onclick="setScreen('${k}')">${l}</button>`).join("");
   bar.style.display=items.length?"":"none";
@@ -3193,6 +3392,7 @@ function openPack(packKey,side){
     if(packKey==="premium"){if(cl.premiumPacksLeft<=0){notice("Premium pack budget spent — 3 per run.");return;}cl.premiumPacksLeft--;}
     const cards=classicRollPack(ownedIds("classic"),cl.tierCounts,recentSet(),packKey);
     noteRecent(cards);cl.opened++;
+    if(typeof creditsForRun==="function")creditsForRun("pack");
     cards.forEach(c=>{cl.coll[c.id]=(cl.coll[c.id]||0)+1;});
     save();trophyPack(cards);
     REV={cards,side:"classic",packKey,dupes:[false,false,false],flipped:[false,false,false],busy:false};
@@ -3329,6 +3529,7 @@ function draftPickInto(pid){
     const o=teamOVR(D.roster),pr=projection(o.eff);
     if(!DRAFT_ERA&&o.total>HS.draft.ovr){HS.draft.ovr=o.total;HS.draft.wins=pr.wins;saveHS();} /* era runs don't set the all-time best */
     T.stats.drafts++;trophyRoster("draft",D.roster,{eraLocked:!!DRAFT_ERA});confetti(80);
+    if(typeof creditsForRun==="function"){creditsForRun("draft");if(!DRAFT_ERA)creditsForRecord(pr.wins);}
   }
   render(); /* re-render snaps the card in + relights the chemistry web */
 }
@@ -3474,6 +3675,7 @@ function landingHTML(){
       <button class="btn ${cls}">${cta}</button>
     </div>`).join("")}
     <div class="modecard" onclick="setScreen('daily')"><h3>🗓 Daily Challenge</h3><p>A fresh seeded squad and a new constraint every day — same for everyone. Build the best team under today's rule and keep your streak alive.</p><div class="modebest">STREAK <b>${DAILY.streak||0}🔥</b></div><button class="btn gold">PLAY TODAY</button></div>
+    <div class="modecard" onclick="setScreen('shop')"><h3>🛒 Shop</h3><p>Spend credits earned from playing on card frames, backgrounds and effects. Mythic skins can never be bought — only earned.</p><div class="modebest">BALANCE <b>${CR.bal.toLocaleString()} CR</b></div><button class="btn gold">OPEN SHOP</button></div>
     <div class="modecard" onclick="setScreen('trophies')"><h3>🏆 Trophy Case</h3><p>Permanent collection progression, franchise and era archives, iconic chemistry discoveries, What If timelines, historic teams, records and hidden challenges.</p><div class="modebest">PROGRESS <b>${trophySummary().done}/${trophySummary().total}</b></div><button class="btn gold">OPEN TROPHY CASE</button></div>
   </div>`;
 }
@@ -3821,6 +4023,7 @@ function showPrivacy(){
 function closePrivacy(){const o=$("#policyoverlay");o.classList.remove("show");o.innerHTML="";}
 function render(){
   renderTabs();
+  {const p=$("#crpill");if(p&&typeof CR!=="undefined"){creditsRollDay();p.textContent=CR.bal.toLocaleString()+" CR";}}
   renderDraftOverlay();
   (window.requestAnimationFrame||setTimeout)(()=>drawSquadWeb());
   const app=$("#app");
@@ -3831,7 +4034,7 @@ function render(){
       <div class="hs">BEST TEAM OVR<br><b>${best}</b></div>
     </header>
     ${screen==="landing"?landingHTML():screen==="share"?shareHTML():screen==="team"?hubHTML("main"):screen==="packs"?packsHTML()
-      :screen==="draft"?draftHTML():screen==="classic"?hubHTML("classic"):screen==="trophies"?trophyHTML():screen==="daily"?dailyHTML():hubHTML("rare")}
+      :screen==="draft"?draftHTML():screen==="classic"?hubHTML("classic"):screen==="trophies"?trophyHTML():screen==="daily"?dailyHTML():screen==="shop"?shopHTML():screen==="updates"?updatesHTML():hubHTML("rare")}
     <footer class="foot">
       <button onclick="showPrivacy()">Privacy Policy</button>
       <span>·</span><span>Fan-made sandbox — not affiliated with or endorsed by the NBA, its teams, or players.</span>
