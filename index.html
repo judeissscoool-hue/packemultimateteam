@@ -473,6 +473,21 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .zoomscale .card{transition:none}
 .zoomscale .card:active{transform:none}
 .zoomhint{font-size:11px;letter-spacing:.14em;color:var(--dim);text-align:center}
+/* ---- peek: hover (or press-and-hold on touch) fades the card furniture so the art shows ---- */
+.zoomscale .card .ovr,.zoomscale .card .pos,.zoomscale .card .nm,.zoomscale .card .meta,
+.zoomscale .card .infobtn,.zoomscale .card .cardart-scrim,.zoomscale .card .cardart-fade,
+.zoomscale .card .ini{transition:opacity .38s ease}
+.zoomscale:hover .card.hasart .ovr,.zoomscale.peek .card.hasart .ovr,
+.zoomscale:hover .card.hasart .pos,.zoomscale.peek .card.hasart .pos,
+.zoomscale:hover .card.hasart .nm,.zoomscale.peek .card.hasart .nm,
+.zoomscale:hover .card.hasart .meta,.zoomscale.peek .card.hasart .meta{opacity:.14}
+.zoomscale:hover .card.hasart .infobtn,.zoomscale.peek .card.hasart .infobtn{opacity:.1}
+/* pull the darkening layers back too, otherwise the art still sits under a shadow */
+.zoomscale:hover .card.hasart .cardart-scrim,.zoomscale.peek .card.hasart .cardart-scrim{opacity:.12}
+.zoomscale:hover .card.hasart .cardart-fade,.zoomscale.peek .card.hasart .cardart-fade{opacity:.18}
+.zoomhint{transition:opacity .3s ease}
+.zoomscale:hover ~ .zoomhint{opacity:.45}
+
 .zoomclose{background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:999px;
   padding:9px 26px;font-size:13px;font-weight:700;cursor:pointer}
 .zoomclose:hover{border-color:var(--cyan);color:var(--cyan)}
@@ -3201,10 +3216,20 @@ function openCardZoom(e,pid){
   const inner=o.querySelector(".c3din");
   if(inner){
     o.querySelectorAll(".infobtn").forEach(b=>{b.setAttribute("onclick","flip3d(event)");b.title="Flip card";});
-    o.querySelector(".zoomscale").addEventListener("click",ev=>{
-      if(ev.target.closest(".infobtn"))return; /* handled by flip3d */
+    const sc=o.querySelector(".zoomscale");
+    sc.addEventListener("click",ev=>{
+      if(ev.target.closest(".infobtn"))return;      /* handled by flip3d */
+      if(sc.dataset.peeked==="1"){sc.dataset.peeked="";return;} /* a hold-to-peek shouldn't flip */
       inner.classList.toggle("flipped3");
     });
+    /* touch devices have no hover, so hold the card to fade the text and admire the art */
+    let holdT=null;
+    const startHold=()=>{clearTimeout(holdT);holdT=setTimeout(()=>{sc.classList.add("peek");sc.dataset.peeked="1";},220);};
+    const endHold=()=>{clearTimeout(holdT);sc.classList.remove("peek");};
+    sc.addEventListener("touchstart",startHold,{passive:true});
+    sc.addEventListener("touchend",endHold);
+    sc.addEventListener("touchcancel",endHold);
+    sc.addEventListener("touchmove",endHold,{passive:true});
   }
   o.classList.add("show");
   o.onclick=ev=>{if(ev.target===o)closeCardZoom(ev);};
