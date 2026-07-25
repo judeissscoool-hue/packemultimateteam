@@ -562,7 +562,7 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 const P=[
 // —— ICON 96–99 ——
 ["Michael Jordan","SG",99,"CHI","90s"],["LeBron James","SF",99,"CLE","10s"],
-["Kareem Abdul-Jabbar","C",99,"LAL","70s"],["Kobe Bryant","SG",99,"LAL","00s"],
+["Kareem Abdul-Jabbar","C",99,"LAL","80s"],["Kobe Bryant","SG",99,"LAL","00s"],
 ["Wilt Chamberlain","C",99,"GSW","60s"],["Hakeem Olajuwon","C",99,"HOU","90s"],
 ["Larry Bird","SF",99,"BOS","80s"],["Magic Johnson","PG",99,"LAL","80s"],
 ["Kevin Garnett","PF",98,"MIN","00s"],["Tim Duncan","PF",98,"SAS","00s"],
@@ -571,7 +571,7 @@ const P=[
 ["Giannis Antetokounmpo","PF",97,"MIL","20s"],["Kevin Durant","SF",97,"OKC","10s"],
 ["Nikola Jokic","C",97,"DEN","20s"],["Julius Erving","SF",97,"PHI","70s"],
 ["Jerry West","PG",97,"LAL","60s"],["Oscar Robertson","PG",97,"MIL","60s"],
-["Chris Paul","PG",97,"NOP","10s"],["Dwyane Wade","SG",97,"MIA","00s"],
+["Chris Paul","PG",97,"NOP","00s"],["Dwyane Wade","SG",97,"MIA","00s"],
 ["Karl Malone","PF",97,"UTA","90s"],["John Stockton","PG",97,"UTA","90s"],
 ["Moses Malone","C",97,"HOU","80s"],["Scottie Pippen","SF",97,"CHI","90s"],
 ["Vince Carter","SG",96,"TOR","00s"],["Clyde Drexler","SG",96,"POR","90s"],
@@ -596,7 +596,7 @@ const P=[
 ["Walt Frazier","PG",93,"NYK","70s"],["Rick Barry","SF",93,"GSW","70s"],
 ["John Havlicek","SF",93,"BOS","60s"],["Victor Wembanyama","C",93,"SAS","20s"],
 ["Kevin McHale","PF",92,"BOS","80s"],["Elvin Hayes","PF",92,"WAS","70s"],
-["Jimmy Butler","SF",92,"MIA","10s"],["Anthony Edwards","SG",92,"MIN","20s"],
+["Jimmy Butler","SF",92,"MIA","20s"],["Anthony Edwards","SG",92,"MIN","20s"],
 // —— GOLD 85–91 ——
 ["Yao Ming","C",91,"HOU","00s"],["Chris Webber","PF",91,"SAC","00s"],
 ["Grant Hill","SF",91,"DET","90s"],["Penny Hardaway","PG",91,"ORL","90s"],
@@ -2309,17 +2309,16 @@ const CARD_ART_BASE="cards/"; /* relative to the deployed site root (Vercel /pub
    (and never shows a broken image) for art that isn't there yet. */
 const CARD_ART=new Set([
   /* ===== CARD ART REGISTRY =====
-     Every player is listed below, commented out and grouped by tier.
-     TO ACTIVATE a player: upload cards/<slug>.png to the repo, then delete the
-     two slashes ("// ") in front of their line here and commit. That's it.
-     Leave a player commented out and they keep the initials card.
-     (Slugs are auto-generated to match the filename the game looks for.) */
-  /* ---------- ICON (36) ---------- */
-  // "allen-iverson",  // Allen Iverson (96 PHI '00s)
+     One entry per CARD, not per player. Players with several cards (different teams)
+     get a team suffix so each kit has its own art, e.g. jimmy-butler-mia / jimmy-butler-chi.
+     Players with a single card just use their name.
+     TO ACTIVATE: upload cards/<slug>.png, then delete the "// " in front of that line. */
+  /* ---------- ICON (45) ---------- */
+  // "allen-iverson-phi",  // Allen Iverson (96 PHI '00s)
   // "bill-russell",  // Bill Russell (98 BOS '60s)
   // "bob-cousy",  // Bob Cousy (96 BOS '50s)
-  // "charles-barkley",  // Charles Barkley (96 PHX '90s)
-  // "chris-paul",  // Chris Paul (97 NOP '10s)
+  // "charles-barkley-phx",  // Charles Barkley (96 PHX '90s)
+  // "chris-paul-nop",  // Chris Paul (97 NOP '00s)
   // "clyde-drexler",  // Clyde Drexler (96 POR '90s)
   // "david-robinson",  // David Robinson (96 SAS '90s)
   // "dirk-nowitzki",  // Dirk Nowitzki (98 DAL '00s)
@@ -2330,63 +2329,90 @@ const CARD_ART=new Set([
   // "jerry-west",  // Jerry West (97 LAL '60s)
   // "john-stockton",  // John Stockton (97 UTA '90s)
   // "julius-erving",  // Julius Erving (97 PHI '70s)
-  // "kareem-abdul-jabbar",  // Kareem Abdul-Jabbar (99 LAL '70s)
+  // "kareem-abdul-jabbar-lal",  // Kareem Abdul-Jabbar (99 LAL '80s)
+  // "kareem-abdul-jabbar-mil",  // Kareem Abdul-Jabbar (97 MIL '70s)
   // "karl-malone",  // Karl Malone (97 UTA '90s)
-  // "kawhi-leonard",  // Kawhi Leonard (96 SAS '10s)
-  // "kevin-durant",  // Kevin Durant (97 OKC '10s)
-  // "kevin-garnett",  // Kevin Garnett (98 MIN '00s)
+  // "kawhi-leonard-sas",  // Kawhi Leonard (96 SAS '10s)
+  // "kevin-durant-gsw",  // Kevin Durant (96 GSW '10s)
+  // "kevin-durant-okc",  // Kevin Durant (97 OKC '10s)
+  // "kevin-garnett-bos",  // Kevin Garnett (96 BOS '00s)
+  // "kevin-garnett-min",  // Kevin Garnett (98 MIN '00s)
   // "kobe-bryant",  // Kobe Bryant (99 LAL '00s)
   // "larry-bird",  // Larry Bird (99 BOS '80s)
-  // "lebron-james",  // LeBron James (99 CLE '10s)
+  // "lebron-james-cle",  // LeBron James (99 CLE '10s)
+  // "lebron-james-lal",  // LeBron James (97 LAL '20s)
+  // "lebron-james-mia",  // LeBron James (98 MIA '10s)
   // "magic-johnson",  // Magic Johnson (99 LAL '80s)
   // "michael-jordan",  // Michael Jordan (99 CHI '90s)
-  // "moses-malone",  // Moses Malone (97 HOU '80s)
+  // "moses-malone-hou",  // Moses Malone (97 HOU '80s)
+  // "moses-malone-phi",  // Moses Malone (96 PHI '80s)
   // "nikola-jokic",  // Nikola Jokic (97 DEN '20s)
   // "oscar-robertson",  // Oscar Robertson (97 MIL '60s)
   // "scottie-pippen",  // Scottie Pippen (97 CHI '90s)
   // "shai-gilgeous-alexander",  // Shai Gilgeous-Alexander (96 OKC '20s)
-  // "shaquille-oneal",  // Shaquille O'Neal (98 LAL '00s)
+  // "shaquille-oneal-lal",  // Shaquille O'Neal (98 LAL '00s)
+  // "shaquille-oneal-orl",  // Shaquille O'Neal (96 ORL '90s)
   // "stephen-curry",  // Stephen Curry (98 GSW '10s)
-  // "steve-nash",  // Steve Nash (96 PHX '00s)
+  // "steve-nash-phx",  // Steve Nash (96 PHX '00s)
   // "tim-duncan",  // Tim Duncan (98 SAS '00s)
-  // "vince-carter",  // Vince Carter (96 TOR '00s)
-  // "wilt-chamberlain",  // Wilt Chamberlain (99 GSW '60s)
-  /* ---------- ELITE (34) ---------- */
-  // "anthony-davis",  // Anthony Davis (94 NOP '10s)
+  // "vince-carter-tor",  // Vince Carter (96 TOR '00s)
+  // "wilt-chamberlain-gsw",  // Wilt Chamberlain (99 GSW '60s)
+  // "wilt-chamberlain-lal",  // Wilt Chamberlain (96 LAL '70s)
+  // "wilt-chamberlain-phi",  // Wilt Chamberlain (98 PHI '60s)
+  /* ---------- ELITE (52) ---------- */
+  // "allen-iverson-den",  // Allen Iverson (92 DEN '00s)
+  // "anthony-davis-lal",  // Anthony Davis (93 LAL '20s)
+  // "anthony-davis-nop",  // Anthony Davis (94 NOP '10s)
   // "anthony-edwards",  // Anthony Edwards (92 MIN '20s)
   // "bob-pettit",  // Bob Pettit (94 ATL '50s)
-  // "carmelo-anthony",  // Carmelo Anthony (95 DEN '00s)
-  // "damian-lillard",  // Damian Lillard (94 POR '10s)
+  // "carmelo-anthony-den",  // Carmelo Anthony (95 DEN '00s)
+  // "carmelo-anthony-nyk",  // Carmelo Anthony (92 NYK '10s)
+  // "charles-barkley-phi",  // Charles Barkley (94 PHI '80s)
+  // "chris-paul-lac",  // Chris Paul (95 LAC '10s)
+  // "damian-lillard-mil",  // Damian Lillard (92 MIL '20s)
+  // "damian-lillard-por",  // Damian Lillard (94 POR '10s)
   // "demarcus-cousins",  // DeMarcus Cousins (92 SAC '10s)
   // "derrick-rose",  // Derrick Rose (95 CHI '10s)
   // "dominique-wilkins",  // Dominique Wilkins (95 ATL '80s)
-  // "dwight-howard",  // Dwight Howard (93 ORL '00s)
+  // "dwight-howard-orl",  // Dwight Howard (93 ORL '00s)
   // "elvin-hayes",  // Elvin Hayes (92 WAS '70s)
   // "gary-payton",  // Gary Payton (95 OKC '90s)
   // "george-gervin",  // George Gervin (94 SAS '70s)
   // "george-mikan",  // George Mikan (94 LAL '50s)
   // "isiah-thomas",  // Isiah Thomas (95 DET '80s)
-  // "james-harden",  // James Harden (95 HOU '10s)
+  // "james-harden-bkn",  // James Harden (92 BKN '20s)
+  // "james-harden-hou",  // James Harden (95 HOU '10s)
   // "james-worthy",  // James Worthy (95 LAL '80s)
-  // "jason-kidd",  // Jason Kidd (95 BKN '00s)
+  // "jason-kidd-bkn",  // Jason Kidd (95 BKN '00s)
+  // "jason-kidd-dal",  // Jason Kidd (92 DAL '10s)
+  // "jason-kidd-phx",  // Jason Kidd (93 PHX '90s)
   // "jayson-tatum",  // Jayson Tatum (94 BOS '20s)
-  // "jimmy-butler",  // Jimmy Butler (92 MIA '10s)
+  // "jimmy-butler-mia",  // Jimmy Butler (92 MIA '20s)
   // "joel-embiid",  // Joel Embiid (95 PHI '20s)
   // "john-havlicek",  // John Havlicek (93 BOS '60s)
+  // "kawhi-leonard-lac",  // Kawhi Leonard (93 LAC '20s)
+  // "kawhi-leonard-tor",  // Kawhi Leonard (95 TOR '10s)
+  // "kevin-durant-phx",  // Kevin Durant (94 PHX '20s)
   // "kevin-mchale",  // Kevin McHale (92 BOS '80s)
-  // "kyrie-irving",  // Kyrie Irving (94 CLE '10s)
+  // "kyrie-irving-cle",  // Kyrie Irving (94 CLE '10s)
+  // "kyrie-irving-dal",  // Kyrie Irving (92 DAL '20s)
   // "luka-doncic",  // Luka Doncic (95 DAL '20s)
   // "patrick-ewing",  // Patrick Ewing (95 NYK '90s)
   // "paul-pierce",  // Paul Pierce (94 BOS '00s)
   // "pete-maravich",  // Pete Maravich (94 UTA '70s)
-  // "ray-allen",  // Ray Allen (94 BOS '00s)
+  // "ray-allen-bos",  // Ray Allen (94 BOS '00s)
+  // "ray-allen-okc",  // Ray Allen (93 OKC '00s)
   // "reggie-miller",  // Reggie Miller (93 IND '90s)
   // "rick-barry",  // Rick Barry (93 GSW '70s)
   // "russell-westbrook",  // Russell Westbrook (95 OKC '10s)
-  // "tracy-mcgrady",  // Tracy McGrady (95 ORL '00s)
+  // "shaquille-oneal-mia",  // Shaquille O'Neal (95 MIA '00s)
+  // "steve-nash-dal",  // Steve Nash (94 DAL '00s)
+  // "tracy-mcgrady-hou",  // Tracy McGrady (94 HOU '00s)
+  // "tracy-mcgrady-orl",  // Tracy McGrady (95 ORL '00s)
   // "victor-wembanyama",  // Victor Wembanyama (93 SAS '20s)
+  // "vince-carter-bkn",  // Vince Carter (93 BKN '00s)
   // "walt-frazier",  // Walt Frazier (93 NYK '70s)
-  /* ---------- GOLD (114) ---------- */
+  /* ---------- GOLD (120) ---------- */
   // "adrian-dantley",  // Adrian Dantley (89 UTA '80s)
   // "al-horford",  // Al Horford (86 ATL '10s)
   // "al-jefferson",  // Al Jefferson (85 CHA '00s)
@@ -2411,7 +2437,8 @@ const CARD_ART=new Set([
   // "carlos-boozer",  // Carlos Boozer (86 UTA '00s)
   // "chauncey-billups",  // Chauncey Billups (87 DET '00s)
   // "chet-holmgren",  // Chet Holmgren (86 OKC '20s)
-  // "chris-bosh",  // Chris Bosh (90 MIA '10s)
+  // "chris-bosh-mia",  // Chris Bosh (90 MIA '10s)
+  // "chris-bosh-tor",  // Chris Bosh (88 TOR '00s)
   // "chris-mullin",  // Chris Mullin (88 GSW '90s)
   // "chris-webber",  // Chris Webber (91 SAC '00s)
   // "clint-capela",  // Clint Capela (86 HOU '20s)
@@ -2421,7 +2448,8 @@ const CARD_ART=new Set([
   // "demar-derozan",  // DeMar DeRozan (87 TOR '10s)
   // "dejounte-murray",  // Dejounte Murray (85 SAS '20s)
   // "dennis-johnson",  // Dennis Johnson (85 BOS '80s)
-  // "dennis-rodman",  // Dennis Rodman (90 DET '90s)
+  // "dennis-rodman-chi",  // Dennis Rodman (88 CHI '90s)
+  // "dennis-rodman-det",  // Dennis Rodman (90 DET '90s)
   // "deron-williams",  // Deron Williams (85 UTA '00s)
   // "devin-booker",  // Devin Booker (91 PHX '20s)
   // "dikembe-mutombo",  // Dikembe Mutombo (90 DEN '90s)
@@ -2429,6 +2457,7 @@ const CARD_ART=new Set([
   // "domantas-sabonis",  // Domantas Sabonis (87 SAC '20s)
   // "donovan-mitchell",  // Donovan Mitchell (90 CLE '20s)
   // "draymond-green",  // Draymond Green (88 GSW '10s)
+  // "dwight-howard-lal",  // Dwight Howard (89 LAL '10s)
   // "earl-monroe",  // Earl Monroe (89 NYK '70s)
   // "elton-brand",  // Elton Brand (89 LAC '00s)
   // "evan-mobley",  // Evan Mobley (87 CLE '20s)
@@ -2448,6 +2477,7 @@ const CARD_ART=new Set([
   // "jaylen-brown",  // Jaylen Brown (89 BOS '20s)
   // "jermaine-oneal",  // Jermaine O'Neal (91 IND '00s)
   // "jerry-stackhouse",  // Jerry Stackhouse (85 DET '00s)
+  // "jimmy-butler-chi",  // Jimmy Butler (90 CHI '10s)
   // "joakim-noah",  // Joakim Noah (87 CHI '10s)
   // "joe-dumars",  // Joe Dumars (86 DET '80s)
   // "joe-johnson",  // Joe Johnson (88 ATL '00s)
@@ -2474,13 +2504,15 @@ const CARD_ART=new Set([
   // "nikola-vucevic",  // Nikola Vucevic (85 ORL '20s)
   // "paolo-banchero",  // Paolo Banchero (87 ORL '20s)
   // "pascal-siakam",  // Pascal Siakam (88 TOR '20s)
-  // "pau-gasol",  // Pau Gasol (90 LAL '00s)
+  // "pau-gasol-lal",  // Pau Gasol (90 LAL '00s)
+  // "pau-gasol-mem",  // Pau Gasol (87 MEM '00s)
   // "paul-george",  // Paul George (91 IND '10s)
   // "paul-millsap",  // Paul Millsap (87 ATL '10s)
   // "penny-hardaway",  // Penny Hardaway (91 ORL '90s)
   // "rajon-rondo",  // Rajon Rondo (85 BOS '10s)
   // "rashard-lewis",  // Rashard Lewis (86 ORL '00s)
   // "rasheed-wallace",  // Rasheed Wallace (85 DET '00s)
+  // "ray-allen-mia",  // Ray Allen (90 MIA '10s)
   // "robert-parish",  // Robert Parish (87 BOS '80s)
   // "robert-williams",  // Robert Williams (85 BOS '20s)
   // "rudy-gay",  // Rudy Gay (86 MEM '10s)
@@ -3038,7 +3070,24 @@ function cardSlug(name){
    or a JPEG that was never actually converted. Rather than fight the filename on
    every upload, the card tries a list of likely variants and uses whichever exists. */
 const CARD_ART_EXTS=[".png",".PNG",".png.PNG",".png.png",".jpg",".jpeg",".JPG",".webp"];
-function cardArtVariants(p){const s=cardSlug(p.name);return CARD_ART_EXTS.map(e=>CARD_ART_BASE+s+e);}
+/* ---- per-CARD art ----
+   A player can have several cards (Jimmy Butler CHI and Jimmy Butler MIA are different
+   players in different kits), so art is keyed by name+team first. If no team-specific
+   file is registered we fall back to the plain name slug, which keeps single-card
+   players on one simple filename. */
+function cardSlugCard(p){return cardSlug(p.name)+"-"+String(p.team||"").toLowerCase();}
+/* names that appear on more than one card — only these need a team suffix */
+const MULTI_CARD_NAMES=(()=>{const c={},s=new Set();DB.forEach(p=>{c[p.name]=(c[p.name]||0)+1;});
+  Object.keys(c).forEach(n=>{if(c[n]>1)s.add(n);});return s;})();
+function cardSlugFor(p){
+  const c=cardSlugCard(p),n=cardSlug(p.name);
+  if(CARD_ART.has(c))return c;      /* an explicit team-specific file always wins */
+  if(CARD_ART.has(n))return n;      /* otherwise a plain name file covers the player */
+  /* nothing registered yet: multi-card players default to their team slug so each
+     kit can get its own art; single-card players stay on the simple name */
+  return MULTI_CARD_NAMES.has(p.name)?c:n;
+}
+function cardArtVariants(p){const s=cardSlugFor(p);return CARD_ART_EXTS.map(e=>CARD_ART_BASE+s+e);}
 function cardArtFail(img){
   const i=(+img.dataset.v||0)+1,slug=img.dataset.slug;
   if(i<CARD_ART_EXTS.length){img.dataset.v=i;img.src=CARD_ART_BASE+slug+CARD_ART_EXTS[i];return;}
@@ -3051,21 +3100,24 @@ function cardArtFail(img){
       card.insertBefore(ini,nm);}}
   img.remove();
 }
-function cardArtURL(p){const s=cardSlug(p.name);return CARD_ART.has(s)?CARD_ART_BASE+s+".png":null;}
+function cardArtURL(p){const c=cardSlugCard(p);if(CARD_ART.has(c))return CARD_ART_BASE+c+".png";const s=cardSlug(p.name);return CARD_ART.has(s)?CARD_ART_BASE+s+".png":null;}
 /* Dev helper: run artStatus() in the console to see coverage + copy-paste slugs.
    Lists how many players have art and prints the slug for any name you pass. */
 function artStatus(filter){
-  const all=[...new Set(DB.map(p=>p.name))];
-  const withArt=all.filter(n=>CARD_ART.has(cardSlug(n)));
-  const without=all.filter(n=>!CARD_ART.has(cardSlug(n)));
-  console.log(`Card art: ${withArt.length}/${all.length} players covered (${(withArt.length/all.length*100).toFixed(1)}%).`);
-  if(filter){const hits=all.filter(n=>n.toLowerCase().includes(filter.toLowerCase()));
-    console.log("Slugs for \""+filter+"\":");hits.forEach(n=>console.log("  "+n+"  ->  "+cardSlug(n)+".png"+(CARD_ART.has(cardSlug(n))?"  [HAS ART]":"")));}
-  else console.log("Tip: artStatus(\"wade\") to get the exact filename for a player.");
-  return {covered:withArt.length,total:all.length,missing:without.length};
+  /* one row per CARD, since multi-team players need separate art */
+  const cards=DB.map(p=>({name:p.name,team:p.team,era:p.era,ovr:p.ovr,slug:cardSlugFor(p),has:hasArt(p)}));
+  const seen={},uniq=[];cards.forEach(c=>{if(!seen[c.slug]){seen[c.slug]=1;uniq.push(c);}});
+  const done=uniq.filter(c=>c.has);
+  console.log(`Card art: ${done.length}/${uniq.length} cards covered (${(done.length/uniq.length*100).toFixed(1)}%).`);
+  if(filter){
+    const hits=uniq.filter(c=>c.name.toLowerCase().includes(filter.toLowerCase()));
+    console.log(`Filenames for "${filter}":`);
+    hits.forEach(c=>console.log(`  ${c.name} (${c.ovr} ${c.team} ${c.era})  ->  ${c.slug}.png${c.has?"  [HAS ART]":""}`));
+  } else console.log('Tip: artStatus("butler") to get the exact filename for a player.');
+  return {covered:done.length,total:uniq.length,missing:uniq.length-done.length};
 }
 
-function hasArt(p){return CARD_ART.has(cardSlug(p.name));}
+function hasArt(p){return CARD_ART.has(cardSlugCard(p))||CARD_ART.has(cardSlug(p.name));}
 function cardHTML(p,attrs,badge){
   /* front face: completely clean — no chemistry text */
   const art=cardArtURL(p);
@@ -3722,7 +3774,7 @@ function imgCard(p,cx,cy,w,h){
   c.save();
   if(t.glow){c.shadowColor=t.ink;c.shadowBlur=t.glow;}
   rrPath(x,y,w,h,16);c.fillStyle=g;c.fill();
-  const art=IMG_ART[cardSlug(p.name)];
+  const art=IMG_ART[cardSlugFor(p)];
   if(art){c.save();rrPath(x,y,w,h,16);c.clip();
     /* cover-fit the art into the card rect */
     const ar=art.width/art.height,cr=w/h;let dw,dh;
@@ -3752,7 +3804,7 @@ function imgCard(p,cx,cy,w,h){
 /* art image cache for the share canvas (slug -> loaded Image) */
 const IMG_ART={};
 function preloadRosterArt(roster){
-  const slugs=[...new Set(ALL_SLOTS.map(s=>roster[s]).filter(id=>id!=null).map(id=>cardSlug(DB[id].name)).filter(s=>CARD_ART.has(s)))];
+  const slugs=[...new Set(ALL_SLOTS.map(s=>roster[s]).filter(id=>id!=null).map(id=>cardSlugFor(DB[id])).filter(s=>CARD_ART.has(s)))];
   return Promise.all(slugs.map(s=>new Promise(done=>{
     if(IMG_ART[s]){done();return;}
     let i=0; /* walk the same extension variants the HTML cards use */
