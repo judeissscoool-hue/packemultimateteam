@@ -450,6 +450,35 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .btn.erabtn:hover{background:var(--cyan);color:#04121a}
 .erabadge{background:linear-gradient(90deg,rgba(53,214,255,.16),transparent);border:1px solid rgba(53,214,255,.4);color:var(--cyan);border-radius:10px;padding:8px 14px;font-size:12px;letter-spacing:.08em;text-align:center;margin-bottom:10px;font-weight:700}
 
+
+/* ===== enlarged card viewer ===== */
+#cardzoom{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;padding:24px;
+  background:radial-gradient(120% 90% at 50% 40%,rgba(10,10,14,.82),rgba(3,3,5,.95));
+  -webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px)}
+#cardzoom.show{display:flex;animation:zfade .2s ease-out}
+@keyframes zfade{from{opacity:0}to{opacity:1}}
+.zoomwrap{display:flex;flex-direction:column;align-items:center;gap:16px;animation:zin .38s cubic-bezier(.2,.9,.28,1.15)}
+@keyframes zin{from{opacity:0;transform:scale(.7) translateY(26px)}to{opacity:1;transform:scale(1) translateY(0)}}
+/* gentle continuous hover — separate layer from the scale so transforms don't fight */
+.zoomfloat{animation:zfloat 5.6s ease-in-out infinite;will-change:transform}
+@keyframes zfloat{
+  0%{transform:translateY(0) rotate(-.7deg)}
+  50%{transform:translateY(-15px) rotate(.7deg)}
+  100%{transform:translateY(0) rotate(-.7deg)}
+}
+.zoomscale{transform:scale(2.6);transform-origin:center;cursor:pointer;
+  filter:drop-shadow(0 26px 42px rgba(0,0,0,.75))}
+/* the enlarged copy needs room around it for the scaled card */
+.zoomfloat{margin:calc(158px * 0.8) calc(104px * 0.8)}
+.zoomscale .card{transition:none}
+.zoomscale .card:active{transform:none}
+.zoomhint{font-size:11px;letter-spacing:.14em;color:var(--dim);text-align:center}
+.zoomclose{background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:999px;
+  padding:9px 26px;font-size:13px;font-weight:700;cursor:pointer}
+.zoomclose:hover{border-color:var(--cyan);color:var(--cyan)}
+@media(max-width:560px){.zoomscale{transform:scale(2.1)}.zoomfloat{margin:calc(158px * 0.58) calc(104px * 0.58)}}
+@media(max-height:680px){.zoomscale{transform:scale(1.85)}.zoomfloat{margin:calc(158px * 0.45) calc(104px * 0.45)}}
+@media(prefers-reduced-motion:reduce){.zoomfloat{animation:none}.zoomwrap{animation:none}}
 /* ===== beta banner + credits pill ===== */
 #betabar{position:sticky;top:0;z-index:40;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;
   background:linear-gradient(90deg,rgba(255,197,61,.14),rgba(53,214,255,.12));border-bottom:1px solid rgba(255,197,61,.28);
@@ -551,6 +580,7 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 <div id="sheet"></div>
 <div id="draftoverlay"></div>
 <div id="policyoverlay"></div>
+<div id="cardzoom"></div>
 <div id="flashfx"></div>
 <nav class="tabs" id="tabs"></nav>
 <script>
@@ -3130,7 +3160,7 @@ function cardHTML(p,attrs,badge){
     <div class="card-top" style="display:flex;justify-content:space-between;align-items:flex-start">
       <div><div class="ovr">${p.ovr}</div><div class="pos" style="font-size:${p.positions.length>2?7.5:9}px">${p.positions.join("/")}</div></div>
     </div>
-    <button class="infobtn" onclick="flip3d(event)" title="Chemistry tags">ⓘ</button>
+    <button class="infobtn" onclick="openCardZoom(event,${p.id})" title="View card">ⓘ</button>
     ${art?"":`<div class="ini">${initials(esc(p.name))}</div>`}
     <div class="nm">${esc(p.name)}</div>
     <div class="meta">${p.team} · ${p.era} · ${p.tier.toUpperCase()}</div>
@@ -3155,6 +3185,38 @@ function cardHTML(p,attrs,badge){
 function SLOTNAMES(p){return p.positions.length>1?"multi-position":"specialist";}
 function flip3d(e){e.stopPropagation();e.preventDefault();
   const n=e.target.closest(".c3din");if(n)n.classList.toggle("flipped3");}
+/* ---- enlarged card viewer ----
+   The info button lifts the card out into a floating overlay so the artwork and the
+   chemistry dossier on the back can actually be read. Tap the card to flip it. */
+function openCardZoom(e,pid){
+  if(e){e.stopPropagation();e.preventDefault();}
+  const p=DB[pid];if(!p)return;
+  const o=$("#cardzoom");if(!o)return;
+  o.innerHTML=`<div class="zoomwrap">
+      <div class="zoomfloat"><div class="zoomscale">${cardHTML(p)}</div></div>
+      <div class="zoomhint">tap the card to flip · tap outside to close</div>
+      <button class="zoomclose" onclick="closeCardZoom(event)">Close</button>
+    </div>`;
+  /* the copy inside the overlay flips on tap, and its own info button just flips too */
+  const inner=o.querySelector(".c3din");
+  if(inner){
+    o.querySelectorAll(".infobtn").forEach(b=>{b.setAttribute("onclick","flip3d(event)");b.title="Flip card";});
+    o.querySelector(".zoomscale").addEventListener("click",ev=>{
+      if(ev.target.closest(".infobtn"))return; /* handled by flip3d */
+      inner.classList.toggle("flipped3");
+    });
+  }
+  o.classList.add("show");
+  o.onclick=ev=>{if(ev.target===o)closeCardZoom(ev);};
+  document.body.style.overflow="hidden";
+}
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){const o=$("#cardzoom");if(o&&o.classList.contains("show"))closeCardZoom(e);}});
+function closeCardZoom(e){
+  if(e){e.stopPropagation();e.preventDefault();}
+  const o=$("#cardzoom");if(!o)return;
+  o.classList.remove("show");o.innerHTML="";o.onclick=null;
+  document.body.style.overflow="";
+}
 function notice(msg){const n=$("#notice");if(!n)return;n.textContent=msg;
   clearTimeout(notice.t);notice.t=setTimeout(()=>{if($("#notice"))$("#notice").textContent="";},2600);}
 
