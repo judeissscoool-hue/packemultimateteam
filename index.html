@@ -3,7 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ALL-TIME ULTIMATE — NBA Pack Opener v31</title>
+<title>All-Time Ultimate — NBA Draft & Pack Opener</title>
+<meta name="description" content="Draft your all-time NBA dream team, chase the 82-0 club, and open packs of legends. Free to play.">
+<meta property="og:title" content="All-Time Ultimate — NBA Draft & Pack Opener">
+<meta property="og:description" content="Draft your all-time NBA dream team, chase the 82-0 club, and open packs of legends.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://packemultimateteam.com">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="All-Time Ultimate — NBA Draft & Pack Opener">
+<meta name="twitter:description" content="Draft your all-time NBA dream team and chase the 82-0 club.">
 <style>
 /* ============ TOKENS: arena at night ============ */
 :root{
@@ -451,6 +459,52 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .erabadge{background:linear-gradient(90deg,rgba(53,214,255,.16),transparent);border:1px solid rgba(53,214,255,.4);color:var(--cyan);border-radius:10px;padding:8px 14px;font-size:12px;letter-spacing:.08em;text-align:center;margin-bottom:10px;font-weight:700}
 
 
+
+/* ===== collection ===== */
+.collhero{display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:linear-gradient(135deg,#141a20,#141414 60%,#1a1508);
+  border:1px solid rgba(53,214,255,.28);border-radius:16px;padding:18px;margin-bottom:10px}
+.collhero h2{font-size:26px;margin-bottom:4px}
+.collhero p{font-size:12px;color:#c8c8d0;line-height:1.5;max-width:460px}
+.collbig{margin-left:auto;text-align:right;font-family:var(--disp);font-size:34px;color:var(--cyan);line-height:1}
+.collbig small{display:block;font-family:inherit;font-size:9px;letter-spacing:.18em;color:var(--dim);margin-top:4px}
+.collbar{height:6px;border-radius:99px;background:var(--panel2);overflow:hidden;margin-bottom:12px}
+.collbar i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),#7dffc0);border-radius:99px;transition:width .4s ease}
+.colltabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:8px;-webkit-overflow-scrolling:touch}
+.ctab{flex:0 0 auto;background:var(--panel);border:1px solid var(--line);color:var(--dim);border-radius:99px;
+  padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;display:flex;gap:6px;align-items:baseline;white-space:nowrap}
+.ctab span{font-size:10px;opacity:.75}
+.ctab.on{color:#0b0b0d;background:var(--ink);border-color:var(--ink)}
+.ctab.ct-Icon.on{background:var(--icon2);border-color:var(--icon2)}
+.ctab.ct-Elite.on{background:#ff5d6e;border-color:#ff5d6e}
+.ctab.ct-Gold.on{background:var(--gold);border-color:var(--gold)}
+.collsearch{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:10px;color:var(--ink);
+  padding:10px 12px;font-size:13px;margin-bottom:8px}
+.collsearch:focus{outline:none;border-color:var(--cyan)}
+.collcount{font-size:11px;letter-spacing:.1em;color:var(--dim);margin-bottom:8px}
+.collgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.ctile{position:relative;aspect-ratio:2/3;border-radius:10px;overflow:hidden;background:linear-gradient(180deg,#1c1c23,#101014);
+  border:1.5px solid var(--line);cursor:pointer;display:flex;flex-direction:column;justify-content:flex-end}
+.ctile .ct-art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+.ctile:before{content:"";position:absolute;inset:0;z-index:1;
+  background:linear-gradient(to bottom,rgba(0,0,0,.35) 0%,rgba(0,0,0,0) 35%,rgba(0,0,0,.55) 68%,rgba(0,0,0,.92) 100%)}
+.ct-ovr{position:absolute;top:5px;left:7px;z-index:2;font-family:var(--disp);font-size:17px;line-height:1;
+  filter:drop-shadow(0 2px 4px rgba(0,0,0,.95))}
+.ct-meta{position:relative;z-index:2;padding:6px 7px 7px;text-align:center}
+.ct-meta b{display:block;font-size:10px;line-height:1.15;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ct-meta span{display:block;font-size:8px;letter-spacing:.06em;color:#b6b6c0;margin-top:2px}
+.ctile.t-Icon{border-color:var(--icon2)}.ctile.t-Icon .ct-ovr{color:var(--icon2)}
+.ctile.t-Elite{border-color:#ff5d6e}.ctile.t-Elite .ct-ovr{color:#ff5d6e}
+.ctile.t-Gold{border-color:var(--gold)}.ctile.t-Gold .ct-ovr{color:var(--gold)}
+.ctile.t-Silver{border-color:#9aa4b2}.ctile.t-Silver .ct-ovr{color:#c3cbd6}
+.ctile.t-Bronze{border-color:#a97042}.ctile.t-Bronze .ct-ovr{color:#c99160}
+.ctile.locked{border-style:dashed;border-color:rgba(255,255,255,.13);background:#0d0d10;cursor:default;align-items:center;justify-content:center}
+.ctile.locked:before{display:none}
+.ct-q{font-family:var(--disp);font-size:30px;color:rgba(255,255,255,.13)}
+.ctile.locked .ct-meta b{color:rgba(255,255,255,.18);letter-spacing:.12em}
+.ctile.locked .ct-meta span{color:rgba(255,255,255,.13)}
+.cempty{grid-column:1/-1;text-align:center;color:var(--dim);font-size:12px;padding:26px 0}
+@media(max-width:560px){.collbig{margin-left:0;text-align:left;font-size:28px}
+  .collgrid{grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:6px}}
 /* ===== enlarged card viewer ===== */
 #cardzoom{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;padding:24px;
   background:radial-gradient(120% 90% at 50% 40%,rgba(10,10,14,.82),rgba(3,3,5,.95));
@@ -2527,6 +2581,75 @@ function updatesHTML(){
   <div class="notice" id="notice"></div>`;
 }
 
+
+/* ================= COLLECTION =================
+   Every card in the game, showing what you've discovered and what's still out there.
+   Uses the permanent ledger (T.seenCards) so pulls from any mode count. */
+let COLL_TIER="Icon", COLL_Q="";
+const COLL_TIERS=["Icon","Elite","Gold","Silver","Bronze"];
+function collectionStats(){
+  const total=DB.length;let seen=0;
+  const byTier={};
+  COLL_TIERS.forEach(t=>byTier[t]={seen:0,total:0});
+  DB.forEach(p=>{
+    const b=byTier[p.tier];if(!b)return;
+    b.total++;
+    if(T.seenCards[p.id]){b.seen++;seen++;}
+  });
+  return {seen,total,byTier};
+}
+function collSetTier(t){COLL_TIER=t;render();}
+function collSearch(v){COLL_Q=(v||"").trim().toLowerCase();renderCollGrid();}
+function collMatches(p){
+  if(!COLL_Q)return true;
+  return p.name.toLowerCase().includes(COLL_Q)||p.team.toLowerCase().includes(COLL_Q)||String(p.ovr).includes(COLL_Q);
+}
+function collTile(p){
+  const got=!!T.seenCards[p.id];
+  if(!got){
+    return `<div class="ctile locked" title="Undiscovered">
+      <div class="ct-q">?</div>
+      <div class="ct-meta"><b>\u2014\u2014\u2014</b><span>${esc(p.tier.toUpperCase())}</span></div></div>`;
+  }
+  const art=cardArtURL(p);
+  return `<div class="ctile t-${p.tier}" onclick="openCardZoom(event,${p.id})">
+    ${art?`<img class="ct-art" src="${art}" ${cardArtFallbackAttr(p)} alt="">`:""}
+    <div class="ct-ovr">${p.ovr}</div>
+    <div class="ct-meta"><b>${esc(p.name)}</b><span>${esc(p.team)} \u00b7 ${esc(p.era)}</span></div></div>`;
+}
+function collPool(){
+  return DB.filter(p=>p.tier===COLL_TIER&&collMatches(p))
+           .sort((a,b)=>b.ovr-a.ovr||a.name.localeCompare(b.name));
+}
+function renderCollGrid(){
+  const el=$("#collgrid");if(!el)return;
+  const pool=collPool();
+  el.innerHTML=pool.length?pool.map(collTile).join(""):`<div class="cempty">No cards match that search.</div>`;
+  const cnt=$("#collcount");
+  if(cnt){const got=pool.filter(p=>T.seenCards[p.id]).length;cnt.textContent=got+" / "+pool.length+" found";}
+}
+function collectionHTML(){
+  const st=collectionStats();
+  const pct=st.total?Math.round(st.seen/st.total*100):0;
+  return `
+  <div class="collhero">
+    <div><h2>Collection</h2>
+      <p>Every card in the game. Pull them in packs, draft them, or find them in the daily \u2014 discoveries are permanent.</p></div>
+    <div class="collbig">${st.seen}<small>OF ${st.total} FOUND</small></div>
+  </div>
+  <div class="collbar"><i style="width:${pct}%"></i></div>
+  <div class="colltabs">
+    ${COLL_TIERS.map(t=>{const b=st.byTier[t];
+      return `<button class="ctab ${t===COLL_TIER?"on":""} ct-${t}" onclick="collSetTier('${t}')">
+        ${t}<span>${b.seen}/${b.total}</span></button>`;}).join("")}
+  </div>
+  <input class="collsearch" type="search" placeholder="Search name, team or OVR\u2026" value="${esc(COLL_Q)}"
+    oninput="collSearch(this.value)" autocomplete="off">
+  <div class="collcount" id="collcount"></div>
+  <div class="collgrid" id="collgrid"></div>
+  <div class="notice" id="notice"></div>`;
+}
+
 /* ================= SMALL HELPERS ================= */
 const $=s=>document.querySelector(s);
 function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;");}
@@ -2546,18 +2669,18 @@ const CARD_ART=new Set([
   /* --- ICON (52) --- */
   "giannis-antetokounmpo",  // Giannis Antetokounmpo (97 MIL '20s) — Bucks primary art
   "allen-iverson-phi",  // Allen Iverson (96 PHI '00s)
-  "anthony-edwards",  // Anthony Edwards (96 MIN '20s)
+  // "anthony-edwards",  // Anthony Edwards (96 MIN '20s)
   "bill-russell",  // Bill Russell (98 BOS '60s)
   "bob-cousy",  // Bob Cousy (96 BOS '50s)
   "charles-barkley-phx",  // Charles Barkley (96 PHX '90s)
   "chris-paul-nop",  // Chris Paul (97 NOP '00s)
   // "clyde-drexler",  // Clyde Drexler (96 POR '90s)
-  "david-robinson",  // David Robinson (96 SAS '90s)
+  // "david-robinson",  // David Robinson (96 SAS '90s)
   "dirk-nowitzki",  // Dirk Nowitzki (98 DAL '00s)
   "dwyane-wade",  // Dwyane Wade (97 MIA '00s)
   // "elgin-baylor",  // Elgin Baylor (96 LAL '60s)
-  "giannis-antetokounmpo-mia",  // Giannis Antetokounmpo (97 MIA '20s)
-  "giannis-antetokounmpo-mil",  // Giannis Antetokounmpo (97 MIL '20s)
+  // "giannis-antetokounmpo-mia",  // Giannis Antetokounmpo (97 MIA '20s)
+  // "giannis-antetokounmpo-mil",  // Giannis Antetokounmpo (97 MIL '20s)
   "hakeem-olajuwon",  // Hakeem Olajuwon (99 HOU '90s)
   "jalen-brunson",  // Jalen Brunson (96 NYK '20s)
   // "jerry-west",  // Jerry West (97 LAL '60s)
@@ -2591,7 +2714,7 @@ const CARD_ART=new Set([
   // "shaquille-oneal-orl",  // Shaquille O'Neal (96 ORL '90s)
   "stephen-curry",  // Stephen Curry (98 GSW '10s)
   // "steve-nash-phx",  // Steve Nash (96 PHX '00s)
-  "tim-duncan",  // Tim Duncan (98 SAS '00s)
+  // "tim-duncan",  // Tim Duncan (98 SAS '00s)
   "victor-wembanyama",  // Victor Wembanyama (97 SAS '20s)
   "vince-carter-tor",  // Vince Carter (96 TOR '00s)
   // "wilt-chamberlain-gsw",  // Wilt Chamberlain (99 GSW '60s)
@@ -2599,7 +2722,7 @@ const CARD_ART=new Set([
   // "wilt-chamberlain-phi",  // Wilt Chamberlain (98 PHI '60s)
   /* --- ELITE (53) --- */
   // "allen-iverson-den",  // Allen Iverson (92 DEN '00s)
-  "anthony-davis-lal",  // Anthony Davis (94 LAL '20s)
+  // "anthony-davis-lal",  // Anthony Davis (94 LAL '20s)
   // "anthony-davis-was",  // Anthony Davis (93 WAS '20s)
   // "bob-pettit",  // Bob Pettit (94 ATL '50s)
   // "cade-cunningham",  // Cade Cunningham (92 DET '20s)
@@ -2615,7 +2738,7 @@ const CARD_ART=new Set([
   // "donovan-mitchell",  // Donovan Mitchell (93 CLE '20s)
   // "dwight-howard-orl",  // Dwight Howard (93 ORL '00s)
   // "elvin-hayes",  // Elvin Hayes (92 WAS '70s)
-  "gary-payton",  // Gary Payton (95 OKC '90s)
+  // "gary-payton",  // Gary Payton (95 OKC '90s)
   // "george-gervin",  // George Gervin (94 SAS '70s)
   // "george-mikan",  // George Mikan (94 LAL '50s)
   // "isiah-thomas",  // Isiah Thomas (95 DET '80s)
@@ -3510,6 +3633,16 @@ function cardSlugFor(p){
   return MULTI_CARD_NAMES.has(p.name)?c:n;
 }
 function cardArtVariants(p){const s=cardSlugFor(p);return CARD_ART_EXTS.map(e=>CARD_ART_BASE+s+e);}
+/* fallback attributes for an art <img>: walks CARD_ART_EXTS until one loads */
+function cardArtFallbackAttr(p){
+  return `onerror="collArtFail(this)" data-v="0" data-slug="${cardSlugFor(p)}"`;
+}
+/* simpler fallback for collection tiles — just hides the art, keeps the tile */
+function collArtFail(img){
+  const i=(+img.dataset.v||0)+1,slug=img.dataset.slug;
+  if(i<CARD_ART_EXTS.length){img.dataset.v=i;img.src=CARD_ART_BASE+slug+CARD_ART_EXTS[i];return;}
+  img.remove();
+}
 function cardArtFail(img){
   const i=(+img.dataset.v||0)+1,slug=img.dataset.slug;
   if(i<CARD_ART_EXTS.length){img.dataset.v=i;img.src=CARD_ART_BASE+slug+CARD_ART_EXTS[i];return;}
@@ -3545,7 +3678,7 @@ function cardHTML(p,attrs,badge){
   const art=cardArtURL(p);
   const variants=art?cardArtVariants(p):null;
   /* onerror walks CARD_ART_EXTS; if every variant fails we drop back to the initials card */
-  const fallbackJS=art?`onerror="cardArtFail(this)" data-v="0" data-slug="${cardSlug(p.name)}"`:"";
+  const fallbackJS=art?`onerror="cardArtFail(this)" data-v="0" data-slug="${cardSlugFor(p)}"`:"";
   const front=`
   <div class="card t-${p.tier}${art?" hasart":""}" ${attrs||""}>
     ${art?`<img class="cardart" src="${variants[0]}" ${fallbackJS} alt=""><div class="cardart-fade"></div><div class="cardart-scrim"></div>`:""}
@@ -3634,6 +3767,7 @@ function renderTabs(){
   else if(screen==="trophies")items=[["landing","☰ Modes"],["trophies","🏆 Trophies"]];
   else if(screen==="daily")items=[["landing","☰ Modes"],["daily","🗓 Daily"],["trophies","🏆 Trophies"]];
   else if(screen==="shop")items=[["landing","☰ Modes"],["shop","🛒 Shop"],["trophies","🏆 Trophies"]];
+  else if(screen==="collection")items=[["landing","☰ Modes"],["collection","🗃 Collection"],["trophies","🏆 Trophies"]];
   else if(screen==="updates")items=[["landing","☰ Modes"],["updates","📋 Updates"]];
   else items=[["landing","☰ Modes"],["team","My Team"],["packs","Packs"],["rare","Rare Pull"],["trophies","🏆 Trophies"]];
   bar.innerHTML=items.map(([k,l])=>`<button class="${screen===k?"on":""}" onclick="setScreen('${k}')">${l}</button>`).join("");
@@ -4191,6 +4325,7 @@ function landingHTML(){
       <button class="btn ${cls}">${cta}</button>
     </div>`).join("")}
     <div class="modecard" onclick="setScreen('daily')"><h3>🗓 Daily Challenge</h3><p>A fresh seeded squad and a new constraint every day — same for everyone. Build the best team under today's rule and keep your streak alive.</p><div class="modebest">STREAK <b>${DAILY.streak||0}🔥</b></div><button class="btn gold">PLAY TODAY</button></div>
+    <div class="modecard" onclick="setScreen('collection')"><h3>🗃 Collection</h3><p>Every card in the game — see what you've discovered and what's still out there. Pulls from any mode count.</p><div class="modebest">FOUND <b>${collectionStats().seen}/${collectionStats().total}</b></div><button class="btn">VIEW COLLECTION</button></div>
     <div class="modecard" onclick="setScreen('shop')"><h3>🛒 Shop</h3><p>Spend credits earned from playing on card frames, backgrounds and effects. Mythic skins can never be bought — only earned.</p><div class="modebest">BALANCE <b>${CR.bal.toLocaleString()} CR</b></div><button class="btn gold">OPEN SHOP</button></div>
     <div class="modecard" onclick="setScreen('trophies')"><h3>🏆 Trophy Case</h3><p>Permanent collection progression, franchise and era archives, iconic chemistry discoveries, What If timelines, historic teams, records and hidden challenges.</p><div class="modebest">PROGRESS <b>${trophySummary().done}/${trophySummary().total}</b></div><button class="btn gold">OPEN TROPHY CASE</button></div>
   </div>`;
@@ -4244,9 +4379,14 @@ function imgCard(p,cx,cy,w,h){
     const ar=art.width/art.height,cr=w/h;let dw,dh;
     if(ar>cr){dh=h;dw=h*ar;}else{dw=w;dh=w/ar;}
     c.drawImage(art,x+(w-dw)/2,y+(h-dh)/2,dw,dh);
-    /* bottom fade for text legibility */
-    const fg=c.createLinearGradient(x,y,x,y+h);fg.addColorStop(0,"rgba(0,0,0,.2)");fg.addColorStop(.4,"rgba(0,0,0,0)");fg.addColorStop(.72,"rgba(0,0,0,.55)");fg.addColorStop(1,"rgba(0,0,0,.92)");
-    c.fillStyle=fg;c.fillRect(x,y,w,h);c.restore();}
+    /* bottom fade for the name/team text */
+    const fg=c.createLinearGradient(x,y,x,y+h);fg.addColorStop(0,"rgba(0,0,0,.22)");fg.addColorStop(.38,"rgba(0,0,0,0)");fg.addColorStop(.62,"rgba(0,0,0,.62)");fg.addColorStop(1,"rgba(0,0,0,.95)");
+    c.fillStyle=fg;c.fillRect(x,y,w,h);
+    /* top-left scrim so the OVR + positions stay readable over light artwork */
+    const sg=c.createRadialGradient(x,y,0,x,y,w*.92);
+    sg.addColorStop(0,"rgba(0,0,0,.80)");sg.addColorStop(.45,"rgba(0,0,0,.42)");sg.addColorStop(1,"rgba(0,0,0,0)");
+    c.fillStyle=sg;c.fillRect(x,y,w*.92,h*.5);
+    c.restore();}
   c.lineWidth=4;c.strokeStyle=t.ink;c.stroke();
   c.restore();
   c.save();if(art)c.shadowColor="rgba(0,0,0,.9)",c.shadowBlur=6;
@@ -4321,22 +4461,27 @@ function drawRosterCanvas(modeKey,roster,eraLocked){
       const ident=pr.identity||recordIdentity(pr.wins);
       c.fillStyle=pr.wins===82?"#ffc53d":"#ff7ac8";c.font="700 30px Arial";c.fillText(ident.title,520,326);
       if(pr.wins===82){
-        c.save();c.translate(850,118);c.rotate(-0.08);
+        /* sits beside the scoreboard, clear of the title (which runs to ~x930) */
+        c.save();c.translate(912,286);c.rotate(-0.08);
         c.shadowColor="#ffc53d";c.shadowBlur=24;c.strokeStyle="#ffc53d";c.lineWidth=5;
-        c.beginPath();c.arc(0,0,102,0,Math.PI*2);c.stroke();c.shadowBlur=0;
-        c.beginPath();c.arc(0,0,88,0,Math.PI*2);c.strokeStyle="rgba(255,197,61,.65)";c.lineWidth=2;c.stroke();
-        c.textAlign="center";c.fillStyle="#ffc53d";c.font="900 31px "+IMG_FONT;c.fillText("82\u20130",0,-5);
-        if(eraLocked){c.font="700 15px Arial";c.fillText(DRAFT_ERA?eraLabel(DRAFT_ERA).toUpperCase():"ERA",0,24);c.font="700 12px Arial";c.fillText("ERA SQUAD",0,46);}
-        else{c.font="700 18px Arial";c.fillText("CLUB",0,24);c.font="700 12px Arial";c.fillText("PERFECTION CERTIFIED",0,48);}c.restore();
+        c.beginPath();c.arc(0,0,82,0,Math.PI*2);c.stroke();c.shadowBlur=0;
+        c.beginPath();c.arc(0,0,70,0,Math.PI*2);c.strokeStyle="rgba(255,197,61,.65)";c.lineWidth=2;c.stroke();
+        c.textAlign="center";c.fillStyle="#ffc53d";c.font="900 27px "+IMG_FONT;c.fillText("82\u20130",0,-4);
+        if(eraLocked){c.font="700 13px Arial";c.fillText(DRAFT_ERA?eraLabel(DRAFT_ERA).toUpperCase():"ERA",0,20);c.font="700 10px Arial";c.fillText("ERA SQUAD",0,38);}
+        else{c.font="700 15px Arial";c.fillText("CLUB",0,20);c.font="700 9.5px Arial";c.fillText("PERFECTION CERTIFIED",0,40);}c.restore();
       }
       /* pentagon web + starters — wider ring, smaller cards: no overlap */
-      const CTR={x:540,y:772},R=252,ANG={C:-90,SF:-18,PG:54,SG:126,PF:198},pos={};
+      const CTR={x:540,y:740},R=240,ANG={C:-90,SF:-18,PG:54,SG:126,PF:198},pos={};
       Object.entries(ANG).forEach(([s,a])=>{const r=a*Math.PI/180;
         pos[s]={x:CTR.x+R*Math.cos(r),y:CTR.y+R*Math.sin(r)};});
       const SL=["C","PF","SF","SG","PG"];
       for(let i=0;i<5;i++)for(let j=i+1;j<5;j++){
         const A=SL[i],B=SL[j];
-        c.beginPath();c.moveTo(pos[A].x,pos[A].y);c.lineTo(pos[B].x,pos[B].y);
+        /* pull each end back past the card edge so lines never cross the card text */
+        const dx=pos[B].x-pos[A].x,dy=pos[B].y-pos[A].y,len=Math.hypot(dx,dy)||1;
+        const ux=dx/len,uy=dy/len,TRIM=118;
+        const ax=pos[A].x+ux*TRIM,ay=pos[A].y+uy*TRIM,bx=pos[B].x-ux*TRIM,by=pos[B].y-uy*TRIM;
+        c.beginPath();c.moveTo(ax,ay);c.lineTo(bx,by);
         c.strokeStyle="rgba(107,107,116,.18)";c.lineWidth=2;c.shadowBlur=0;c.stroke();
         const k=pairLinkKind(DB[roster[A]],DB[roster[B]]);
         if(k){const col=WEB_COLORS[k];
@@ -4347,8 +4492,8 @@ function drawRosterCanvas(modeKey,roster,eraLocked){
       SL.forEach(s=>imgCard(DB[roster[s]],pos[s].x,pos[s].y,160,232));
       /* bench */
       c.textAlign="center";c.fillStyle="#8a8a94";c.font="21px Arial";
-      c.fillText("B E N C H",540,1102);
-      BENCH_SLOTS.forEach((s,i)=>imgCard(DB[roster[s]],273+72+i*(144+51),1206,144,176));
+      c.fillText("B E N C H",540,1094);
+      BENCH_SLOTS.forEach((s,i)=>imgCard(DB[roster[s]],273+72+i*(144+51),1200,144,176));
       /* footer */
       c.strokeStyle="rgba(255,255,255,.10)";c.lineWidth=1;
       c.beginPath();c.moveTo(80,1314);c.lineTo(1000,1314);c.stroke();
@@ -4550,11 +4695,14 @@ function render(){
       <div class="hs">BEST TEAM OVR<br><b>${best}</b></div>
     </header>
     ${screen==="landing"?landingHTML():screen==="share"?shareHTML():screen==="team"?hubHTML("main"):screen==="packs"?packsHTML()
-      :screen==="draft"?draftHTML():screen==="classic"?hubHTML("classic"):screen==="trophies"?trophyHTML():screen==="daily"?dailyHTML():screen==="shop"?shopHTML():screen==="updates"?updatesHTML():hubHTML("rare")}
+      :screen==="draft"?draftHTML():screen==="classic"?hubHTML("classic"):screen==="trophies"?trophyHTML():screen==="daily"?dailyHTML():screen==="shop"?shopHTML():screen==="updates"?updatesHTML():screen==="collection"?collectionHTML():hubHTML("rare")}
     <footer class="foot">
       <button onclick="showPrivacy()">Privacy Policy</button>
       <span>·</span><span>Fan-made sandbox — not affiliated with or endorsed by the NBA, its teams, or players.</span>
     </footer>`;
+  /* the collection grid is painted after mount so a big tier doesn't block the page */
+  if(screen==="collection"&&typeof renderCollGrid==="function")
+    (window.requestAnimationFrame||setTimeout)(()=>renderCollGrid());
 }
 /* neon squad web: blue lines between starters sharing a chemistry tag or team core */
 const WEB_COLORS={team:"#ffc53d",duo:"#ff4d6d",story:"#ff7ac8",era:"#35d6ff",style:"#39ff9c"};
