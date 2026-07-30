@@ -505,6 +505,345 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .cempty{grid-column:1/-1;text-align:center;color:var(--dim);font-size:12px;padding:26px 0}
 @media(max-width:560px){.collbig{margin-left:0;text-align:left;font-size:28px}
   .collgrid{grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:6px}}
+/* ================= EQUIPPED EFFECTS =================
+   Applied to .card via efxClasses(). Frames reshape the silhouette, auras glow
+   outside it, sheens ride the border, energy circles it, overlays sit on the face. */
+.card{--pad-o:0}
+/* --- FRAMES: reshape the card --- */
+/* shaped frames lose their border, so give the clip a lit edge instead */
+
+/* --- AURAS: glow outside the card --- */
+.card.a-halo .efxaura{background:radial-gradient(50% 50%,transparent 56%,#fff 66%,transparent 78%)}
+.card.a-halo .efxaura2{background:radial-gradient(50% 50%,#fff,transparent 68%)}
+.card.a-solar .efxaura{background:radial-gradient(50% 50%,#fff4c2,#ffb01f 44%,#a15c00 68%,transparent 84%)}
+.card.a-solar .efxaura2{background:radial-gradient(50% 50%,#ffc53d,transparent 72%)}
+.card.a-frost .efxaura{background:radial-gradient(50% 50%,#eaf9ff,#7ec8ff 45%,#1f6fb0 68%,transparent 82%)}
+.card.a-frost .efxaura2{background:radial-gradient(50% 50%,#a8e0ff,transparent 70%)}
+.card.a-magma .efxaura{background:radial-gradient(50% 50%,transparent 40%,#ff3d00 54%,#ffb300 64%,#5a0f00 76%,transparent 88%)}
+.card.a-magma .efxaura2{background:radial-gradient(60% 60%,transparent 44%,#ff5a1f 66%,transparent 82%)}
+.card.a-toxic .efxaura{background:radial-gradient(50% 50%,#d9ff8a,#48d800 48%,#1d6b00 70%,transparent 84%)}
+.card.a-toxic .efxaura2{background:radial-gradient(50% 50%,#7bef2a,transparent 70%)}
+.card.a-candy .efxaura{background:radial-gradient(58% 50% at 30% 32%,#ff9ecd,transparent 60%),
+  radial-gradient(58% 50% at 70% 36%,#8ce8ff,transparent 60%),radial-gradient(58% 52% at 50% 74%,#fff08a,transparent 62%)}
+.card.a-candy .efxaura2{background:radial-gradient(60% 60%,#ffb3e0,transparent 72%)}
+.card.a-prism .efxaura{background:radial-gradient(60% 55% at 30% 28%,#ff4d6d,transparent 60%),
+  radial-gradient(60% 55% at 72% 30%,#ffc53d,transparent 60%),radial-gradient(60% 55% at 76% 70%,#35d6ff,transparent 60%),
+  radial-gradient(60% 55% at 28% 74%,#a468ff,transparent 60%);animation:efxhue 6s linear infinite}
+.card.a-prism .efxaura2{background:radial-gradient(60% 60%,#a468ff,transparent 70%)}
+.card.a-sunset .efxaura{background:radial-gradient(65% 50% at 40% 26%,#ffd166,transparent 60%),
+  radial-gradient(65% 50% at 58% 48%,#ff5f6d,transparent 62%),radial-gradient(60% 55% at 46% 76%,#a24bcf,transparent 64%)}
+.card.a-sunset .efxaura2{background:radial-gradient(60% 60%,#ff7e5f,transparent 72%)}
+.card.a-ember .efxaura{background:radial-gradient(50% 55%,#ffd08a,#ff5a1f 48%,#a01500 68%,transparent 82%)}
+.card.a-ember .efxaura2{background:radial-gradient(50% 50%,#ff7a2b,transparent 70%)}
+.card.a-volt .efxaura{background:radial-gradient(50% 50%,#6fe9ff,#0090c8 55%,transparent 76%);animation:efxvolt .16s steps(2) infinite}
+.card.a-volt .efxaura2{background:radial-gradient(50% 50%,#35d6ff,transparent 70%)}
+.card.a-blood .efxaura{background:radial-gradient(50% 50%,#ff8a8a,#c2001f 46%,#5a0010 70%,transparent 84%)}
+.card.a-blood .efxaura2{background:radial-gradient(50% 50%,#e00028,transparent 70%)}
+.card.a-void .efxaura{background:radial-gradient(50% 50%,#c79bff,#5b18c9 52%,transparent 76%)}
+.card.a-void .efxaura2{background:radial-gradient(50% 50%,#8f3fff,transparent 70%)}
+.card.a-aurora .efxaura{background:radial-gradient(70% 45% at 28% 30%,#3dffa8,transparent 62%),
+  radial-gradient(65% 50% at 62% 42%,#35d6ff,transparent 62%),radial-gradient(60% 45% at 48% 72%,#a468ff,transparent 62%)}
+.card.a-aurora .efxaura2{background:radial-gradient(60% 60%,#1fd8a0,transparent 70%)}
+.card.a-venom .efxaura{background:radial-gradient(60% 50% at 34% 34%,#9dff3d,transparent 60%),
+  radial-gradient(60% 55% at 66% 62%,#8f1fff,transparent 62%)}
+.card.a-venom .efxaura2{background:radial-gradient(60% 60%,#5fd400,transparent 72%)}
+.card.a-nebula .efxaura{background:radial-gradient(60% 50% at 35% 35%,#ff6fd8,transparent 62%),
+  radial-gradient(60% 50% at 68% 62%,#4d7bff,transparent 62%)}
+.card.a-nebula .efxaura2{background:radial-gradient(50% 50%,#7a3fd0,transparent 72%)}
+.card.a-cosmic .efxaura{background:radial-gradient(45% 45% at 50% 46%,#ffd9f2,transparent 52%),
+  radial-gradient(60% 55% at 42% 40%,#ff4fa3,transparent 62%),radial-gradient(70% 65% at 58% 60%,#2b3fd0,transparent 66%)}
+.card.a-cosmic .efxaura2{background:radial-gradient(60% 60%,#3a1f9e,transparent 74%)}
+.card.a-oil .efxaura{background:radial-gradient(55% 45% at 25% 32%,#00e0b8,transparent 58%),
+  radial-gradient(55% 45% at 68% 26%,#7a5cff,transparent 58%),radial-gradient(55% 45% at 74% 68%,#ff59c7,transparent 58%),
+  radial-gradient(55% 45% at 30% 72%,#2ec4ff,transparent 58%);animation:efxhue 5s linear infinite}
+.card.a-oil .efxaura2{background:radial-gradient(60% 60%,#4a3fd0,transparent 72%)}
+.card.a-spect .efxaura{background:radial-gradient(50% 44% at 22% 30%,#ff2d55,transparent 56%),
+  radial-gradient(50% 44% at 50% 20%,#ff9500,transparent 56%),radial-gradient(50% 44% at 78% 32%,#ffd60a,transparent 56%),
+  radial-gradient(50% 44% at 82% 66%,#30d158,transparent 56%),radial-gradient(50% 44% at 50% 80%,#0a84ff,transparent 56%),
+  radial-gradient(50% 44% at 20% 68%,#bf5af2,transparent 56%);animation:efxhue 7s linear infinite}
+.card.a-spect .efxaura2{background:radial-gradient(60% 60%,#8e5bff,transparent 74%)}
+@keyframes efxhue{to{filter:blur(15px) hue-rotate(360deg)}}
+@keyframes efxvolt{0%{opacity:.75}50%{opacity:1}100%{opacity:.85}}
+
+/* --- SHEENS: light riding the border --- */
+.card.s-sweep .efxsheen{background:linear-gradient(112deg,transparent 42%,rgba(255,255,255,.6) 50%,transparent 58%);
+  background-size:300% 100%;animation:efxsweep 3.6s linear infinite}
+@keyframes efxsweep{0%{background-position:200% 0}100%{background-position:-100% 0}}
+.card.s-glint .efxsheen{background:linear-gradient(112deg,transparent 46%,rgba(255,255,255,.95) 50%,transparent 54%);
+  background-size:400% 100%;animation:efxglint 4.6s cubic-bezier(.85,0,.15,1) infinite}
+@keyframes efxglint{0%,62%{background-position:220% 0}92%,100%{background-position:-120% 0}}
+.card.s-pulse .efxsheen{background:radial-gradient(60% 60%,rgba(255,255,255,.26),transparent 70%);
+  animation:efxpulse 2.1s ease-in-out infinite}
+@keyframes efxpulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.7)}}
+.card.s-cross .efxsheen{background:linear-gradient(112deg,transparent 44%,rgba(255,255,255,.58) 50%,transparent 56%),
+  linear-gradient(248deg,transparent 44%,rgba(180,235,255,.52) 50%,transparent 56%);
+  background-size:300% 100%,300% 100%;animation:efxsweep 3s linear infinite,efxsweepB 3.7s linear infinite}
+@keyframes efxsweepB{0%{background-position:0 0,-100% 0}100%{background-position:0 0,200% 0}}
+.card.s-chase .efxsheen{background:conic-gradient(from 0deg,transparent 0deg,transparent 300deg,
+  rgba(255,255,255,.9) 340deg,transparent 360deg);animation:efxspin 2.6s linear infinite}
+.card.s-holo .efxsheen{background:linear-gradient(112deg,transparent 40%,rgba(255,255,255,.5) 50%,transparent 60%);
+  background-size:300% 100%;animation:efxsweep 3.2s linear infinite,efxhueshift 5s linear infinite}
+@keyframes efxhueshift{to{filter:hue-rotate(360deg)}}
+@keyframes efxspin{to{transform:rotate(360deg)}}
+
+/* --- ENERGY: element circling the border --- */
+.card.on-sfx .efxenergy{opacity:1}
+.efxenergy i{position:absolute;inset:0;display:block}
+.card.e-volt .efxenergy i:nth-child(1){background:conic-gradient(from 0deg,transparent 0 268deg,
+  rgba(60,200,255,.35) 292deg,rgba(150,240,255,.9) 322deg,#fff 338deg,rgba(120,235,255,.85) 348deg,transparent 360deg);
+  animation:efxspin 1.25s linear infinite,efxjit .09s steps(2) infinite}
+.card.e-volt .efxenergy i:nth-child(2){background:conic-gradient(from 180deg,transparent 0 300deg,
+  rgba(90,220,255,.5) 326deg,#eaffff 344deg,transparent 360deg);animation:efxspin 1.9s linear infinite reverse}
+.card.e-tox .efxenergy i:nth-child(1){background:conic-gradient(from 0deg,transparent 0 258deg,
+  rgba(60,160,0,.4) 286deg,rgba(140,240,40,.85) 314deg,#e4ff9c 336deg,rgba(110,230,20,.8) 350deg,transparent 360deg);
+  animation:efxspin 2.8s linear infinite}
+.card.e-tox .efxenergy i:nth-child(2){background:conic-gradient(from 150deg,transparent 0 302deg,
+  rgba(90,200,20,.5) 328deg,#c8ff6a 346deg,transparent 360deg);animation:efxspin 4.1s linear infinite reverse}
+.card.e-fire .efxenergy i:nth-child(1){background:conic-gradient(from 0deg,transparent 0 252deg,
+  rgba(200,40,0,.4) 280deg,rgba(255,110,20,.85) 308deg,#ffd166 332deg,#fff6d8 344deg,rgba(255,90,20,.7) 352deg,transparent 360deg);
+  animation:efxspin 2.3s linear infinite,efxflick .22s steps(3) infinite}
+.card.e-fire .efxenergy i:nth-child(2){background:conic-gradient(from 120deg,transparent 0 296deg,
+  rgba(255,70,0,.55) 322deg,#ffb03d 342deg,transparent 360deg);animation:efxspin 3.4s linear infinite}
+.card.e-cryo .efxenergy i:nth-child(1){background:conic-gradient(from 0deg,transparent 0 228deg,
+  rgba(120,190,255,.3) 262deg,rgba(190,232,255,.75) 296deg,#f2fbff 322deg,rgba(170,220,255,.6) 344deg,transparent 360deg);
+  animation:efxspin 4.6s linear infinite}
+.card.e-cryo .efxenergy i:nth-child(2){background:conic-gradient(from 200deg,transparent 0 288deg,
+  rgba(150,215,255,.45) 318deg,#e8f7ff 340deg,transparent 360deg);animation:efxspin 6.8s linear infinite reverse}
+.card.e-molt .efxenergy i:nth-child(1){background:conic-gradient(from 0deg,transparent 0 196deg,
+  rgba(160,60,0,.35) 236deg,rgba(255,140,0,.75) 274deg,#ffc53d 304deg,#fff3c4 326deg,#ffa000 346deg,transparent 360deg);
+  animation:efxspin 5.4s linear infinite}
+.card.e-molt .efxenergy i:nth-child(2){background:conic-gradient(from 210deg,transparent 0 280deg,
+  rgba(255,110,0,.5) 312deg,#ffdd8a 338deg,transparent 360deg);animation:efxspin 7.8s linear infinite reverse}
+.card.e-spec .efxenergy i:nth-child(1){background:conic-gradient(from 0deg,transparent 0 240deg,
+  rgba(120,40,220,.35) 276deg,rgba(190,120,255,.8) 308deg,#f0e2ff 332deg,rgba(160,80,255,.7) 348deg,transparent 360deg);
+  animation:efxspin 3.6s linear infinite,efxphase 2.8s ease-in-out infinite}
+.card.e-spec .efxenergy i:nth-child(2){background:conic-gradient(from 170deg,transparent 0 294deg,
+  rgba(150,70,255,.45) 320deg,#e3d0ff 342deg,transparent 360deg);animation:efxspin 5.2s linear infinite reverse}
+@keyframes efxjit{0%{filter:brightness(1)}50%{filter:brightness(1.75)}100%{filter:brightness(1.15)}}
+@keyframes efxflick{0%{filter:brightness(1)}33%{filter:brightness(1.4)}66%{filter:brightness(.88)}100%{filter:brightness(1.25)}}
+@keyframes efxphase{0%,100%{opacity:.5}50%{opacity:1}}
+
+/* --- OVERLAYS on the card face --- */
+.efxov{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden;border-radius:inherit}
+.efxov canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.ov-o-frost .fmask{mix-blend-mode:screen}
+.ov-o-frost svg{position:absolute;inset:0;width:100%;height:100%}
+.ov-o-sparks{background:#000;mix-blend-mode:screen}
+.ov-o-bolt canvas{mix-blend-mode:screen}
+.ov-o-holo{mix-blend-mode:color-dodge}
+.ov-o-holo svg{position:absolute;inset:0;width:100%;height:100%}
+
+/* =========================================================
+   UNIFIED CARD FRAME
+   Every card now has a real frame band. Standard cards get a rectangular
+   band; equipped frames just change its shape. The band carries the tier
+   gradient, and an opaque inner plate covers everything inside it — which
+   is what makes energy sheens read as a border instead of washing over
+   the whole card on initials-only cards.
+   Stack inside .card:
+     0 .efxframe  band, tier gradient (or effect colour)
+     1 .efxenergy / .efxsheen   ride the band
+     2 .efxplate  OPAQUE inner plate — masks the middle
+     3 art  4 fade/scrim  4 initials  5 overlay  6 type
+   ========================================================= */
+.card.framed{background:transparent!important;border:none!important;padding:9px 9px 8px}
+/* a shaped frame must not leave the card's own rounded rectangle showing behind it */
+.card[class*="f-"]{background:transparent!important;border:none!important;
+  box-shadow:none!important;border-radius:0!important}
+/* per-shape padding so the name and meta line stay inside the silhouette */
+.card.f-shield{padding:12px 16px 30px}
+.card.f-crown {padding:20px 12px 10px}
+.card.f-obel  {padding:20px 16px 20px}
+.card.f-rune  {padding:12px 12px 18px}
+.card.f-deco  {padding:16px 14px 16px}
+.card.f-vault {padding:12px 12px 12px}
+.card.f-notch {padding:14px 10px 14px}
+/* Standard = a rectangular frame, defined the same way every shaped frame is.
+   clip-path (not overflow) is what actually contains the rotating energy children,
+   so every frame including the default one must declare one. */
+.card.framed .efxframe,.card.framed .efxplate,
+.card.framed .efxsheen,.card.framed .efxenergy{clip-path:inset(0 round 12px)}
+/* CRITICAL: these four are clipped to the card themselves. .card.has-aura sets
+   overflow:visible so the aura halo can spill outside — without their own clip the
+   rotating energy conic escapes with it and blobs out past the card edge. */
+.efxframe,.efxplate,.efxsheen,.efxenergy{clip-path:inset(0 round 12px)}
+.efxframe{position:absolute;inset:0;z-index:0;border-radius:12px;pointer-events:none;
+  transition:opacity .25s}
+.efxplate{position:absolute;inset:4px;z-index:2;border-radius:8px;pointer-events:none;
+  clip-path:inset(0 round 8px)}
+/* tier gradients on the band */
+.card.framed.t-Bronze .efxframe{background:linear-gradient(135deg,#b06a30,#e0a468)}
+.card.framed.t-Silver .efxframe{background:linear-gradient(135deg,#8e97a6,#d7dee9)}
+.card.framed.t-Gold   .efxframe{background:linear-gradient(135deg,#f59e0b,#fbbf24)}
+.card.framed.t-Elite  .efxframe{background:linear-gradient(135deg,#dc2626,#ef4444)}
+.card.framed.t-Icon   .efxframe{background:linear-gradient(135deg,#ec4899,#f472b6)}
+/* the plate keeps each tier's dark body colour */
+.card.framed.t-Bronze .efxplate{background:linear-gradient(160deg,#241608,#141110)}
+.card.framed.t-Silver .efxplate{background:linear-gradient(160deg,#1c2027,#121417)}
+.card.framed.t-Gold   .efxplate{background:linear-gradient(160deg,#241d0a,#141210)}
+.card.framed.t-Elite  .efxplate{background:linear-gradient(160deg,#2a0f1a,#150b12)}
+.card.framed.t-Icon   .efxplate{background:linear-gradient(160deg,#241322,#160d18)}
+/* framed cards: art, initials and type sit above the plate */
+.card.framed .cardart{z-index:3}
+.card.framed .cardart-fade,.card.framed .cardart-scrim{z-index:4}
+.card.framed .ini{position:relative;z-index:4}
+.card.framed .efxov{z-index:5}
+.card.framed .card-top,.card.framed .infobtn,.card.framed .nm,.card.framed .meta{position:relative;z-index:6}
+/* the Icon tier's sweeping flare has to sit above the plate too */
+.card.framed.t-Icon::after{z-index:5}
+
+/* --- shaped frames: band + plate + effect layers all take the same silhouette --- */
+.card.f-blade  .efxframe,.card.f-blade  .efxplate,.card.f-blade  .efxsheen,.card.f-blade  .efxenergy{clip-path:polygon(0% 0%,72% 0%,100% 16%,100% 100%,28% 100%,0% 84%)}
+.card.f-chamf  .efxframe,.card.f-chamf  .efxplate,.card.f-chamf  .efxsheen,.card.f-chamf  .efxenergy{clip-path:polygon(11% 0%,89% 0%,100% 8%,100% 92%,89% 100%,11% 100%,0% 92%,0% 8%)}
+.card.f-notch  .efxframe,.card.f-notch  .efxplate,.card.f-notch  .efxsheen,.card.f-notch  .efxenergy{clip-path:polygon(0% 0%,39% 0%,43% 5%,57% 5%,61% 0%,100% 0%,100% 100%,61% 100%,57% 95%,43% 95%,39% 100%,0% 100%)}
+.card.f-vault  .efxframe,.card.f-vault  .efxplate,.card.f-vault  .efxsheen,.card.f-vault  .efxenergy{clip-path:polygon(16% 0%,84% 0%,100% 13%,100% 28%,93% 33%,93% 67%,100% 72%,100% 87%,84% 100%,16% 100%,0% 87%,0% 72%,7% 67%,7% 33%,0% 28%,0% 13%)}
+.card.f-rune   .efxframe,.card.f-rune   .efxplate,.card.f-rune   .efxsheen,.card.f-rune   .efxenergy{clip-path:polygon(20% 0%,80% 0%,100% 10%,100% 40%,94% 45%,94% 55%,100% 60%,100% 90%,80% 100%,68% 94%,56% 100%,44% 94%,32% 100%,20% 100%,0% 90%,0% 60%,6% 55%,6% 45%,0% 40%,0% 10%)}
+.card.f-shield .efxframe,.card.f-shield .efxplate,.card.f-shield .efxsheen,.card.f-shield .efxenergy{clip-path:polygon(0% 0%,100% 0%,100% 58%,86% 78%,50% 100%,14% 78%,0% 58%)}
+.card.f-deco   .efxframe,.card.f-deco   .efxplate,.card.f-deco   .efxsheen,.card.f-deco   .efxenergy{clip-path:polygon(30% 0%,70% 0%,70% 3%,82% 3%,82% 8%,92% 8%,92% 14%,100% 14%,100% 86%,92% 86%,92% 92%,82% 92%,82% 97%,70% 97%,70% 100%,30% 100%,30% 97%,18% 97%,18% 92%,8% 92%,8% 86%,0% 86%,0% 14%,8% 14%,8% 8%,18% 8%,18% 3%,30% 3%)}
+.card.f-crown  .efxframe,.card.f-crown  .efxplate,.card.f-crown  .efxsheen,.card.f-crown  .efxenergy{clip-path:polygon(50% 0%,57% 7%,65% 1%,72% 8%,82% 3%,86% 11%,100% 9%,100% 89%,88% 100%,12% 100%,0% 89%,0% 9%,14% 11%,18% 3%,28% 8%,35% 1%,43% 7%)}
+.card.f-obel   .efxframe,.card.f-obel   .efxplate,.card.f-obel   .efxsheen,.card.f-obel   .efxenergy{clip-path:polygon(34% 0%,66% 0%,66% 4%,74% 4%,74% 9%,82% 9%,82% 15%,100% 15%,100% 85%,82% 85%,82% 91%,74% 91%,74% 96%,66% 96%,66% 100%,34% 100%,34% 96%,26% 96%,26% 91%,18% 91%,18% 85%,0% 85%,0% 15%,18% 15%,18% 9%,26% 9%,26% 4%,34% 4%)}
+/* shaped frames get a fatter band so the silhouette reads at grid size.
+   The plate re-uses the frame polygon (set above) rather than a rounded inset. */
+.card[class*="f-"] .efxplate{inset:5px;border-radius:0}
+
+/* --- sheen + energy now sit UNDER the plate, so only the band shows --- */
+.efxsheen{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden;border-radius:12px}
+.efxenergy{position:absolute;inset:0;z-index:1;pointer-events:none;opacity:0;
+  mix-blend-mode:screen;border-radius:12px;overflow:hidden}
+/* an equipped energy owns the band, so fade the tier gradient out from under it */
+.card.on-sfx .efxframe{opacity:.28}
+
+/* --- AURAS as real child elements (the old ::before/::after collided with
+       .t-Icon::after, the Icon tier's flare) and tightly bounded so they
+       hug the card instead of eating grid space --- */
+.efxaura,.efxaura2{position:absolute;inset:0;pointer-events:none;border-radius:50%}
+.efxaura {z-index:-1;transform:scale(1.30);filter:blur(15px)}
+.efxaura2{z-index:-2;transform:scale(1.55);filter:blur(26px);opacity:.75}
+/* Auras need to bleed outside the card, but overflow:visible also let the Icon
+   tier's sliding flare and conic flame escape and drift across the page. Those two
+   are contained explicitly instead. */
+.card.has-aura{overflow:visible}
+.card.has-aura.t-Icon::after{display:none!important}
+.card.has-aura .flame::before,.card.has-aura .flame::after{display:none!important}
+/* when an aura is equipped the tier flare steps back so the aura reads */
+.card.has-aura .efxframe{opacity:.30}
+.card.has-aura.t-Icon .efxframe{opacity:.14}
+.card.has-aura.t-Icon,.card.has-aura.t-Elite,.card.has-aura.t-Gold{box-shadow:none!important}
+
+/* ===== RAFTERS ===== */
+.rfhero{display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  background:linear-gradient(135deg,#1a1508,#141414 60%,#1a0d18);
+  border:1px solid rgba(255,197,61,.3);border-radius:16px;padding:18px;margin-bottom:10px}
+.rfhero h2{font-size:26px;margin-bottom:4px}
+.rfhero p{font-size:12px;color:#c8c8d0;line-height:1.5;max-width:470px}
+.rfbal{margin-left:auto;text-align:right;font-family:var(--disp);font-size:32px;color:var(--gold);line-height:1}
+.rfbal small{display:block;font-family:inherit;font-size:9px;letter-spacing:.18em;color:var(--dim);margin-top:4px}
+.rfodds{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+.rfo{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px;text-align:center}
+.rfo b{display:block;font-size:11px;letter-spacing:.06em}
+.rfo span{font-size:14px;font-family:var(--disp);color:var(--ink)}
+.rfstats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:6px;margin-bottom:14px}
+.rfstats>div{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 11px}
+.rfstats b{display:block;font-family:var(--disp);font-size:20px;color:var(--gold)}
+.rfstats span{font-size:8.5px;letter-spacing:.12em;color:var(--dim)}
+
+/* Siege-style reveal backdrop: light casts UP from the bottom edge, never a centred vignette.
+   --rf-glow is rewritten the moment a pack is bought, so the leak matches the pulled rarity. */
+.rfarena{position:relative;border:1px solid var(--line);border-radius:18px;min-height:470px;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
+  user-select:none;touch-action:none;margin-bottom:12px;
+  --rf-glow:#4a4f5c;
+  background:linear-gradient(0deg,var(--rf-glow) 0%,rgba(15,12,25,.95) 50%,#08070d 100%);
+  transition:background .5s ease-in-out,--rf-glow .5s ease-in-out}
+/* hot bloom sitting on the bottom edge so the projection has a source */
+.rfarena::after{content:"";position:absolute;left:-10%;right:-10%;bottom:-14%;height:52%;
+  pointer-events:none;z-index:0;filter:blur(34px);opacity:var(--rf-lift,.6);
+  background:radial-gradient(60% 100% at 50% 100%,var(--rf-glow),transparent 72%);
+  transition:opacity .5s ease-in-out}
+/* halftone dot matrix, masked so it only catches the light in the lower half */
+.rfarena::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;
+  background-image:radial-gradient(rgba(255,255,255,.12) 1px,transparent 1px);
+  background-size:16px 16px;
+  -webkit-mask-image:linear-gradient(to top,rgba(0,0,0,1) 0%,rgba(0,0,0,0) 60%);
+          mask-image:linear-gradient(to top,rgba(0,0,0,1) 0%,rgba(0,0,0,0) 60%)}
+.rfarena>*{position:relative;z-index:2}
+.rfstage{position:relative;width:214px;height:302px}
+.rfpack{position:absolute;inset:0;animation:rffloat 5s ease-in-out infinite}
+.rfpack.live{animation:none}
+@keyframes rffloat{0%,100%{transform:translateY(0) rotate(-.5deg)}50%{transform:translateY(-9px) rotate(.5deg)}}
+.rfvoid{position:absolute;left:6px;right:6px;top:10%;height:4px;transform:translateY(-50%);border-radius:3px;
+  background:linear-gradient(90deg,transparent,var(--rf-glow) 30%,#fff 50%,var(--rf-glow) 70%,transparent);
+  box-shadow:0 0 26px 8px var(--rf-glow),0 0 56px 20px var(--rf-glow);opacity:0;
+  transition:opacity .12s,background .35s,box-shadow .35s}
+.rfspill{position:absolute;left:-8%;right:-8%;top:10%;height:230px;z-index:2;opacity:0;
+  pointer-events:none;transform-origin:50% 0;filter:blur(15px);mix-blend-mode:screen;
+  background:linear-gradient(180deg,var(--rf-glow) 0%,var(--rf-glow) 16%,transparent 70%);
+  transition:background .35s}
+.rfhalf{position:absolute;inset:0;overflow:hidden;border-radius:16px;
+  background:linear-gradient(148deg,#1c1c24,#0c0c11 32%,#24242f 52%,#09090d 74%,#1e1e28);
+  box-shadow:0 18px 44px rgba(0,0,0,.7),inset 0 0 0 1.5px rgba(255,255,255,.08)}
+.rfhalf::before{content:"";position:absolute;inset:0;opacity:.26;
+  background:linear-gradient(118deg,transparent 38%,rgba(130,200,255,.7) 47%,rgba(255,140,220,.6) 53%,transparent 62%);
+  background-size:280% 100%;animation:rfshine 5.5s linear infinite}
+@keyframes rfshine{0%{background-position:190% 0}100%{background-position:-90% 0}}
+.rflid{position:absolute;top:8px;left:0;right:0;text-align:center;font-size:7.5px;
+  letter-spacing:.3em;color:rgba(255,255,255,.45)}
+.rfbrand{position:absolute;inset:10% 0 0;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:8px}
+.rfmark{width:60px;height:60px;border-radius:50%;border:2.5px solid var(--rf-glow);
+  display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-size:22px;
+  color:var(--gold);box-shadow:0 0 18px rgba(255,197,61,.3),inset 0 0 16px rgba(255,197,61,.15)}
+.rfname{font-family:var(--disp);font-size:23px;color:#f3f3f7;text-shadow:0 2px 10px rgba(0,0,0,.9)}
+.rfsub{font-size:7.5px;letter-spacing:.32em;color:rgba(255,255,255,.36)}
+.rftrack{position:absolute;left:14px;right:14px;top:10%;height:3px;transform:translateY(-50%);z-index:6;
+  border-radius:2px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.3) 0 3px,transparent 3px 7px)}
+.rftab{position:absolute;top:10%;z-index:8;width:42px;height:32px;margin:-16px 0 0 -21px;cursor:grab;touch-action:none}
+.rftab:active{cursor:grabbing}
+.rftabb{position:absolute;inset:0;border-radius:6px;
+  background:linear-gradient(160deg,#f2f5f8,#7d8794 34%,#fff 52%,#59616d 72%,#dfe4ea);
+  box-shadow:0 3px 10px rgba(0,0,0,.7),inset 0 0 0 1px rgba(0,0,0,.35)}
+.rfhint{position:absolute;left:50px;top:50%;transform:translateY(-50%);white-space:nowrap;
+  font-size:8.5px;letter-spacing:.2em;color:rgba(255,255,255,.55);animation:rfnudge 1.8s ease-in-out infinite}
+@keyframes rfnudge{0%,100%{transform:translate(0,-50%);opacity:.45}50%{transform:translate(7px,-50%);opacity:1}}
+.rfpack.live .rfhint{opacity:0;animation:none}
+.rfreveal{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;
+  isolation:isolate;
+  justify-content:center;gap:14px;padding:16px;text-align:center}
+.rfreveal.show{display:flex}
+/* scale a normal-size card rather than resizing it, so initials, padding and type
+   stay in exactly the proportions they have in pack and draft mode */
+.rfitem{width:150px;height:228px;display:flex;align-items:center;justify-content:center;
+  transform-origin:center}
+.rfitem .card{transform:scale(1.44);transform-origin:center;flex:0 0 auto}
+.rfrar{font-family:var(--disp);font-size:23px;letter-spacing:.08em}
+.rfename{font-size:14px;color:#fff;font-weight:700;margin-top:2px}
+.rffor{font-size:11px;color:var(--dim);margin-top:2px}
+.rfnew{font-size:10px;letter-spacing:.14em;color:#7dffc0;margin-top:6px}
+.rfdupe{font-size:10.5px;color:var(--gold);margin-top:6px}
+.rfbtns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.rfbuy{text-align:center}
+.rfbuy .btn{min-width:220px}
+.rfneed{font-size:11px;color:#ff9b9b;margin-top:8px}
+.rfnote{font-size:11px;color:var(--dim);margin-top:8px;line-height:1.5;font-style:italic}
+
+/* ===== COLLECTION: equip drawer ===== */
+.eqwrap{margin-top:12px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px}
+.eqhead{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.eqhead h3{font-size:15px}
+.eqhead span{font-size:11px;color:var(--dim)}
+.eqclose{margin-left:auto;background:var(--panel2);border:1px solid var(--line);color:var(--dim);
+  border-radius:8px;padding:6px 12px;font-size:11px;cursor:pointer}
+.eqslots{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.eqslot h4{font-size:9.5px;letter-spacing:.14em;color:var(--dim);margin-bottom:6px}
+.eqrow{display:flex;flex-wrap:wrap;gap:5px}
+.eqchip{background:var(--panel2);border:1px solid var(--line);color:var(--dim);border-radius:8px;
+  padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer}
+.eqchip.on{background:var(--gold);border-color:var(--gold);color:#241d08}
+.eqchip small{display:block;font-size:7.5px;letter-spacing:.1em;opacity:.7;font-weight:600}
+.eqempty{font-size:11px;color:var(--dim);font-style:italic}
+.eqpreview{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}
+.eqpreview .card{width:118px;height:180px;flex:0 0 auto}
+
 /* ===== enlarged card viewer ===== */
 #cardzoom{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;padding:24px;
   background:radial-gradient(120% 90% at 50% 40%,rgba(10,10,14,.82),rgba(3,3,5,.95));
@@ -2009,14 +2348,24 @@ function baseTrophies(){const a=[];const add=(id,n,tier,cat,desc,fn,hidden=false
  add("starting-something","Starting Something","Silver","Iconic Teams","Complete one Iconic Team entry.",()=>trophyProgress(ICONIC_TEAMS.filter(g=>setProgressSoft(g.m).done).length,1));add("champ-dna","Championship DNA","Gold","Iconic Teams","Complete five champion-team entries.",()=>trophyProgress(ICONIC_TEAMS.filter(g=>g.kind==="Champion"&&setProgressSoft(g.m).done).length,5));add("basketball-museum","Basketball Museum","Immortal","Iconic Teams","Complete every Iconic Team entry.",()=>trophyProgress(ICONIC_TEAMS.filter(g=>setProgressSoft(g.m).done).length,ICONIC_TEAMS.length));
  return a;}
 function allTrophies(){return baseTrophies();}
-function evaluateTrophies(show=true){markActivations();const now=Date.now(),fresh=[];allTrophies().forEach(t=>{const p=t.fn();if(p.done&&!T.unlocked[t.id]){T.unlocked[t.id]={at:now};fresh.push(t);}});saveTrophies();if(fresh.length&&typeof creditsForTrophy==="function")fresh.forEach(creditsForTrophy);if(show&&fresh.length)showUnlocks(fresh);}
+function evaluateTrophies(show=true){markActivations();const now=Date.now(),fresh=[];allTrophies().forEach(t=>{const p=t.fn();if(p.done&&!T.unlocked[t.id]){T.unlocked[t.id]={at:now};fresh.push(t);}});saveTrophies();if(fresh.length&&typeof creditsForTrophy==="function")fresh.forEach(creditsForTrophy);
+  /* every 10 trophies earns a pack */
+  if(fresh.length&&typeof grantPack==="function"){
+    const before=Object.keys(T.unlocked).length-fresh.length, after=Object.keys(T.unlocked).length;
+    const packs=Math.floor(after/10)-Math.floor(before/10);
+    if(packs>0)grantPack(packs,"Trophy milestone \u2014 free pack!");}if(show&&fresh.length)showUnlocks(fresh);}
 function showUnlocks(items){items.slice(0,4).forEach((t,i)=>setTimeout(()=>{const d=document.createElement("div");d.className="unlocktoast";d.innerHTML=`<b>TROPHY UNLOCKED · ${t.tier}</b><span>${esc(t.n)} — ${esc(t.desc)}</span>`;document.body.appendChild(d);setTimeout(()=>d.remove(),3600);},i*500));}
 function trophySummary(){const ts=allTrophies(),done=ts.filter(t=>T.unlocked[t.id]);return {done:done.length,total:ts.length,pts:done.reduce((a,t)=>a+TROPHY_POINTS[t.tier],0)};}
 function trophyTile(t){const p=t.fn(),u=T.unlocked[t.id],pct=Math.round(100*p.cur/Math.max(1,p.max)),secret=t.hidden&&!u;const miss=p.missing&&p.missing.length?`Missing: ${p.missing.slice(0,4).join(", ")}${p.missing.length>4?` +${p.missing.length-4}`:""}`:"";return `<div class="trophy t-${t.tier}T ${u?"done":""} ${secret?"hidden":""}"><div class="tier">${t.tier} · ${TROPHY_POINTS[t.tier]} TP</div><h3>${secret?"Hidden Trophy":esc(t.n)}</h3><p>${secret?"A secret challenge waits to be discovered.":esc(t.desc)}</p><div class="prog"><i style="width:${pct}%"></i></div><div class="footrow"><span>${p.cur} / ${p.max}</span><span>${u?"UNLOCKED":miss||"IN PROGRESS"}</span></div></div>`;}
 function archiveTile(g,type){const p=setProgressSoft(g.m),tgt=setTarget(g.m),act=type==="chem"?T.activatedChem[g.l]:type==="whatif"?T.activatedWhatIf[g.id]:T.activatedTeams[g.id];const own=ownedNames();return `<div class="archive ${p.done?"complete":""} ${act?"activated":""}"><h3>${esc(g.n||g.l)}</h3><div class="state">${type==="whatif"?esc(g.cred)+" · ":type==="teams"?esc(g.kind)+" · ":""}${act?"ARCHIVE ACTIVATED":p.done?"READY TO ASSEMBLE":p.cur?"DISCOVERED":"UNKNOWN"}</div><div class="members">${g.m.map(n=>{const avail=DB.some(x=>x.name===n);return `<span class="member ${!avail?"":" "+(own.has(n)?"ok":"miss")}" style="${!avail?"color:#777":""}">${!avail?"⊘":own.has(n)?"✓":"○"} ${esc(n)}${!avail?" (not yet in card pool)":""}</span>`}).join(" · ")}</div><div class="prog"><i style="width:${100*p.cur/p.max}%"></i></div><div class="footrow"><span>${p.cur}/${p.max} needed${tgt.available>tgt.need?` (of ${tgt.available})`:""}</span><span>${p.missing.slice(0,2).join(", ")}</span></div></div>`;}
 function trophyHTML(){evaluateTrophies(false);const sum=trophySummary(),cats=["Featured",...new Set(allTrophies().map(t=>t.cat)),"Archives"];let body;if(TROPHY_FILTER==="Archives"){const list=ARCHIVE_TAB==="chem"?DUOS:ARCHIVE_TAB==="whatif"?WHAT_IF:ICONIC_TEAMS;body=`<div class="archivetabs"><button class="btn ${ARCHIVE_TAB==="chem"?"on":""}" onclick="ARCHIVE_TAB='chem';render()">Chemistry Archive (${Object.keys(T.activatedChem).length}/${DUOS.length})</button><button class="btn ${ARCHIVE_TAB==="whatif"?"on":""}" onclick="ARCHIVE_TAB='whatif';render()">What If (${WHAT_IF.filter(g=>setProgressSoft(g.m).done).length}/${WHAT_IF.length})</button><button class="btn ${ARCHIVE_TAB==="teams"?"on":""}" onclick="ARCHIVE_TAB='teams';render()">Iconic Teams (${ICONIC_TEAMS.filter(g=>setProgressSoft(g.m).done).length}/${ICONIC_TEAMS.length})</button></div><div class="archivegrid">${list.map(g=>archiveTile(g,ARCHIVE_TAB)).join("")}</div>`;}else{let ts=allTrophies();if(TROPHY_FILTER==="Featured")ts=ts.filter(t=>T.unlocked[t.id]||["Collection","Records","Chemistry","What If","Iconic Teams"].includes(t.cat)).slice(0,30);else ts=ts.filter(t=>t.cat===TROPHY_FILTER);body=`<div class="trophygrid">${ts.map(trophyTile).join("")}</div>`;}return `<div class="trophyhero"><div><h2>Trophy Case</h2><p style="font-size:12px;color:var(--dim);line-height:1.5">Permanent progression across every run. Collection Ledger: <b style="color:var(--ink)">${ownedNames().size}</b> unique players · resets never erase discoveries.</p></div><div class="tpbig">${sum.pts}<small>TROPHY POINTS · ${sum.done}/${sum.total}</small></div></div><div class="trophyfilters">${cats.map(c=>`<button class="${TROPHY_FILTER===c?"on":""}" onclick="TROPHY_FILTER='${c}';render()">${c}</button>`).join("")}</div>${body}<div class="notice" id="notice"></div>`;}
 function trophyPack(cards){T.stats.packs++;let fresh=0;cards.forEach(c=>{if(!T.seenNames[c.name])fresh++;ledgerAdd(c);if(c.tier==="Icon")T.stats.iconsPulled++;if(c.tier==="Elite")T.stats.elitePulled++;if(c.tier==="Gold")T.stats.goldPulled++;if(c.ovr===99)T.stats.pulled99++;});const hi=cards.filter(c=>tierRank(c.tier)>=tierRank("Elite")).length,ic=cards.filter(c=>c.tier==="Icon").length;if(hi>=2)T.stats.doubleElite++;if(hi>=3)T.stats.threeElite++;if(ic>=2)T.stats.doubleIcon++;if(typeof creditsForDiscovery==="function")creditsForDiscovery(fresh);evaluateTrophies();}
-function trophyRoster(mode,r,opts){const o=teamOVR(r);const ranked=!(opts&&opts.eraLocked); /* era-locked drafts don't count toward win/record prestige */
+function trophyRoster(mode,r,opts){
+  /* players you drafted or picked in the daily count as discovered, same as pack pulls */
+  {const players=rosterPlayers(r);
+   let fresh=0; players.forEach(p=>{if(!T.seenCards[p.id])fresh++; ledgerAdd(p);});
+   if(fresh){saveTrophies(); if(typeof creditsForDiscovery==="function")creditsForDiscovery(fresh);}}
+  const o=teamOVR(r);const ranked=!(opts&&opts.eraLocked); /* era-locked drafts don't count toward win/record prestige */
   if(o.ready&&ranked){const w=projection(o.eff).wins;T.stats.maxWins=Math.max(T.stats.maxWins,w);T.stats.maxChem=Math.max(T.stats.maxChem,o.chem.bonus);if(w===82){const sig=ALL_SLOTS.map(s=>r[s]??"x").join(",");if(T.last82[mode]!==sig){T.last82[mode]=sig;if(mode==="draft")T.stats.draft82++;else if(mode==="classic")T.stats.pack82++;}}}
   evaluateTrophies();}
 sanitizeSave();save();
@@ -2372,6 +2721,9 @@ function dailySubmit(){
   if(!DD.submitted)DAILY.history[key]=(DAILY.history[key]||0)+1; /* count the day once, not per rearrange */
   DD.submitted=true;saveDaily();
   if(!alreadyToday&&typeof creditsForDaily==="function")creditsForDaily(DAILY.streak);
+  /* a 7-day daily streak earns a free Rafters pack */
+  if(!alreadyToday&&typeof grantPack==="function"&&DAILY.streak>0&&DAILY.streak%7===0)
+    grantPack(1,"7-day streak \u2014 free pack!");
   if(typeof trophyRoster==="function")trophyRoster("daily",DD.roster);
   return {ok:true,result:r,best:DAILY.best[key],streak:DAILY.streak};
 }
@@ -2557,11 +2909,13 @@ const UPDATES={
     "Trophy Case \u2014 115 trophies, archives and hidden challenges",
     "Shareable squad images with record titles",
     "Credits earned from playing",
+    "The Rafters \u2014 packs of card cosmetics",
+    "Card effects \u2014 frames, auras, border light, card-face overlays",
+    "Collection \u2014 browse every card and equip effects",
   ],
   progress:[
     "Player artwork \u2014 rolling out card by card",
     "Database update \u2014 2K24\u20132K26 players and ratings",
-    "Shop items \u2014 frames, backdrops and effects",
   ],
   next:[
     "Mythic card skins (earned, never purchasable)",
@@ -2612,7 +2966,7 @@ function collTile(p){
       <div class="ct-meta"><b>\u2014\u2014\u2014</b><span>${esc(p.tier.toUpperCase())}</span></div></div>`;
   }
   const art=cardArtURL(p);
-  return `<div class="ctile t-${p.tier}" onclick="openCardZoom(event,${p.id})">
+  return `<div class="ctile t-${p.tier}" onclick="${efxEligible(p)?`openEquip(${p.id})`:`openCardZoom(event,${p.id})`}">
     ${art?`<img class="ct-art" src="${art}" ${cardArtFallbackAttr(p)} alt="">`:""}
     <div class="ct-ovr">${p.ovr}</div>
     <div class="ct-meta"><b>${esc(p.name)}</b><span>${esc(p.team)} \u00b7 ${esc(p.era)}</span></div></div>`;
@@ -2645,10 +2999,543 @@ function collectionHTML(){
   </div>
   <input class="collsearch" type="search" placeholder="Search name, team or OVR\u2026" value="${esc(COLL_Q)}"
     oninput="collSearch(this.value)" autocomplete="off">
+  ${equipHTML()}
   <div class="collcount" id="collcount"></div>
   <div class="collgrid" id="collgrid"></div>
   <div class="notice" id="notice"></div>`;
 }
+
+
+/* ================= EFFECTS / RAFTERS PACKS =================
+   Cosmetics are unlocked PER CARD. A pull grants one effect for one specific card,
+   so "Volt for LeBron-CLE" is a different unlock from "Volt for LeBron-MIA".
+   Only Gold+ cards can carry effects, and the card roll is SPOTLIGHT-weighted so
+   you mostly pull names you recognise. Duplicates refund credits. */
+const EFX_KEY="atu-efx-v1";
+const EFX_TIERS=["Common","Uncommon","Rare","Mythic"];
+const EFX_TIER_COLOR={Common:"#9aa4b2",Uncommon:"#3ddc84",Rare:"#35d6ff",Mythic:"#ff7ac8"};
+/* pack odds — mythic sits at 2%, in Black Ice territory once split across the pool */
+const EFX_ODDS={Common:62,Uncommon:26,Rare:10,Mythic:2};
+const PACK_COST=400, PITY_AT=45;
+/* refund when you pull something you already own for that card */
+const EFX_REFUND={Common:40,Uncommon:90,Rare:220,Mythic:900};
+
+const EFFECTS=[
+  /* --- border sheens: all common --- */
+  {id:"s-sweep", n:"Sweep",     k:"sheen", t:"Common"},
+  {id:"s-glint", n:"Glint",     k:"sheen", t:"Common"},
+  {id:"s-pulse", n:"Pulse",     k:"sheen", t:"Common"},
+  {id:"s-cross", n:"Crossfire", k:"sheen", t:"Common"},
+  {id:"s-chase", n:"Chase",     k:"sheen", t:"Common"},
+  {id:"s-holo",  n:"Holo Shift",k:"sheen", t:"Common"},
+  /* --- frames --- */
+  {id:"f-blade", n:"Blade",     k:"frame", t:"Common"},
+  {id:"f-chamf", n:"Chamfer",   k:"frame", t:"Common"},
+  {id:"f-notch", n:"Notch",     k:"frame", t:"Uncommon"},
+  {id:"f-vault", n:"Vault",     k:"frame", t:"Uncommon"},
+  {id:"f-rune",  n:"Rune",      k:"frame", t:"Rare"},
+  {id:"f-shield",n:"Shield",    k:"frame", t:"Rare"},
+  {id:"f-deco",  n:"Deco",      k:"frame", t:"Rare"},
+  {id:"f-crown", n:"Crown",     k:"frame", t:"Mythic"},
+  {id:"f-obel",  n:"Obelisk",   k:"frame", t:"Mythic"},
+  /* --- auras --- */
+  {id:"a-halo",  n:"Halo",      k:"aura", t:"Uncommon"},
+  {id:"a-solar", n:"Solar",     k:"aura", t:"Uncommon"},
+  {id:"a-frost", n:"Frost",     k:"aura", t:"Uncommon"},
+  {id:"a-magma", n:"Magma",     k:"aura", t:"Rare"},
+  {id:"a-toxic", n:"Toxic",     k:"aura", t:"Rare"},
+  {id:"a-candy", n:"Candy",     k:"aura", t:"Rare"},
+  {id:"a-prism", n:"Prism",     k:"aura", t:"Rare"},
+  {id:"a-sunset",n:"Sunset",    k:"aura", t:"Rare"},
+  {id:"a-ember", n:"Ember",     k:"aura", t:"Mythic"},
+  {id:"a-volt",  n:"Volt",      k:"aura", t:"Mythic"},
+  {id:"a-blood", n:"Blood",     k:"aura", t:"Mythic"},
+  {id:"a-void",  n:"Void",      k:"aura", t:"Mythic"},
+  {id:"a-aurora",n:"Aurora",    k:"aura", t:"Mythic"},
+  {id:"a-venom", n:"Venom",     k:"aura", t:"Mythic"},
+  {id:"a-nebula",n:"Nebula",    k:"aura", t:"Mythic"},
+  {id:"a-cosmic",n:"Cosmic",    k:"aura", t:"Mythic"},
+  {id:"a-oil",   n:"Oil Slick", k:"aura", t:"Mythic"},
+  {id:"a-spect", n:"Spectrum",  k:"aura", t:"Mythic"},
+  /* --- energy sheens --- */
+  {id:"e-volt",  n:"Volt",      k:"energy", t:"Rare"},
+  {id:"e-tox",   n:"Toxic",     k:"energy", t:"Rare"},
+  {id:"e-fire",  n:"Inferno",   k:"energy", t:"Mythic"},
+  {id:"e-cryo",  n:"Cryogen",   k:"energy", t:"Mythic"},
+  {id:"e-molt",  n:"Molten",    k:"energy", t:"Mythic"},
+  {id:"e-spec",  n:"Spectral",  k:"energy", t:"Mythic"},
+  /* --- card-face overlays --- */
+  {id:"o-frost", n:"Glacier Freeze", k:"overlay", t:"Mythic"},
+  {id:"o-bolt",  n:"Volt Lightning", k:"overlay", t:"Mythic"},
+  {id:"o-sparks",n:"Sparks",         k:"overlay", t:"Mythic"},
+  {id:"o-holo",  n:"Diamond Holo",   k:"overlay", t:"Mythic"},
+];
+const EFX_BY_ID={}; EFFECTS.forEach(e=>EFX_BY_ID[e.id]=e);
+const EFX_SLOT={frame:"frame",aura:"aura",sheen:"sheen",energy:"energy",overlay:"overlay"};
+const EFX_SLOT_LABEL={frame:"Frame",aura:"Aura",sheen:"Sheen",energy:"Energy",overlay:"Overlay"};
+
+function emptyEfx(){return {owned:{},equip:{},packs:0,sincePity:0,log:[]};}
+let EFX=sGet(EFX_KEY)||emptyEfx();
+/* heal anything malformed so a bad save can never break pack opening */
+if(!EFX||typeof EFX!=="object")EFX=emptyEfx();
+if(!EFX.owned||typeof EFX.owned!=="object")EFX.owned={};
+if(!EFX.equip||typeof EFX.equip!=="object")EFX.equip={};
+if(typeof EFX.packs!=="number")EFX.packs=0;
+if(typeof EFX.sincePity!=="number")EFX.sincePity=0;
+if(!Array.isArray(EFX.log))EFX.log=[];
+function saveEfx(){sSet(EFX_KEY,EFX);}
+
+/* ---- ownership ---- */
+const efxKey=(cardId,efxId)=>cardId+"|"+efxId;
+function ownsEfx(cardId,efxId){return !!EFX.owned[efxKey(cardId,efxId)];}
+function grantEfx(cardId,efxId){
+  const k=efxKey(cardId,efxId);
+  const dupe=!!EFX.owned[k];
+  EFX.owned[k]=(EFX.owned[k]||0)+1;
+  saveEfx();
+  return dupe;
+}
+function efxOwnedFor(cardId){
+  return EFFECTS.filter(e=>ownsEfx(cardId,e.id));
+}
+function efxOwnedCount(){return Object.keys(EFX.owned).length;}
+
+/* ---- which cards can carry effects: Gold and above, never depth players ---- */
+function efxEligible(p){
+  if(!p)return false;
+  if(typeof isDepthOnly==="function"&&isDepthOnly(p))return false;
+  return p.tier==="Gold"||p.tier==="Elite"||p.tier==="Icon";
+}
+function efxCardPool(){return DB.filter(efxEligible);}
+
+/* ---- rolling ---- */
+function rollEfxTier(force){
+  if(force)return force;
+  /* pity: guarantee a mythic once the counter hits the threshold */
+  if(EFX.sincePity>=PITY_AT-1)return "Mythic";
+  const r=Math.random()*100; let acc=0;
+  for(const t of EFX_TIERS){acc+=EFX_ODDS[t]; if(r<=acc)return t;}
+  return "Common";
+}
+function rollEfxOfTier(t){
+  const pool=EFFECTS.filter(e=>e.t===t);
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+/* SPOTLIGHT-weighted card roll so recognisable names dominate the pulls */
+function rollEfxCard(){
+  const pool=efxCardPool();
+  const w=pool.map(p=>Math.pow(SPOTLIGHT[p.name]??1,1.35)+0.05);
+  let total=0; w.forEach(x=>total+=x);
+  let r=Math.random()*total;
+  for(let i=0;i<pool.length;i++){r-=w[i]; if(r<=0)return pool[i];}
+  return pool[pool.length-1];
+}
+/* one pull = one effect for one card */
+function openRaftersPack(force){
+  const tier=rollEfxTier(force);
+  const efx=rollEfxOfTier(tier);
+  const card=rollEfxCard();
+  const dupe=grantEfx(card.id,efx.id);
+  let refund=0;
+  if(dupe){refund=EFX_REFUND[tier]||0;
+    if(typeof awardCredits==="function")awardCredits(refund,"Duplicate refunded");}
+  EFX.packs++;
+  EFX.sincePity = (tier==="Mythic") ? 0 : EFX.sincePity+1;
+  EFX.log.unshift({c:card.id,e:efx.id,t:tier,d:dupe,at:Date.now()});
+  EFX.log=EFX.log.slice(0,60);
+  saveEfx();
+  return {tier,efx,card,dupe,refund};
+}
+/* free packs earned from play, banked until opened */
+function grantPack(n,reason){
+  EFX.free=(EFX.free||0)+(n||1);saveEfx();
+  if(typeof creditToast==="function")creditToast(n||1,(reason||"Pack earned"));
+}
+function packsAvailable(){return (EFX.free||0);}
+function spendPack(){
+  if((EFX.free||0)>0){EFX.free--;saveEfx();return "free";}
+  if(CR.bal>=PACK_COST){CR.bal-=PACK_COST;saveCredits();return "credits";}
+  return null;
+}
+
+/* ---- equipping ---- */
+function equipEfx(cardId,efxId){
+  const e=EFX_BY_ID[efxId]; if(!e)return;
+  if(!ownsEfx(cardId,efxId))return;
+  EFX.equip[cardId]=EFX.equip[cardId]||{};
+  const slot=EFX_SLOT[e.k];
+  /* tapping an equipped effect takes it off */
+  EFX.equip[cardId][slot] = (EFX.equip[cardId][slot]===efxId) ? null : efxId;
+  saveEfx();
+}
+function equippedFor(cardId){return EFX.equip[cardId]||{};}
+/* the class string a card should carry */
+function efxClasses(p){
+  if(!p)return "";
+  const eq=equippedFor(p.id);
+  const out=[];
+  ["frame","aura","sheen","energy"].forEach(s=>{if(eq[s])out.push(eq[s]);});
+  if(eq.energy)out.push("on-sfx");
+  if(eq.aura)out.push("has-aura");
+  return out.join(" ");
+}
+function overlayFor(p){const eq=equippedFor(p&&p.id);return eq.overlay||null;}
+
+
+/* ---- overlay painters: canvas effects mount after render ---- */
+const EFXOV_RAF={};
+function mountEfxOverlays(){
+  document.querySelectorAll(".efxov[data-ov]").forEach(el=>{
+    if(el.dataset.mounted)return; el.dataset.mounted="1";
+    const id=el.dataset.ov;
+    if(id==="o-frost")paintFrostOv(el);
+    else if(id==="o-holo")paintHoloOv(el);
+    else if(id==="o-bolt")paintBoltOv(el);
+    else if(id==="o-sparks")paintSparksOv(el);
+  });
+}
+function ovSize(el){const r=el.getBoundingClientRect();
+  return {w:Math.max(40,Math.round(r.width)),h:Math.max(60,Math.round(r.height))};}
+
+function paintFrostOv(el){
+  const {w,h}=ovSize(el);
+  el.innerHTML=`<div class="fmask"><svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs>
+    <filter id="ic${el.dataset.card}"><feTurbulence type="fractalNoise" baseFrequency="0.09 0.12" numOctaves="4" seed="17" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0.78  0 0 0 0 0.93  0 0 0 0 1  0.9 0.9 0.9 0 -0.35" result="g"/>
+      <feComponentTransfer in="g"><feFuncA type="discrete" tableValues="0 0 0 0 .12 .3 .5"/></feComponentTransfer></filter>
+    <filter id="se${el.dataset.card}"><feGaussianBlur stdDeviation="${(Math.min(w,h)*0.09).toFixed(1)}"/></filter>
+    <mask id="fr${el.dataset.card}"><rect width="${w}" height="${h}" fill="#fff"/>
+      <rect x="${w*0.11}" y="${h*0.11}" width="${w*0.78}" height="${h*0.78}"
+            rx="${w*0.08}" fill="#000" filter="url(#se${el.dataset.card})"/></mask></defs>
+    <rect width="${w}" height="${h}" filter="url(#ic${el.dataset.card})"
+          mask="url(#fr${el.dataset.card})" opacity=".55"/></svg></div>`;
+}
+function paintHoloOv(el){
+  const {w,h}=ovSize(el),k=el.dataset.card;
+  el.innerHTML=`<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs>
+    <linearGradient id="rb${k}" x1="0" y1="0" x2="1" y2="0" gradientTransform="rotate(115 .5 .5)">
+      <stop offset="0" stop-color="#000"/><stop offset=".26" stop-color="#ff2d55"/>
+      <stop offset=".38" stop-color="#ffd60a"/><stop offset=".5" stop-color="#30d158"/>
+      <stop offset=".62" stop-color="#35d6ff"/><stop offset=".74" stop-color="#bf5af2"/>
+      <stop offset="1" stop-color="#000"/>
+      <animate attributeName="x1" values="-1;1" dur="5.5s" repeatCount="indefinite"/>
+      <animate attributeName="x2" values="0;2" dur="5.5s" repeatCount="indefinite"/></linearGradient>
+    <pattern id="fc${k}" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="14" height="14" fill="#101010"/>
+      <rect x="1" y="1" width="5.5" height="5.5" fill="#fff" opacity=".95"/>
+      <rect x="7.5" y="1" width="5.5" height="5.5" fill="#9a9a9a" opacity=".7"/>
+      <rect x="1" y="7.5" width="5.5" height="5.5" fill="#c8c8c8" opacity=".8"/>
+      <rect x="7.5" y="7.5" width="5.5" height="5.5" fill="#6e6e6e" opacity=".55"/></pattern>
+    <mask id="fm${k}"><rect width="${w}" height="${h}" fill="url(#fc${k})"/></mask></defs>
+    <rect width="${w}" height="${h}" fill="url(#rb${k})" mask="url(#fm${k})"/></svg>`;
+}
+function paintBoltOv(el){
+  const {w,h}=ovSize(el);
+  el.innerHTML=`<canvas width="${w}" height="${h}"></canvas>`;
+  const c=el.querySelector("canvas"),g=c.getContext&&c.getContext("2d"); if(!g)return;
+  let st=null,next=0;
+  function bp(x1,y1,x2,y2,d,out,dep){
+    if(d<1.6){out.push([x1,y1,x2,y2]);return;}
+    let mx=(x1+x2)/2,my=(y1+y2)/2;
+    const nx=-(y2-y1),ny=(x2-x1),L=Math.hypot(nx,ny)||1,off=(Math.random()-.5)*d;
+    mx+=nx/L*off;my+=ny/L*off;
+    bp(x1,y1,mx,my,d/2,out,dep+1);bp(mx,my,x2,y2,d/2,out,dep+1);
+    if(dep<3&&Math.random()<.4){const bx=mx+(x2-x1)*(.3+Math.random()*.4)+(Math.random()-.5)*14;
+      const by=my+(y2-y1)*(.3+Math.random()*.4)+(Math.random()-.5)*10;
+      bp(mx,my,bx,by,d/2.1,out,dep+2);}
+  }
+  function loop(t){
+    if(!el.isConnected){delete EFXOV_RAF[el.dataset.card];return;}
+    if(!st||t>st.until){
+      if(t>next){const s=[];bp(w*.2+Math.random()*w*.6,-6,w*.2+Math.random()*w*.6,h+6,w*.28,s,0);
+        st={segs:s,t0:t,until:t+80+Math.random()*120};next=t+400+Math.random()*1800;}
+      else g.clearRect(0,0,w,h);
+    }
+    if(st&&t<=st.until){
+      const k=(t-st.t0)/(st.until-st.t0);
+      const a=k<.12?1:k<.24?.35:k<.42?.95:Math.max(0,1-(k-.42)/.58);
+      g.clearRect(0,0,w,h);g.globalCompositeOperation="lighter";
+      g.strokeStyle=`rgba(60,180,255,${a*.5})`;g.lineWidth=3;g.shadowColor="#35d6ff";g.shadowBlur=9;
+      g.beginPath();st.segs.forEach(s=>{g.moveTo(s[0],s[1]);g.lineTo(s[2],s[3]);});g.stroke();
+      g.strokeStyle=`rgba(235,252,255,${a})`;g.lineWidth=1;g.shadowBlur=5;
+      g.beginPath();st.segs.forEach(s=>{g.moveTo(s[0],s[1]);g.lineTo(s[2],s[3]);});g.stroke();
+      g.shadowBlur=0;
+    }
+    EFXOV_RAF[el.dataset.card]=requestAnimationFrame(loop);
+  }
+  EFXOV_RAF[el.dataset.card]=requestAnimationFrame(loop);
+}
+function paintSparksOv(el){
+  const {w,h}=ovSize(el);
+  el.innerHTML=`<canvas width="${w}" height="${h}"></canvas>`;
+  const c=el.querySelector("canvas"),g=c.getContext&&c.getContext("2d"); if(!g)return;
+  const EM=[],step=Math.max(8,Math.round(w/9));
+  for(let x=4;x<=w-4;x+=step){EM.push({x,y:h-3,nx:0,ny:-1});EM.push({x,y:3,nx:0,ny:1});}
+  for(let y=8;y<=h-8;y+=step){EM.push({x:3,y,nx:1,ny:0});EM.push({x:w-3,y,nx:-1,ny:0});}
+  const P=[],MAX=Math.round(w*h/220);
+  const col=(l,a)=>l>.82?`rgba(255,250,225,${a})`:l>.62?`rgba(255,222,120,${a})`:
+    l>.42?`rgba(255,158,44,${a})`:l>.22?`rgba(232,74,10,${a})`:`rgba(120,22,4,${a*.8})`;
+  function loop(t){
+    if(!el.isConnected){delete EFXOV_RAF[el.dataset.card];return;}
+    g.clearRect(0,0,w,h);g.globalCompositeOperation="lighter";
+    for(let i=0;i<3;i++){ if(P.length<MAX){const e=EM[(Math.random()*EM.length)|0];
+      const sp=(Math.random()-.5)*.7;
+      P.push({x:e.x,y:e.y,vx:e.nx*(.2+Math.random()*.4)+sp*.6,
+        vy:e.ny*(.2+Math.random()*.4)-(.3+Math.random()*.6),
+        life:1,decay:.02+Math.random()*.03,r:3+Math.random()*5,seed:Math.random()*6.28});}}
+    for(let i=P.length-1;i>=0;i--){const p=P[i];p.life-=p.decay;
+      if(p.life<=0){P.splice(i,1);continue;}
+      p.x+=p.vx+Math.sin(t/170+p.seed)*(1-p.life)*.8;p.y+=p.vy;p.vy-=.008;
+      const rad=p.r*(.35+p.life*.75);
+      const gr=g.createRadialGradient(p.x,p.y,0,p.x,p.y,rad);
+      gr.addColorStop(0,col(p.life,.5*p.life));
+      gr.addColorStop(.55,col(p.life*.7,.2*p.life));
+      gr.addColorStop(1,"rgba(0,0,0,0)");
+      g.fillStyle=gr;g.beginPath();g.arc(p.x,p.y,rad,0,6.283);g.fill();}
+    EFXOV_RAF[el.dataset.card]=requestAnimationFrame(loop);
+  }
+  EFXOV_RAF[el.dataset.card]=requestAnimationFrame(loop);
+}
+
+
+/* ================= RAFTERS PAGE ================= */
+let RF={open:false,prog:0,done:false,pull:null,drag:false,raf:null};
+function raftersHTML(){
+  creditsRollDay();
+  /* a sealed pack never shows its rarity */
+  if(!RF.open||RF.prog<=0.04)
+    (window.requestAnimationFrame||setTimeout)(()=>rfSetGlow(true));
+  const free=packsAvailable(), pity=Math.max(0,PITY_AT-EFX.sincePity);
+  const owned=efxOwnedCount(), total=efxCardPool().length*EFFECTS.length;
+  return `
+  <div class="rfhero">
+    <div><h2>The Rafters</h2>
+      <p>Where the jerseys hang. Every pack holds one cosmetic for one specific card \u2014
+      frames, auras, border light and card-face effects. Mythics are the chase.</p></div>
+    <div class="rfbal">${CR.bal.toLocaleString()}<small>CREDITS</small></div>
+  </div>
+
+  <div class="rfodds">
+    ${EFX_TIERS.map(t=>`<div class="rfo"><b style="color:${EFX_TIER_COLOR[t]}">${t}</b>
+      <span>${EFX_ODDS[t]}%</span></div>`).join("")}
+  </div>
+
+  <div class="rfstats">
+    <div><b>${free}</b><span>FREE PACKS</span></div>
+    <div><b>${EFX.packs}</b><span>OPENED</span></div>
+    <div><b>${pity}</b><span>TO GUARANTEED MYTHIC</span></div>
+    <div><b>${owned}</b><span>UNLOCKED</span></div>
+  </div>
+
+  <div class="rfarena" id="rfarena">
+    <div class="rfstage" id="rfstage">
+      <div class="rfpack" id="rfpack">
+        <div class="rfvoid" id="rfvoid"></div>
+        <div class="rfspill" id="rfspill"></div>
+        <div class="rfhalf rftop" id="rftop"><div class="rflid">RAFTERS PACK</div></div>
+        <div class="rfhalf rfbot" id="rfbot">
+          <div class="rfbrand"><div class="rfmark">ATU</div>
+            <div class="rfname">RAFTERS</div><div class="rfsub">ALL-TIME ULTIMATE</div></div>
+        </div>
+        <div class="rftrack"></div>
+        <div class="rftab" id="rftab"><div class="rftabb"></div>
+          <div class="rfhint">DRAG TO OPEN</div></div>
+      </div>
+    </div>
+    <div class="rfreveal" id="rfreveal"></div>
+  </div>
+
+  <div class="rfbuy">
+    <button class="btn gold" onclick="raftersBuy()">
+      ${free>0?`OPEN FREE PACK (${free})`:`OPEN PACK \u00b7 ${PACK_COST} CR`}
+    </button>
+    ${free===0&&CR.bal<PACK_COST?`<div class="rfneed">Need ${(PACK_COST-CR.bal).toLocaleString()} more credits \u2014 play a draft, pack or the daily.</div>`:""}
+    <div class="rfnote">Duplicates refund credits automatically. A mythic is guaranteed at least
+    every ${PITY_AT} packs.</div>
+  </div>
+  <div class="notice" id="notice"></div>`;
+}
+
+function raftersBuy(){
+  if(RF.open&&!RF.done)return;
+  const paid=spendPack();
+  if(!paid){toast("Not enough credits \u2014 play a run or the daily.");return;}
+  RF.pull=openRaftersPack();
+  RF.open=true;RF.done=false;RF.prog=0;
+  render();
+  /* the rarity must stay unknown until the seam is peeled — start neutral */
+  (window.requestAnimationFrame||setTimeout)(()=>{rfBind();rfSetGlow(true);rfApply(0);});
+}
+/* the whole backdrop, seam light and spill read from one variable */
+/* neutral=true paints a colourless backdrop so nothing is spoiled pre-peel */
+function rfSetGlow(neutral){
+  const a=$("#rfarena"); if(!a)return;
+  const c=neutral?"#3a3f4a":((RF.pull&&EFX_TIER_COLOR[RF.pull.tier])||"#3a3f4a");
+  a.style.setProperty("--rf-glow",c);
+}
+function rfBind(){
+  const tab=$("#rftab"),stage=$("#rfstage");
+  if(!tab||!stage||tab.dataset.bound)return;
+  tab.dataset.bound="1";
+  const down=e=>{if(RF.done)return;RF.drag=true;e.preventDefault();};
+  const move=e=>{
+    if(!RF.drag||RF.done)return;
+    const t=e.touches?e.touches[0]:e, b=stage.getBoundingClientRect();
+    rfApply((t.clientX-b.left-14)/(b.width-28));
+    if(RF.prog>=0.75)rfBurst();
+    e.preventDefault();
+  };
+  const up=()=>{
+    if(!RF.drag||RF.done)return; RF.drag=false;
+    if(RF.prog>=0.42)rfBurst(); else rfSpring(RF.prog,0,220);
+  };
+  tab.addEventListener("mousedown",down);
+  tab.addEventListener("touchstart",down,{passive:false});
+  window.addEventListener("mousemove",move);
+  window.addEventListener("touchmove",move,{passive:false});
+  window.addEventListener("mouseup",up);
+  window.addEventListener("touchend",up);
+  $("#rfpack").addEventListener("click",e=>{
+    if(RF.done||RF.prog>0.02||e.target.closest(".rftab"))return;
+    rfSpring(0,1,900,rfBurst);
+  });
+}
+function rfApply(p){
+  RF.prog=Math.max(0,Math.min(1,p));
+  const seam=10, gap=RF.prog*RF.prog*22;
+  const top=$("#rftop"),bot=$("#rfbot"),tab=$("#rftab"),
+        vd=$("#rfvoid"),sp=$("#rfspill"),ar=$("#rfarena"),st=$("#rfstage");
+  if(!top)return;
+  const tabPct=RF.prog*100, oT=seam-(gap/330*100), oB=seam+(gap/330*100);
+  top.style.clipPath=`polygon(0% 0%,100% 0%,100% ${seam}%,${tabPct}% ${seam}%,0% ${oT}%)`;
+  bot.style.clipPath=`polygon(0% ${oB}%,${tabPct}% ${seam}%,100% ${seam}%,100% 100%,0% 100%)`;
+  top.style.transform=`translateY(${-gap*.34}px) rotate(${-RF.prog*.9}deg)`;
+  bot.style.transform=`translateY(${gap*.34}px) rotate(${RF.prog*.9}deg)`;
+  tab.style.left=(14+(st.clientWidth-28)*RF.prog)+"px";
+  vd.style.opacity=Math.min(1,RF.prog*3);
+  vd.style.height=(3+gap*1.5)+"px";
+  sp.style.opacity=Math.min(.85,RF.prog*1.25);
+  sp.style.transform=`scaleY(${0.25+RF.prog*0.9})`;
+  /* the bottom-up projection brightens as the seam widens, and the rarity colour
+     only bleeds in once the seam is genuinely open */
+  if(ar){
+    ar.style.setProperty("--rf-lift",(0.35+RF.prog*0.65).toFixed(2));
+    if(RF.prog>0.04)rfSetGlow(false); else rfSetGlow(true);
+  }
+  if(RF.prog>0.01)$("#rfpack").classList.add("live");
+}
+function rfSpring(from,to,ms,cb){
+  const t0=performance.now();
+  cancelAnimationFrame(RF.raf);
+  (function step(){
+    const k=Math.min(1,(performance.now()-t0)/ms);
+    const e=to>from?1-Math.pow(1-k,3):k*k;
+    rfApply(from+(to-from)*e);
+    if(k<1)RF.raf=requestAnimationFrame(step);
+    else{ if(cb)cb(); else $("#rfpack").classList.remove("live"); }
+  })();
+}
+function rfBurst(){
+  if(RF.done)return; RF.done=true; RF.drag=false;
+  rfSpring(RF.prog,1,300,()=>{
+    const top=$("#rftop"),bot=$("#rfbot"),st=$("#rfstage");
+    if(top&&top.animate){
+      top.animate([{transform:top.style.transform,opacity:1},
+        {transform:"translateY(-260px) rotate(-15deg)",opacity:0}],
+        {duration:560,easing:"cubic-bezier(.3,.8,.3,1)",fill:"forwards"});
+      bot.animate([{transform:bot.style.transform,opacity:1},
+        {transform:"translateY(240px) rotate(9deg)",opacity:0}],
+        {duration:560,easing:"cubic-bezier(.3,.8,.3,1)",fill:"forwards"});
+    }
+    setTimeout(()=>{if(st){st.style.transition="opacity .35s";st.style.opacity=0;}},260);
+    setTimeout(rfReveal,420);
+  });
+}
+function rfReveal(){
+  const r=RF.pull; if(!r)return;
+  const card=DB[r.card.id];
+  /* the revealed card WEARS the effect that was pulled */
+  const preview=EFX.equip[card.id]?JSON.parse(JSON.stringify(EFX.equip[card.id])):null;
+  EFX.equip[card.id]=EFX.equip[card.id]||{};
+  const slot=EFX_SLOT[r.efx.k];
+  const prevSlot=EFX.equip[card.id][slot];
+  EFX.equip[card.id][slot]=r.efx.id;         /* preview only \u2014 restored below */
+  const html=cardHTML(card);
+  EFX.equip[card.id][slot]=prevSlot||null;   /* don't auto-equip on the player's behalf */
+  if(preview)EFX.equip[card.id]=preview;
+  const rv=$("#rfreveal");
+  rv.innerHTML=`
+    <div class="rfitem">${html}</div>
+    <div class="rflabel">
+      <div class="rfrar" style="color:${EFX_TIER_COLOR[r.tier]};text-shadow:0 0 22px ${EFX_TIER_COLOR[r.tier]}">
+        ${r.tier.toUpperCase()}</div>
+      <div class="rfename">${esc(r.efx.n)} \u2014 ${EFX_SLOT_LABEL[r.efx.k]}</div>
+      <div class="rffor">for ${esc(card.name)} \u00b7 ${card.team}</div>
+      ${r.dupe?`<div class="rfdupe">Duplicate \u2014 refunded <b>${r.refund} CR</b></div>`
+              :`<div class="rfnew">NEW \u2014 equip it from your Collection</div>`}
+    </div>
+    <div class="rfbtns">
+      <button class="btn gold" onclick="raftersBuy()">OPEN ANOTHER</button>
+      <button class="btn" onclick="setScreen('collection')">GO TO COLLECTION</button>
+    </div>`;
+  rv.classList.add("show");
+  const it=rv.querySelector(".rfitem");
+  if(it&&it.animate)it.animate(
+    [{opacity:0,transform:"scale(.6) translateY(30px)"},{opacity:1,transform:"scale(1) translateY(0)"}],
+    {duration:700,easing:"cubic-bezier(.16,.9,.3,1.06)",fill:"forwards"});
+  if(typeof mountEfxOverlays==="function")mountEfxOverlays();
+  rfSetGlow();
+  if(r.tier==="Mythic")confetti(90);
+}
+
+
+/* ================= COLLECTION EQUIP DRAWER ================= */
+let EQ_CARD=null;
+function openEquip(cardId){EQ_CARD=cardId;render();
+  (window.requestAnimationFrame||setTimeout)(()=>{
+    const el=$("#eqwrap");
+    /* scrollIntoView isn't universal — never let a nicety break opening the drawer */
+    if(el&&typeof el.scrollIntoView==="function"){
+      try{el.scrollIntoView({behavior:"smooth",block:"center"});}catch(e){el.scrollIntoView();}
+    }});}
+function closeEquip(){EQ_CARD=null;render();}
+function equipTap(cardId,efxId){equipEfx(cardId,efxId);render();}
+function equipHTML(){
+  if(EQ_CARD==null)return "";
+  const p=DB[EQ_CARD]; if(!p)return "";
+  const owned=efxOwnedFor(p.id);
+  const eq=equippedFor(p.id);
+  const slots=["frame","aura","sheen","energy","overlay"];
+  return `
+  <div class="eqwrap" id="eqwrap">
+    <div class="eqhead">
+      <h3>${esc(p.name)}</h3>
+      <span>${p.ovr} ${p.team} \u00b7 ${p.tier}</span>
+      <button class="eqclose" onclick="closeEquip()">Close</button>
+    </div>
+    <div class="eqpreview">
+      ${cardHTML(p)}
+      <div style="flex:1;min-width:200px">
+        ${!efxEligible(p)?`<div class="eqempty">Effects only apply to Gold, Elite and Icon cards.</div>`:
+          owned.length?`<div class="eqslots">
+            ${slots.map(s=>{
+              const list=owned.filter(e=>EFX_SLOT[e.k]===s);
+              if(!list.length)return "";
+              return `<div class="eqslot"><h4>${EFX_SLOT_LABEL[s].toUpperCase()}</h4><div class="eqrow">
+                ${list.map(e=>`<button class="eqchip ${eq[s]===e.id?"on":""}"
+                  onclick="equipTap(${p.id},'${e.id}')">${esc(e.n)}
+                  <small style="color:${eq[s]===e.id?"#241d08":EFX_TIER_COLOR[e.t]}">${e.t.toUpperCase()}</small>
+                  </button>`).join("")}
+              </div></div>`;}).join("")}
+          </div>
+          <div class="rfnote">Tap an equipped effect again to take it off.</div>`
+          :`<div class="eqempty">No effects unlocked for this card yet \u2014 pull some from
+             <b style="color:var(--gold)">The Rafters</b>.</div>`}
+      </div>
+    </div>
+  </div>`;
+}
+
 
 /* ================= SMALL HELPERS ================= */
 const $=s=>document.querySelector(s);
@@ -2669,18 +3556,18 @@ const CARD_ART=new Set([
   /* --- ICON (52) --- */
   "giannis-antetokounmpo",  // Giannis Antetokounmpo (97 MIL '20s) — Bucks primary art
   "allen-iverson-phi",  // Allen Iverson (96 PHI '00s)
-  "anthony-edwards",  // Anthony Edwards (96 MIN '20s)
+  // "anthony-edwards",  // Anthony Edwards (96 MIN '20s)
   "bill-russell",  // Bill Russell (98 BOS '60s)
   "bob-cousy",  // Bob Cousy (96 BOS '50s)
   "charles-barkley-phx",  // Charles Barkley (96 PHX '90s)
   "chris-paul-nop",  // Chris Paul (97 NOP '00s)
   // "clyde-drexler",  // Clyde Drexler (96 POR '90s)
-  "david-robinson",  // David Robinson (96 SAS '90s)
+  // "david-robinson",  // David Robinson (96 SAS '90s)
   "dirk-nowitzki",  // Dirk Nowitzki (98 DAL '00s)
   "dwyane-wade",  // Dwyane Wade (97 MIA '00s)
   // "elgin-baylor",  // Elgin Baylor (96 LAL '60s)
-  "giannis-antetokounmpo-mia",  // Giannis Antetokounmpo (97 MIA '20s)
-  "giannis-antetokounmpo-mil",  // Giannis Antetokounmpo (97 MIL '20s)
+  // "giannis-antetokounmpo-mia",  // Giannis Antetokounmpo (97 MIA '20s)
+  // "giannis-antetokounmpo-mil",  // Giannis Antetokounmpo (97 MIL '20s)
   "hakeem-olajuwon",  // Hakeem Olajuwon (99 HOU '90s)
   "jalen-brunson",  // Jalen Brunson (96 NYK '20s)
   // "jerry-west",  // Jerry West (97 LAL '60s)
@@ -2690,7 +3577,7 @@ const CARD_ART=new Set([
   // "kareem-abdul-jabbar-lal",  // Kareem Abdul-Jabbar (99 LAL '80s)
   "kareem-abdul-jabbar-mil",  // Kareem Abdul-Jabbar (97 MIL '70s)
   // "karl-malone",  // Karl Malone (97 UTA '90s)
-  "kawhi-leonard-sas",  // Kawhi Leonard (96 SAS '10s)
+  // "kawhi-leonard-sas",  // Kawhi Leonard (96 SAS '10s)
   // "kevin-durant-gsw",  // Kevin Durant (96 GSW '10s)
   "kevin-durant-okc",  // Kevin Durant (97 OKC '10s)
   "kevin-garnett-bos",  // Kevin Garnett (96 BOS '00s)
@@ -2714,7 +3601,7 @@ const CARD_ART=new Set([
   // "shaquille-oneal-orl",  // Shaquille O'Neal (96 ORL '90s)
   "stephen-curry",  // Stephen Curry (98 GSW '10s)
   // "steve-nash-phx",  // Steve Nash (96 PHX '00s)
-  "tim-duncan",  // Tim Duncan (98 SAS '00s)
+  // "tim-duncan",  // Tim Duncan (98 SAS '00s)
   "victor-wembanyama",  // Victor Wembanyama (97 SAS '20s)
   "vince-carter-tor",  // Vince Carter (96 TOR '00s)
   // "wilt-chamberlain-gsw",  // Wilt Chamberlain (99 GSW '60s)
@@ -2722,7 +3609,7 @@ const CARD_ART=new Set([
   // "wilt-chamberlain-phi",  // Wilt Chamberlain (98 PHI '60s)
   /* --- ELITE (53) --- */
   // "allen-iverson-den",  // Allen Iverson (92 DEN '00s)
-  "anthony-davis-lal",  // Anthony Davis (94 LAL '20s)
+  // "anthony-davis-lal",  // Anthony Davis (94 LAL '20s)
   // "anthony-davis-was",  // Anthony Davis (93 WAS '20s)
   // "bob-pettit",  // Bob Pettit (94 ATL '50s)
   // "cade-cunningham",  // Cade Cunningham (92 DET '20s)
@@ -2730,13 +3617,13 @@ const CARD_ART=new Set([
   // "carmelo-anthony-nyk",  // Carmelo Anthony (92 NYK '10s)
   // "charles-barkley-phi",  // Charles Barkley (94 PHI '80s)
   // "chris-paul-lac",  // Chris Paul (95 LAC '10s)
-  "damian-lillard",  // Damian Lillard (94 POR '10s)
+  // "damian-lillard",  // Damian Lillard (94 POR '10s)
   // "demarcus-cousins",  // DeMarcus Cousins (92 SAC '10s)
   "derrick-rose",  // Derrick Rose (95 CHI '10s)
   // "devin-booker",  // Devin Booker (93 PHX '20s)
   // "dominique-wilkins",  // Dominique Wilkins (95 ATL '80s)
   // "donovan-mitchell",  // Donovan Mitchell (93 CLE '20s)
-  "dwight-howard-orl",  // Dwight Howard (93 ORL '00s)
+  // "dwight-howard-orl",  // Dwight Howard (93 ORL '00s)
   // "elvin-hayes",  // Elvin Hayes (92 WAS '70s)
   // "gary-payton",  // Gary Payton (95 OKC '90s)
   // "george-gervin",  // George Gervin (94 SAS '70s)
@@ -2747,7 +3634,7 @@ const CARD_ART=new Set([
   // "james-worthy",  // James Worthy (95 LAL '80s)
   // "jason-kidd-bkn",  // Jason Kidd (95 BKN '00s)
   // "jason-kidd-phx",  // Jason Kidd (93 PHX '90s)
-  "jaylen-brown",  // Jaylen Brown (95 BOS '20s)
+  // "jaylen-brown",  // Jaylen Brown (95 BOS '20s)
   // "jayson-tatum",  // Jayson Tatum (95 BOS '20s)
   "jimmy-butler-mia",  // Jimmy Butler (95 MIA '20s)
   // "john-havlicek",  // John Havlicek (93 BOS '60s)
@@ -2757,7 +3644,7 @@ const CARD_ART=new Set([
   // "kevin-durant-hou",  // Kevin Durant (94 HOU '20s)
   // "kevin-mchale",  // Kevin McHale (92 BOS '80s)
   // "kyrie-irving-cle",  // Kyrie Irving (94 CLE '10s)
-  "kyrie-irving-dal",  // Kyrie Irving (92 DAL '20s)
+  // "kyrie-irving-dal",  // Kyrie Irving (92 DAL '20s)
   // "patrick-ewing",  // Patrick Ewing (95 NYK '90s)
   // "paul-pierce",  // Paul Pierce (94 BOS '00s)
   // "pete-maravich",  // Pete Maravich (94 UTA '70s)
@@ -3679,8 +4566,17 @@ function cardHTML(p,attrs,badge){
   const variants=art?cardArtVariants(p):null;
   /* onerror walks CARD_ART_EXTS; if every variant fails we drop back to the initials card */
   const fallbackJS=art?`onerror="cardArtFail(this)" data-v="0" data-slug="${cardSlugFor(p)}"`:"";
+  const efx=typeof efxClasses==="function"?efxClasses(p):"";
+  const ovId=typeof overlayFor==="function"?overlayFor(p):null;
+  const hasAura=/\ba-/.test(efx);
   const front=`
-  <div class="card t-${p.tier}${art?" hasart":""}" ${attrs||""}>
+  <div class="card framed t-${p.tier}${art?" hasart":""}${efx?" "+efx:""}" ${attrs||""}>
+    ${hasAura?`<div class="efxaura2"></div><div class="efxaura"></div>`:""}
+    <div class="efxframe"></div>
+    ${/\be-/.test(efx)?`<div class="efxenergy"><i></i><i></i></div>`:""}
+    ${/\bs-/.test(efx)?`<div class="efxsheen"></div>`:""}
+    <div class="efxplate"></div>
+    ${ovId?`<div class="efxov ov-${ovId}" data-ov="${ovId}" data-card="${p.id}"></div>`:""}
     ${art?`<img class="cardart" src="${variants[0]}" ${fallbackJS} alt=""><div class="cardart-fade"></div><div class="cardart-scrim"></div>`:""}
     <div class="card-top" style="display:flex;justify-content:space-between;align-items:flex-start">
       <div><div class="ovr">${p.ovr}</div><div class="pos" style="font-size:${p.positions.length>2?7.5:9}px">${p.positions.join("/")}</div></div>
@@ -3767,7 +4663,8 @@ function renderTabs(){
   else if(screen==="trophies")items=[["landing","☰ Modes"],["trophies","🏆 Trophies"]];
   else if(screen==="daily")items=[["landing","☰ Modes"],["daily","🗓 Daily"],["trophies","🏆 Trophies"]];
   else if(screen==="shop")items=[["landing","☰ Modes"],["shop","🛒 Shop"],["trophies","🏆 Trophies"]];
-  else if(screen==="collection")items=[["landing","☰ Modes"],["collection","🗃 Collection"],["trophies","🏆 Trophies"]];
+  else if(screen==="collection")items=[["landing","☰ Modes"],["collection","🗃 Collection"],["rafters","🎫 Rafters"]];
+  else if(screen==="rafters")items=[["landing","☰ Modes"],["rafters","🎫 Rafters"],["collection","🗃 Collection"]];
   else if(screen==="updates")items=[["landing","☰ Modes"],["updates","📋 Updates"]];
   else items=[["landing","☰ Modes"],["team","My Team"],["packs","Packs"],["rare","Rare Pull"],["trophies","🏆 Trophies"]];
   bar.innerHTML=items.map(([k,l])=>`<button class="${screen===k?"on":""}" onclick="setScreen('${k}')">${l}</button>`).join("");
@@ -4325,6 +5222,7 @@ function landingHTML(){
       <button class="btn ${cls}">${cta}</button>
     </div>`).join("")}
     <div class="modecard" onclick="setScreen('daily')"><h3>🗓 Daily Challenge</h3><p>A fresh seeded squad and a new constraint every day — same for everyone. Build the best team under today's rule and keep your streak alive.</p><div class="modebest">STREAK <b>${DAILY.streak||0}🔥</b></div><button class="btn gold">PLAY TODAY</button></div>
+    <div class="modecard" onclick="setScreen('rafters')"><h3>🎫 The Rafters</h3><p>Open packs for card cosmetics — frames, auras, border light and card-face effects. Mythics are the chase.</p><div class="modebest">PACKS <b>${packsAvailable()} free</b></div><button class="btn gold">OPEN PACKS</button></div>
     <div class="modecard" onclick="setScreen('collection')"><h3>🗃 Collection</h3><p>Every card in the game — see what you've discovered and what's still out there. Pulls from any mode count.</p><div class="modebest">FOUND <b>${collectionStats().seen}/${collectionStats().total}</b></div><button class="btn">VIEW COLLECTION</button></div>
     <div class="modecard" onclick="setScreen('shop')"><h3>🛒 Shop</h3><p>Spend credits earned from playing on card frames, backgrounds and effects. Mythic skins can never be bought — only earned.</p><div class="modebest">BALANCE <b>${CR.bal.toLocaleString()} CR</b></div><button class="btn gold">OPEN SHOP</button></div>
     <div class="modecard" onclick="setScreen('trophies')"><h3>🏆 Trophy Case</h3><p>Permanent collection progression, franchise and era archives, iconic chemistry discoveries, What If timelines, historic teams, records and hidden challenges.</p><div class="modebest">PROGRESS <b>${trophySummary().done}/${trophySummary().total}</b></div><button class="btn gold">OPEN TROPHY CASE</button></div>
@@ -4695,7 +5593,7 @@ function render(){
       <div class="hs">BEST TEAM OVR<br><b>${best}</b></div>
     </header>
     ${screen==="landing"?landingHTML():screen==="share"?shareHTML():screen==="team"?hubHTML("main"):screen==="packs"?packsHTML()
-      :screen==="draft"?draftHTML():screen==="classic"?hubHTML("classic"):screen==="trophies"?trophyHTML():screen==="daily"?dailyHTML():screen==="shop"?shopHTML():screen==="updates"?updatesHTML():screen==="collection"?collectionHTML():hubHTML("rare")}
+      :screen==="draft"?draftHTML():screen==="classic"?hubHTML("classic"):screen==="trophies"?trophyHTML():screen==="daily"?dailyHTML():screen==="shop"?shopHTML():screen==="updates"?updatesHTML():screen==="collection"?collectionHTML():screen==="rafters"?raftersHTML():hubHTML("rare")}
     <footer class="foot">
       <button onclick="showPrivacy()">Privacy Policy</button>
       <span>·</span><span>Fan-made sandbox — not affiliated with or endorsed by the NBA, its teams, or players.</span>
@@ -4703,6 +5601,8 @@ function render(){
   /* the collection grid is painted after mount so a big tier doesn't block the page */
   if(screen==="collection"&&typeof renderCollGrid==="function")
     (window.requestAnimationFrame||setTimeout)(()=>renderCollGrid());
+  if(typeof mountEfxOverlays==="function")
+    (window.requestAnimationFrame||setTimeout)(()=>mountEfxOverlays());
 }
 /* neon squad web: blue lines between starters sharing a chemistry tag or team core */
 const WEB_COLORS={team:"#ffc53d",duo:"#ff4d6d",story:"#ff7ac8",era:"#35d6ff",style:"#39ff9c"};
