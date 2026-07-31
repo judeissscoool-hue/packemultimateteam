@@ -481,6 +481,29 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
   padding:10px 12px;font-size:13px;margin-bottom:8px}
 .collsearch:focus{outline:none;border-color:var(--cyan)}
 .collcount{font-size:11px;letter-spacing:.1em;color:var(--dim);margin-bottom:8px}
+.draftctl{display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap;margin-top:14px}
+.draftctl-note{font-size:11px;letter-spacing:.09em;color:var(--dim)}
+
+/* ---- collection: filter the grid by a cosmetic you own ---- */
+.collfilters{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.collfilters .collsearch{flex:1 1 190px;margin-bottom:0}
+.collefx{flex:1 1 200px;background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  color:var(--ink);padding:10px 12px;font-size:13px;font-family:inherit;cursor:pointer;
+  appearance:none;-webkit-appearance:none;
+  background-image:linear-gradient(45deg,transparent 50%,var(--dim) 50%),linear-gradient(135deg,var(--dim) 50%,transparent 50%);
+  background-position:calc(100% - 16px) 50%,calc(100% - 11px) 50%;
+  background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:32px}
+.collefx:focus{outline:none;border-color:var(--cyan)}
+.collefx.on{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 14px rgba(53,214,255,.22)}
+.collefx option,.collefx optgroup{background:var(--panel);color:var(--ink)}
+.collchip{display:flex;align-items:center;gap:9px;margin-bottom:8px;padding:8px 10px;border-radius:10px;
+  background:rgba(53,214,255,.08);border:1px solid rgba(53,214,255,.34)}
+.collchip b{font-family:var(--disp);font-size:14px;letter-spacing:.06em;color:var(--cyan)}
+.collchip span{font-size:11px;letter-spacing:.08em;color:var(--dim)}
+.collchip button{margin-left:auto;width:24px;height:24px;border-radius:50%;color:var(--dim);font-size:16px;
+  line-height:1;border:1px solid var(--line);background:var(--panel2)}
+.collchip button:hover{color:var(--cyan);border-color:var(--cyan)}
+.colltabs.dim{opacity:.42}
 .collgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
 .ctile{position:relative;aspect-ratio:2/3;border-radius:10px;overflow:hidden;background:linear-gradient(180deg,#1c1c23,#101014);
   border:1.5px solid var(--line);cursor:pointer;display:flex;flex-direction:column;justify-content:flex-end}
@@ -513,55 +536,55 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 /* shaped frames lose their border, so give the clip a lit edge instead */
 
 /* --- AURAS: glow outside the card --- */
-.card.a-halo .efxaura{background:radial-gradient(50% 50%,transparent 56%,#fff 66%,transparent 78%)}
-.card.a-halo .efxaura2{background:radial-gradient(50% 50%,#fff,transparent 68%)}
-.card.a-solar .efxaura{background:radial-gradient(50% 50%,#fff4c2,#ffb01f 44%,#a15c00 68%,transparent 84%)}
-.card.a-solar .efxaura2{background:radial-gradient(50% 50%,#ffc53d,transparent 72%)}
-.card.a-frost .efxaura{background:radial-gradient(50% 50%,#eaf9ff,#7ec8ff 45%,#1f6fb0 68%,transparent 82%)}
-.card.a-frost .efxaura2{background:radial-gradient(50% 50%,#a8e0ff,transparent 70%)}
-.card.a-magma .efxaura{background:radial-gradient(50% 50%,transparent 40%,#ff3d00 54%,#ffb300 64%,#5a0f00 76%,transparent 88%)}
-.card.a-magma .efxaura2{background:radial-gradient(60% 60%,transparent 44%,#ff5a1f 66%,transparent 82%)}
-.card.a-toxic .efxaura{background:radial-gradient(50% 50%,#d9ff8a,#48d800 48%,#1d6b00 70%,transparent 84%)}
-.card.a-toxic .efxaura2{background:radial-gradient(50% 50%,#7bef2a,transparent 70%)}
-.card.a-candy .efxaura{background:radial-gradient(58% 50% at 30% 32%,#ff9ecd,transparent 60%),
+.aurahost.a-halo .efxaura{background:radial-gradient(50% 50%,transparent 56%,#fff 66%,transparent 78%)}
+.aurahost.a-halo .efxaura2{background:radial-gradient(50% 50%,#fff,transparent 68%)}
+.aurahost.a-solar .efxaura{background:radial-gradient(50% 50%,#fff4c2,#ffb01f 44%,#a15c00 68%,transparent 84%)}
+.aurahost.a-solar .efxaura2{background:radial-gradient(50% 50%,#ffc53d,transparent 72%)}
+.aurahost.a-frost .efxaura{background:radial-gradient(50% 50%,#eaf9ff,#7ec8ff 45%,#1f6fb0 68%,transparent 82%)}
+.aurahost.a-frost .efxaura2{background:radial-gradient(50% 50%,#a8e0ff,transparent 70%)}
+.aurahost.a-magma .efxaura{background:radial-gradient(50% 50%,transparent 40%,#ff3d00 54%,#ffb300 64%,#5a0f00 76%,transparent 88%)}
+.aurahost.a-magma .efxaura2{background:radial-gradient(60% 60%,transparent 44%,#ff5a1f 66%,transparent 82%)}
+.aurahost.a-toxic .efxaura{background:radial-gradient(50% 50%,#d9ff8a,#48d800 48%,#1d6b00 70%,transparent 84%)}
+.aurahost.a-toxic .efxaura2{background:radial-gradient(50% 50%,#7bef2a,transparent 70%)}
+.aurahost.a-candy .efxaura{background:radial-gradient(58% 50% at 30% 32%,#ff9ecd,transparent 60%),
   radial-gradient(58% 50% at 70% 36%,#8ce8ff,transparent 60%),radial-gradient(58% 52% at 50% 74%,#fff08a,transparent 62%)}
-.card.a-candy .efxaura2{background:radial-gradient(60% 60%,#ffb3e0,transparent 72%)}
-.card.a-prism .efxaura{background:radial-gradient(60% 55% at 30% 28%,#ff4d6d,transparent 60%),
+.aurahost.a-candy .efxaura2{background:radial-gradient(60% 60%,#ffb3e0,transparent 72%)}
+.aurahost.a-prism .efxaura{background:radial-gradient(60% 55% at 30% 28%,#ff4d6d,transparent 60%),
   radial-gradient(60% 55% at 72% 30%,#ffc53d,transparent 60%),radial-gradient(60% 55% at 76% 70%,#35d6ff,transparent 60%),
   radial-gradient(60% 55% at 28% 74%,#a468ff,transparent 60%);animation:efxhue 6s linear infinite}
-.card.a-prism .efxaura2{background:radial-gradient(60% 60%,#a468ff,transparent 70%)}
-.card.a-sunset .efxaura{background:radial-gradient(65% 50% at 40% 26%,#ffd166,transparent 60%),
+.aurahost.a-prism .efxaura2{background:radial-gradient(60% 60%,#a468ff,transparent 70%)}
+.aurahost.a-sunset .efxaura{background:radial-gradient(65% 50% at 40% 26%,#ffd166,transparent 60%),
   radial-gradient(65% 50% at 58% 48%,#ff5f6d,transparent 62%),radial-gradient(60% 55% at 46% 76%,#a24bcf,transparent 64%)}
-.card.a-sunset .efxaura2{background:radial-gradient(60% 60%,#ff7e5f,transparent 72%)}
-.card.a-ember .efxaura{background:radial-gradient(50% 55%,#ffd08a,#ff5a1f 48%,#a01500 68%,transparent 82%)}
-.card.a-ember .efxaura2{background:radial-gradient(50% 50%,#ff7a2b,transparent 70%)}
-.card.a-volt .efxaura{background:radial-gradient(50% 50%,#6fe9ff,#0090c8 55%,transparent 76%);animation:efxvolt .16s steps(2) infinite}
-.card.a-volt .efxaura2{background:radial-gradient(50% 50%,#35d6ff,transparent 70%)}
-.card.a-blood .efxaura{background:radial-gradient(50% 50%,#ff8a8a,#c2001f 46%,#5a0010 70%,transparent 84%)}
-.card.a-blood .efxaura2{background:radial-gradient(50% 50%,#e00028,transparent 70%)}
-.card.a-void .efxaura{background:radial-gradient(50% 50%,#c79bff,#5b18c9 52%,transparent 76%)}
-.card.a-void .efxaura2{background:radial-gradient(50% 50%,#8f3fff,transparent 70%)}
-.card.a-aurora .efxaura{background:radial-gradient(70% 45% at 28% 30%,#3dffa8,transparent 62%),
+.aurahost.a-sunset .efxaura2{background:radial-gradient(60% 60%,#ff7e5f,transparent 72%)}
+.aurahost.a-ember .efxaura{background:radial-gradient(50% 55%,#ffd08a,#ff5a1f 48%,#a01500 68%,transparent 82%)}
+.aurahost.a-ember .efxaura2{background:radial-gradient(50% 50%,#ff7a2b,transparent 70%)}
+.aurahost.a-volt .efxaura{background:radial-gradient(50% 50%,#6fe9ff,#0090c8 55%,transparent 76%);animation:efxvolt .16s steps(2) infinite}
+.aurahost.a-volt .efxaura2{background:radial-gradient(50% 50%,#35d6ff,transparent 70%)}
+.aurahost.a-blood .efxaura{background:radial-gradient(50% 50%,#ff8a8a,#c2001f 46%,#5a0010 70%,transparent 84%)}
+.aurahost.a-blood .efxaura2{background:radial-gradient(50% 50%,#e00028,transparent 70%)}
+.aurahost.a-void .efxaura{background:radial-gradient(50% 50%,#c79bff,#5b18c9 52%,transparent 76%)}
+.aurahost.a-void .efxaura2{background:radial-gradient(50% 50%,#8f3fff,transparent 70%)}
+.aurahost.a-aurora .efxaura{background:radial-gradient(70% 45% at 28% 30%,#3dffa8,transparent 62%),
   radial-gradient(65% 50% at 62% 42%,#35d6ff,transparent 62%),radial-gradient(60% 45% at 48% 72%,#a468ff,transparent 62%)}
-.card.a-aurora .efxaura2{background:radial-gradient(60% 60%,#1fd8a0,transparent 70%)}
-.card.a-venom .efxaura{background:radial-gradient(60% 50% at 34% 34%,#9dff3d,transparent 60%),
+.aurahost.a-aurora .efxaura2{background:radial-gradient(60% 60%,#1fd8a0,transparent 70%)}
+.aurahost.a-venom .efxaura{background:radial-gradient(60% 50% at 34% 34%,#9dff3d,transparent 60%),
   radial-gradient(60% 55% at 66% 62%,#8f1fff,transparent 62%)}
-.card.a-venom .efxaura2{background:radial-gradient(60% 60%,#5fd400,transparent 72%)}
-.card.a-nebula .efxaura{background:radial-gradient(60% 50% at 35% 35%,#ff6fd8,transparent 62%),
+.aurahost.a-venom .efxaura2{background:radial-gradient(60% 60%,#5fd400,transparent 72%)}
+.aurahost.a-nebula .efxaura{background:radial-gradient(60% 50% at 35% 35%,#ff6fd8,transparent 62%),
   radial-gradient(60% 50% at 68% 62%,#4d7bff,transparent 62%)}
-.card.a-nebula .efxaura2{background:radial-gradient(50% 50%,#7a3fd0,transparent 72%)}
-.card.a-cosmic .efxaura{background:radial-gradient(45% 45% at 50% 46%,#ffd9f2,transparent 52%),
+.aurahost.a-nebula .efxaura2{background:radial-gradient(50% 50%,#7a3fd0,transparent 72%)}
+.aurahost.a-cosmic .efxaura{background:radial-gradient(45% 45% at 50% 46%,#ffd9f2,transparent 52%),
   radial-gradient(60% 55% at 42% 40%,#ff4fa3,transparent 62%),radial-gradient(70% 65% at 58% 60%,#2b3fd0,transparent 66%)}
-.card.a-cosmic .efxaura2{background:radial-gradient(60% 60%,#3a1f9e,transparent 74%)}
-.card.a-oil .efxaura{background:radial-gradient(55% 45% at 25% 32%,#00e0b8,transparent 58%),
+.aurahost.a-cosmic .efxaura2{background:radial-gradient(60% 60%,#3a1f9e,transparent 74%)}
+.aurahost.a-oil .efxaura{background:radial-gradient(55% 45% at 25% 32%,#00e0b8,transparent 58%),
   radial-gradient(55% 45% at 68% 26%,#7a5cff,transparent 58%),radial-gradient(55% 45% at 74% 68%,#ff59c7,transparent 58%),
   radial-gradient(55% 45% at 30% 72%,#2ec4ff,transparent 58%);animation:efxhue 5s linear infinite}
-.card.a-oil .efxaura2{background:radial-gradient(60% 60%,#4a3fd0,transparent 72%)}
-.card.a-spect .efxaura{background:radial-gradient(50% 44% at 22% 30%,#ff2d55,transparent 56%),
+.aurahost.a-oil .efxaura2{background:radial-gradient(60% 60%,#4a3fd0,transparent 72%)}
+.aurahost.a-spect .efxaura{background:radial-gradient(50% 44% at 22% 30%,#ff2d55,transparent 56%),
   radial-gradient(50% 44% at 50% 20%,#ff9500,transparent 56%),radial-gradient(50% 44% at 78% 32%,#ffd60a,transparent 56%),
   radial-gradient(50% 44% at 82% 66%,#30d158,transparent 56%),radial-gradient(50% 44% at 50% 80%,#0a84ff,transparent 56%),
   radial-gradient(50% 44% at 20% 68%,#bf5af2,transparent 56%);animation:efxhue 7s linear infinite}
-.card.a-spect .efxaura2{background:radial-gradient(60% 60%,#8e5bff,transparent 74%)}
+.aurahost.a-spect .efxaura2{background:radial-gradient(60% 60%,#8e5bff,transparent 74%)}
 @keyframes efxhue{to{filter:blur(15px) hue-rotate(360deg)}}
 @keyframes efxvolt{0%{opacity:.75}50%{opacity:1}100%{opacity:.85}}
 
@@ -650,14 +673,40 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 /* a shaped frame must not leave the card's own rounded rectangle showing behind it */
 .card[class*="f-"]{background:transparent!important;border:none!important;
   box-shadow:none!important;border-radius:0!important}
-/* per-shape padding so the name and meta line stay inside the silhouette */
-.card.f-shield{padding:12px 16px 30px}
-.card.f-crown {padding:20px 12px 10px}
-.card.f-obel  {padding:20px 16px 20px}
-.card.f-rune  {padding:12px 12px 18px}
-.card.f-deco  {padding:16px 14px 16px}
-.card.f-vault {padding:12px 12px 12px}
-.card.f-notch {padding:14px 10px 14px}
+/* Per-shape padding AND type scaling. A silhouette that tapers (Shield) or pinches
+   (Obelisk) has far less usable width low down, so the name/meta block is lifted and
+   shrunk to sit inside the wide part of the shape. */
+.card.f-shield{padding:10px 20px 42px}
+.card.f-shield .nm{font-size:9px;min-height:18px;line-height:1.1}
+.card.f-shield .meta{font-size:7px;letter-spacing:.04em}
+.card.f-shield .ini{width:38px;height:38px;font-size:15px;margin:4px auto 2px}
+
+.card.f-crown {padding:22px 12px 9px}
+.card.f-crown .nm{font-size:9.5px;min-height:20px}
+.card.f-crown .meta{font-size:7.5px}
+
+.card.f-obel  {padding:22px 17px 22px}
+.card.f-obel .nm{font-size:9px;min-height:18px;line-height:1.1}
+.card.f-obel .meta{font-size:7px;letter-spacing:.03em}
+.card.f-obel .ini{width:40px;height:40px;font-size:16px}
+
+.card.f-rune  {padding:11px 12px 20px}
+.card.f-rune .nm{font-size:9.5px;min-height:20px}
+.card.f-rune .meta{font-size:7.5px}
+
+.card.f-deco  {padding:15px 13px 15px}
+.card.f-deco .nm{font-size:9.5px;min-height:20px}
+.card.f-deco .meta{font-size:7.5px}
+
+.card.f-vault {padding:12px 13px 12px}
+.card.f-vault .meta{font-size:8px}
+
+.card.f-notch {padding:14px 10px 15px}
+.card.f-blade {padding:10px 12px 14px}
+.card.f-chamf {padding:11px 11px 11px}
+/* the meta line is the one that overflows first — never let it wrap out of shape */
+.card[class*="f-"] .meta{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.card[class*="f-"] .nm{overflow:hidden}
 /* Standard = a rectangular frame, defined the same way every shaped frame is.
    clip-path (not overflow) is what actually contains the rotating energy children,
    so every frame including the default one must declare one. */
@@ -719,15 +768,19 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .efxaura,.efxaura2{position:absolute;inset:0;pointer-events:none;border-radius:50%}
 .efxaura {z-index:-1;transform:scale(1.30);filter:blur(15px)}
 .efxaura2{z-index:-2;transform:scale(1.55);filter:blur(26px);opacity:.75}
-/* Auras need to bleed outside the card, but overflow:visible also let the Icon
-   tier's sliding flare and conic flame escape and drift across the page. Those two
-   are contained explicitly instead. */
-.card.has-aura{overflow:visible}
-.card.has-aura.t-Icon::after{display:none!important}
-.card.has-aura .flame::before,.card.has-aura .flame::after{display:none!important}
+/* The aura sits on a wrapper, so the card keeps overflow:hidden and the Icon's
+   sliding flare can no longer escape. That means the flare can stay ON — just
+   turned down so the aura reads through it. */
+.aurahost{position:relative;display:block;overflow:visible}
+.aurahost .efxaura,.aurahost .efxaura2{position:absolute;inset:0;pointer-events:none;border-radius:50%}
+.card.has-aura.t-Icon::after{opacity:.42}
+/* an equipped aura takes priority over the Icon pink — the wrapper is dimmed,
+   not the aura. .flame wraps the card, so it has to be targeted directly. */
+.flame.flame-dim::before{opacity:.38!important}
+.flame.flame-dim::after{opacity:.30!important}
 /* when an aura is equipped the tier flare steps back so the aura reads */
-.card.has-aura .efxframe{opacity:.30}
-.card.has-aura.t-Icon .efxframe{opacity:.14}
+.card.has-aura .efxframe{opacity:.45}
+.card.has-aura.t-Icon .efxframe{opacity:.34}
 .card.has-aura.t-Icon,.card.has-aura.t-Elite,.card.has-aura.t-Gold{box-shadow:none!important}
 
 /* ===== RAFTERS ===== */
@@ -751,7 +804,7 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
    --rf-glow is rewritten the moment a pack is bought, so the leak matches the pulled rarity. */
 .rfarena{position:relative;border:1px solid var(--line);border-radius:18px;min-height:470px;
   display:flex;align-items:center;justify-content:center;overflow:hidden;
-  user-select:none;touch-action:none;margin-bottom:12px;
+  user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:none;overscroll-behavior:contain;margin-bottom:12px;
   --rf-glow:#4a4f5c;
   background:linear-gradient(0deg,var(--rf-glow) 0%,rgba(15,12,25,.95) 50%,#08070d 100%);
   transition:background .5s ease-in-out,--rf-glow .5s ease-in-out}
@@ -768,17 +821,20 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
           mask-image:linear-gradient(to top,rgba(0,0,0,1) 0%,rgba(0,0,0,0) 60%)}
 .rfarena>*{position:relative;z-index:2}
 .rfstage{position:relative;width:214px;height:302px}
-.rfpack{position:absolute;inset:0;animation:rffloat 5s ease-in-out infinite}
+.rfpack{position:absolute;inset:0;animation:rffloat 5s ease-in-out infinite;
+  -webkit-user-select:none;-webkit-touch-callout:none;cursor:default}
 .rfpack.live{animation:none}
 @keyframes rffloat{0%,100%{transform:translateY(0) rotate(-.5deg)}50%{transform:translateY(-9px) rotate(.5deg)}}
-.rfvoid{position:absolute;left:6px;right:6px;top:10%;height:4px;transform:translateY(-50%);border-radius:3px;
-  background:linear-gradient(90deg,transparent,var(--rf-glow) 30%,#fff 50%,var(--rf-glow) 70%,transparent);
-  box-shadow:0 0 26px 8px var(--rf-glow),0 0 56px 20px var(--rf-glow);opacity:0;
-  transition:opacity .12s,background .35s,box-shadow .35s}
-.rfspill{position:absolute;left:-8%;right:-8%;top:10%;height:230px;z-index:2;opacity:0;
-  pointer-events:none;transform-origin:50% 0;filter:blur(15px);mix-blend-mode:screen;
-  background:linear-gradient(180deg,var(--rf-glow) 0%,var(--rf-glow) 16%,transparent 70%);
-  transition:background .35s}
+/* v85: the illuminated opening grows only behind the silver pull-tab, so the seam
+   reads as a zipper rather than the whole wrapper separating at once. */
+.rfvoid{position:absolute;left:14px;top:10%;width:0;height:3px;transform:translateY(-50%);border-radius:3px 0 0 3px;
+  background:linear-gradient(90deg,rgba(255,255,255,.15),var(--rf-glow) 72%,#fff 100%);
+  box-shadow:0 0 12px 3px var(--rf-glow),0 0 28px 8px var(--rf-glow);opacity:0;
+  transition:opacity .12s,background .35s,box-shadow .35s;pointer-events:none;z-index:7}
+.rfspill{position:absolute;left:14px;top:10%;width:0;height:190px;z-index:2;opacity:0;
+  pointer-events:none;transform-origin:0 0;filter:blur(13px);mix-blend-mode:screen;
+  background:linear-gradient(180deg,var(--rf-glow) 0%,var(--rf-glow) 18%,transparent 70%);
+  transition:background .35s;border-radius:0 0 50% 50%}
 .rfhalf{position:absolute;inset:0;overflow:hidden;border-radius:16px;
   background:linear-gradient(148deg,#1c1c24,#0c0c11 32%,#24242f 52%,#09090d 74%,#1e1e28);
   box-shadow:0 18px 44px rgba(0,0,0,.7),inset 0 0 0 1.5px rgba(255,255,255,.08)}
@@ -796,15 +852,21 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .rfname{font-family:var(--disp);font-size:23px;color:#f3f3f7;text-shadow:0 2px 10px rgba(0,0,0,.9)}
 .rfsub{font-size:7.5px;letter-spacing:.32em;color:rgba(255,255,255,.36)}
 .rftrack{position:absolute;left:14px;right:14px;top:10%;height:3px;transform:translateY(-50%);z-index:6;
-  border-radius:2px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.3) 0 3px,transparent 3px 7px)}
-.rftab{position:absolute;top:10%;z-index:8;width:42px;height:32px;margin:-16px 0 0 -21px;cursor:grab;touch-action:none}
-.rftab:active{cursor:grabbing}
+  border-radius:2px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.28) 0 3px,transparent 3px 7px);
+  box-shadow:inset 0 1px rgba(255,255,255,.08)}
+.rftab{position:absolute;top:10%;z-index:9;width:42px;height:32px;margin:-16px 0 0 -21px;cursor:grab;
+  touch-action:none;-webkit-user-select:none;-webkit-touch-callout:none;will-change:left,transform}
+/* generous but still zipper-only hit target for iPhone fingers */
+.rftab::after{content:"";position:absolute;inset:-12px -14px}
+.rftab:active{cursor:grabbing;transform:scale(.97)}
 .rftabb{position:absolute;inset:0;border-radius:6px;
-  background:linear-gradient(160deg,#f2f5f8,#7d8794 34%,#fff 52%,#59616d 72%,#dfe4ea);
-  box-shadow:0 3px 10px rgba(0,0,0,.7),inset 0 0 0 1px rgba(0,0,0,.35)}
-.rfhint{position:absolute;left:50px;top:50%;transform:translateY(-50%);white-space:nowrap;
-  font-size:8.5px;letter-spacing:.2em;color:rgba(255,255,255,.55);animation:rfnudge 1.8s ease-in-out infinite}
-@keyframes rfnudge{0%,100%{transform:translate(0,-50%);opacity:.45}50%{transform:translate(7px,-50%);opacity:1}}
+  background:linear-gradient(160deg,#f7f9fb,#7d8794 31%,#fff 50%,#59616d 72%,#e7ebef);
+  box-shadow:0 4px 11px rgba(0,0,0,.72),inset 0 0 0 1px rgba(0,0,0,.38),inset 0 1px 1px rgba(255,255,255,.9)}
+.rftabb::before{content:"";position:absolute;left:8px;right:8px;top:8px;height:2px;border-radius:2px;
+  background:rgba(35,40,48,.5);box-shadow:0 6px rgba(35,40,48,.32),0 12px rgba(35,40,48,.22)}
+.rfhint{position:absolute;left:50px;top:38px;white-space:nowrap;
+  font-size:8px;letter-spacing:.18em;color:rgba(255,255,255,.52);animation:rfnudge 1.8s ease-in-out infinite;pointer-events:none}
+@keyframes rfnudge{0%,100%{transform:translateX(0);opacity:.45}50%{transform:translateX(7px);opacity:1}}
 .rfpack.live .rfhint{opacity:0;animation:none}
 .rfreveal{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;
   isolation:isolate;
@@ -824,6 +886,20 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .rfbuy{text-align:center}
 .rfbuy .btn{min-width:220px}
 .rfneed{font-size:11px;color:#ff9b9b;margin-top:8px}
+.rfcost{font-family:var(--disp);font-size:15px;letter-spacing:.08em;color:var(--gold);margin-top:2px}
+
+/* ---- home bubble: frosted glass disc, top-left of every screen but the hub ---- */
+.topleft{display:flex;align-items:center;gap:11px;min-width:0}
+.homebtn{flex:0 0 auto;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;
+  color:var(--dim);background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.12);
+  -webkit-backdrop-filter:blur(10px) saturate(1.2);backdrop-filter:blur(10px) saturate(1.2);
+  transition:background .2s,border-color .2s,color .2s,box-shadow .2s,transform .14s}
+.homebtn svg{width:17px;height:17px;display:block;fill:none;stroke:currentColor;
+  stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
+.homebtn:hover,.homebtn:focus-visible{color:var(--cyan);background:rgba(53,214,255,.15);
+  border-color:var(--cyan);box-shadow:0 0 18px rgba(53,214,255,.42);outline:none}
+.homebtn:active{transform:scale(.93)}
+@media(prefers-reduced-motion:reduce){.homebtn{transition:none}}
 .rfnote{font-size:11px;color:var(--dim);margin-top:8px;line-height:1.5;font-style:italic}
 
 /* ===== COLLECTION: equip drawer ===== */
@@ -902,26 +978,6 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .credittoast span{font-size:11px;color:#cfc9bb}
 @keyframes crpop{from{opacity:0;transform:translate(-50%,14px) scale(.94)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
 @keyframes crfade{to{opacity:0;transform:translate(-50%,-8px)}}
-/* ===== shop ===== */
-.shophero{display:flex;align-items:center;gap:16px;background:linear-gradient(135deg,#1a1508,#141414 60%,#0d1a20);
-  border:1px solid rgba(255,197,61,.3);border-radius:16px;padding:18px;margin-bottom:12px;flex-wrap:wrap}
-.shophero h2{font-size:26px;margin-bottom:4px}.shophero p{font-size:12px;color:#c8c8d0;line-height:1.5;max-width:460px}
-.crbig{margin-left:auto;text-align:right;font-family:var(--disp);font-size:34px;color:var(--gold);line-height:1}
-.crbig small{display:block;font-family:inherit;font-size:9px;letter-spacing:.2em;color:var(--dim);margin-top:4px}
-.soonbar{background:var(--panel2);border:1px dashed rgba(255,197,61,.4);border-radius:10px;padding:10px 14px;
-  font-size:12px;color:#d8d2c2;text-align:center;margin-bottom:16px}
-.shopcat{margin-bottom:20px}.shopcat h3{font-size:13px;letter-spacing:.16em;color:var(--dim);margin-bottom:8px}
-.shopgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
-.shopitem{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
-.shopitem.locked{opacity:.72}
-.si-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:4px}
-.si-top b{font-size:14px}.si-cost{font-family:var(--disp);font-size:13px;color:var(--gold)}
-.shopitem p{font-size:11px;color:var(--dim);line-height:1.45;margin-bottom:10px}
-.shopitem .btn{width:100%;font-size:12px}
-.earnlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px}
-.earnlist>div{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;gap:10px;align-items:baseline}
-.earnlist b{font-family:var(--disp);font-size:16px;color:var(--gold);min-width:58px}
-.earnlist span{font-size:11px;color:var(--dim);line-height:1.4}
 /* ===== updates ===== */
 .uphero{background:linear-gradient(135deg,#0d1a20,#141414 60%,#1a1508);border:1px solid rgba(53,214,255,.3);
   border-radius:16px;padding:18px;margin-bottom:14px}
@@ -982,7 +1038,7 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
   </g>
 </svg></div>
 <div id="arena"></div>
-<div id="betabar">BETA · in active development — <button onclick="setScreen('updates')">see what's coming</button><span id="crpill" onclick="setScreen('shop')"></span></div>
+<div id="betabar">BETA · in active development — <button onclick="setScreen('updates')">see what's coming</button><span id="crpill" onclick="setScreen('rafters')"></span></div>
 <div id="app"></div>
 <div id="overlay"></div>
 <div id="sheet"></div>
@@ -2861,44 +2917,6 @@ function creditsForRecord(wins){
 
 
 
-/* ================= SHOP (placeholder until accessories ship) ================= */
-const SHOP_ITEMS=[
-  {id:"frame-chrome",name:"Chrome Frame",cat:"Card Frames",cost:1200,desc:"Brushed metal edge with a moving highlight."},
-  {id:"frame-holo",name:"Holo Frame",cat:"Card Frames",cost:2500,desc:"Shifting rainbow foil, like a graded chase card."},
-  {id:"bg-galaxy",name:"Galaxy Backdrop",cat:"Backgrounds",cost:1500,desc:"Deep space wash behind your player art."},
-  {id:"bg-court",name:"Hardwood Backdrop",cat:"Backgrounds",cost:900,desc:"Classic parquet floor tone."},
-  {id:"aura-flame",name:"Flame Aura",cat:"Effects",cost:2000,desc:"Embers drifting up behind the card."},
-  {id:"aura-ice",name:"Frost Aura",cat:"Effects",cost:2000,desc:"Cold mist and a pale blue glow."},
-  {id:"plate-gold",name:"Gold Name Plate",cat:"Name Plates",cost:800,desc:"Engraved gold banner for the player name."},
-  {id:"plate-neon",name:"Neon Name Plate",cat:"Name Plates",cost:800,desc:"Backlit neon strip in your squad colour."},
-];
-function shopHTML(){
-  creditsRollDay();
-  const cats=[...new Set(SHOP_ITEMS.map(i=>i.cat))];
-  return `
-  <div class="shophero">
-    <div><h2>Shop</h2><p>Everything here is earned by playing \u2014 credits can't be bought.
-      <b style="color:var(--gold)">Mythic skins are never purchasable</b>; they're chase rewards only.</p></div>
-    <div class="crbig">${CR.bal.toLocaleString()}<small>CREDITS</small></div>
-  </div>
-  <div class="soonbar">🚧 The shop opens soon \u2014 items below are a preview. Credits you earn now are banked and ready to spend on day one.</div>
-  ${cats.map(c=>`<div class="shopcat"><h3>${esc(c)}</h3><div class="shopgrid">
-    ${SHOP_ITEMS.filter(i=>i.cat===c).map(i=>`<div class="shopitem locked">
-      <div class="si-top"><b>${esc(i.name)}</b><span class="si-cost">${i.cost.toLocaleString()} CR</span></div>
-      <p>${esc(i.desc)}</p>
-      <button class="btn" disabled>Coming soon</button></div>`).join("")}
-  </div></div>`).join("")}
-  <div class="shopcat"><h3>How to earn credits</h3><div class="earnlist">
-    <div><b>+${CREDIT_RATES.daily}</b><span>Daily challenge (plus up to +${CREDIT_RATES.streakMax} streak bonus)</span></div>
-    <div><b>+${CREDIT_RATES.draftRun}</b><span>Each completed draft (first ${CREDIT_RATES.draftDailyCap} a day, then +${CREDIT_RATES.draftRunAfterCap})</span></div>
-    <div><b>+${CREDIT_RATES.packRun}</b><span>Each pack opened (first ${CREDIT_RATES.packDailyCap} a day, then +${CREDIT_RATES.packRunAfterCap})</span></div>
-    <div><b>+${CREDIT_RATES.discovery}</b><span>Every new player discovered</span></div>
-    <div><b>+20 \u2192 350</b><span>Each trophy unlocked, by tier</span></div>
-    <div><b>+1500</b><span>Joining the 82\u20130 Club</span></div>
-  </div></div>
-  <div class="notice" id="notice"></div>`;
-}
-
 /* ================= UPDATES / ROADMAP ================= */
 const UPDATES={
   shipped:[
@@ -2939,7 +2957,7 @@ function updatesHTML(){
 /* ================= COLLECTION =================
    Every card in the game, showing what you've discovered and what's still out there.
    Uses the permanent ledger (T.seenCards) so pulls from any mode count. */
-let COLL_TIER="Icon", COLL_Q="";
+let COLL_TIER="Icon", COLL_Q="", COLL_EFX="";
 const COLL_TIERS=["Icon","Elite","Gold","Silver","Bronze"];
 function collectionStats(){
   const total=DB.length;let seen=0;
@@ -2952,7 +2970,43 @@ function collectionStats(){
   });
   return {seen,total,byTier};
 }
-function collSetTier(t){COLL_TIER=t;render();}
+/* browsing by tier and browsing by item are alternatives, so picking a tier
+   drops the item filter rather than intersecting into a confusing empty grid */
+function collSetTier(t){COLL_TIER=t;COLL_EFX="";render();}
+function collSetEfx(v){COLL_EFX=v||"";render();}
+/* effect id -> how many cards carry it, read off the "cardId|efxId" ledger */
+function efxOwnedIndex(){
+  const m={};
+  for(const k in EFX.owned){
+    const i=k.indexOf("|"); if(i<0)continue;
+    const id=k.slice(i+1); if(!EFX_BY_ID[id])continue;
+    m[id]=(m[id]||0)+1;
+  }
+  return m;
+}
+function cardsWithEfx(efxId){
+  const out=[],seen={};
+  for(const k in EFX.owned){
+    const i=k.indexOf("|"); if(i<0||k.slice(i+1)!==efxId)continue;
+    const cid=k.slice(0,i); if(seen[cid])continue; seen[cid]=1;
+    const p=DB[+cid]; if(p)out.push(p);
+  }
+  return out;
+}
+function collEfxOptions(){
+  const idx=efxOwnedIndex();
+  const kinds=["frame","aura","sheen","energy","overlay"];
+  let body="";
+  kinds.forEach(k=>{
+    const list=EFFECTS.filter(e=>e.k===k&&idx[e.id]);
+    if(!list.length)return;
+    body+=`<optgroup label="${EFX_SLOT_LABEL[k]}">`+list.map(e=>
+      `<option value="${e.id}"${COLL_EFX===e.id?" selected":""}>${esc(e.n)} \u00b7 ${idx[e.id]} card${idx[e.id]===1?"":"s"}</option>`
+    ).join("")+`</optgroup>`;
+  });
+  if(!body)return `<option value="">No items yet \u2014 open a Rafters pack</option>`;
+  return `<option value="">Filter by item\u2026</option>`+body;
+}
 function collSearch(v){COLL_Q=(v||"").trim().toLowerCase();renderCollGrid();}
 function collMatches(p){
   if(!COLL_Q)return true;
@@ -2972,15 +3026,25 @@ function collTile(p){
     <div class="ct-meta"><b>${esc(p.name)}</b><span>${esc(p.team)} \u00b7 ${esc(p.era)}</span></div></div>`;
 }
 function collPool(){
+  /* item filter spans every tier \u2014 an item you own may sit on a Gold and an Icon */
+  if(COLL_EFX&&EFX_BY_ID[COLL_EFX])
+    return cardsWithEfx(COLL_EFX).filter(collMatches)
+      .sort((a,b)=>COLL_TIERS.indexOf(a.tier)-COLL_TIERS.indexOf(b.tier)
+                 ||b.ovr-a.ovr||a.name.localeCompare(b.name));
   return DB.filter(p=>p.tier===COLL_TIER&&collMatches(p))
            .sort((a,b)=>b.ovr-a.ovr||a.name.localeCompare(b.name));
 }
 function renderCollGrid(){
   const el=$("#collgrid");if(!el)return;
-  const pool=collPool();
-  el.innerHTML=pool.length?pool.map(collTile).join(""):`<div class="cempty">No cards match that search.</div>`;
+  const pool=collPool(),item=COLL_EFX&&EFX_BY_ID[COLL_EFX];
+  const empty=item?(COLL_Q?"No card carrying "+esc(item.n)+" matches that search.":"No cards carry that item yet.")
+                  :"No cards match that search.";
+  el.innerHTML=pool.length?pool.map(collTile).join(""):`<div class="cempty">${empty}</div>`;
   const cnt=$("#collcount");
-  if(cnt){const got=pool.filter(p=>T.seenCards[p.id]).length;cnt.textContent=got+" / "+pool.length+" found";}
+  if(cnt){
+    if(item)cnt.textContent=pool.length+" card"+(pool.length===1?"":"s")+" carrying "+item.n.toUpperCase();
+    else{const got=pool.filter(p=>T.seenCards[p.id]).length;cnt.textContent=got+" / "+pool.length+" found";}
+  }
 }
 function collectionHTML(){
   const st=collectionStats();
@@ -2992,13 +3056,21 @@ function collectionHTML(){
     <div class="collbig">${st.seen}<small>OF ${st.total} FOUND</small></div>
   </div>
   <div class="collbar"><i style="width:${pct}%"></i></div>
-  <div class="colltabs">
+  <div class="colltabs${COLL_EFX?" dim":""}">
     ${COLL_TIERS.map(t=>{const b=st.byTier[t];
-      return `<button class="ctab ${t===COLL_TIER?"on":""} ct-${t}" onclick="collSetTier('${t}')">
+      return `<button class="ctab ${!COLL_EFX&&t===COLL_TIER?"on":""} ct-${t}" onclick="collSetTier('${t}')">
         ${t}<span>${b.seen}/${b.total}</span></button>`;}).join("")}
   </div>
-  <input class="collsearch" type="search" placeholder="Search name, team or OVR\u2026" value="${esc(COLL_Q)}"
-    oninput="collSearch(this.value)" autocomplete="off">
+  <div class="collfilters">
+    <input class="collsearch" type="search" placeholder="Search name, team or OVR\u2026" value="${esc(COLL_Q)}"
+      oninput="collSearch(this.value)" autocomplete="off">
+    <select class="collefx${COLL_EFX?" on":""}" onchange="collSetEfx(this.value)"
+      aria-label="Show only cards carrying an item">${collEfxOptions()}</select>
+  </div>
+  ${COLL_EFX&&EFX_BY_ID[COLL_EFX]?`<div class="collchip">
+    <b>${esc(EFX_BY_ID[COLL_EFX].n)}</b>
+    <span>${EFX_SLOT_LABEL[EFX_BY_ID[COLL_EFX].k]} \u00b7 every tier</span>
+    <button onclick="collSetEfx('')" aria-label="Clear item filter">\u00d7</button></div>`:""}
   ${equipHTML()}
   <div class="collcount" id="collcount"></div>
   <div class="collgrid" id="collgrid"></div>
@@ -3036,9 +3108,9 @@ const EFFECTS=[
   {id:"f-rune",  n:"Rune",      k:"frame", t:"Rare"},
   {id:"f-shield",n:"Shield",    k:"frame", t:"Rare"},
   {id:"f-deco",  n:"Deco",      k:"frame", t:"Rare"},
-  {id:"f-crown", n:"Crown",     k:"frame", t:"Mythic"},
-  {id:"f-obel",  n:"Obelisk",   k:"frame", t:"Mythic"},
-  /* --- auras --- */
+  {id:"f-crown", n:"Crown",     k:"frame", t:"Rare"},
+  {id:"f-obel",  n:"Obelisk",   k:"frame", t:"Rare"},
+  /* --- auras: only Blood, Void and Cosmic remain Mythic --- */
   {id:"a-halo",  n:"Halo",      k:"aura", t:"Uncommon"},
   {id:"a-solar", n:"Solar",     k:"aura", t:"Uncommon"},
   {id:"a-frost", n:"Frost",     k:"aura", t:"Uncommon"},
@@ -3047,24 +3119,24 @@ const EFFECTS=[
   {id:"a-candy", n:"Candy",     k:"aura", t:"Rare"},
   {id:"a-prism", n:"Prism",     k:"aura", t:"Rare"},
   {id:"a-sunset",n:"Sunset",    k:"aura", t:"Rare"},
-  {id:"a-ember", n:"Ember",     k:"aura", t:"Mythic"},
-  {id:"a-volt",  n:"Volt",      k:"aura", t:"Mythic"},
+  {id:"a-ember", n:"Ember",     k:"aura", t:"Rare"},
+  {id:"a-volt",  n:"Volt",      k:"aura", t:"Rare"},
   {id:"a-blood", n:"Blood",     k:"aura", t:"Mythic"},
   {id:"a-void",  n:"Void",      k:"aura", t:"Mythic"},
-  {id:"a-aurora",n:"Aurora",    k:"aura", t:"Mythic"},
-  {id:"a-venom", n:"Venom",     k:"aura", t:"Mythic"},
-  {id:"a-nebula",n:"Nebula",    k:"aura", t:"Mythic"},
+  {id:"a-aurora",n:"Aurora",    k:"aura", t:"Rare"},
+  {id:"a-venom", n:"Venom",     k:"aura", t:"Rare"},
+  {id:"a-nebula",n:"Nebula",    k:"aura", t:"Rare"},
   {id:"a-cosmic",n:"Cosmic",    k:"aura", t:"Mythic"},
-  {id:"a-oil",   n:"Oil Slick", k:"aura", t:"Mythic"},
-  {id:"a-spect", n:"Spectrum",  k:"aura", t:"Mythic"},
-  /* --- energy sheens --- */
+  {id:"a-oil",   n:"Oil Slick", k:"aura", t:"Rare"},
+  {id:"a-spect", n:"Spectrum",  k:"aura", t:"Rare"},
+  /* --- energy sheens: all Rare --- */
   {id:"e-volt",  n:"Volt",      k:"energy", t:"Rare"},
   {id:"e-tox",   n:"Toxic",     k:"energy", t:"Rare"},
-  {id:"e-fire",  n:"Inferno",   k:"energy", t:"Mythic"},
-  {id:"e-cryo",  n:"Cryogen",   k:"energy", t:"Mythic"},
-  {id:"e-molt",  n:"Molten",    k:"energy", t:"Mythic"},
-  {id:"e-spec",  n:"Spectral",  k:"energy", t:"Mythic"},
-  /* --- card-face overlays --- */
+  {id:"e-fire",  n:"Inferno",   k:"energy", t:"Rare"},
+  {id:"e-cryo",  n:"Cryogen",   k:"energy", t:"Rare"},
+  {id:"e-molt",  n:"Molten",    k:"energy", t:"Rare"},
+  {id:"e-spec",  n:"Spectral",  k:"energy", t:"Rare"},
+  /* --- card-face overlays: the four true chases --- */
   {id:"o-frost", n:"Glacier Freeze", k:"overlay", t:"Mythic"},
   {id:"o-bolt",  n:"Volt Lightning", k:"overlay", t:"Mythic"},
   {id:"o-sparks",n:"Sparks",         k:"overlay", t:"Mythic"},
@@ -3312,7 +3384,7 @@ function raftersHTML(){
     <div><h2>The Rafters</h2>
       <p>Where the jerseys hang. Every pack holds one cosmetic for one specific card \u2014
       frames, auras, border light and card-face effects. Mythics are the chase.</p></div>
-    <div class="rfbal">${CR.bal.toLocaleString()}<small>CREDITS</small></div>
+    <div class="rfbal" id="rfbal">${CR.bal.toLocaleString()}<small>CREDITS</small></div>
   </div>
 
   <div class="rfodds">
@@ -3321,10 +3393,10 @@ function raftersHTML(){
   </div>
 
   <div class="rfstats">
-    <div><b>${free}</b><span>FREE PACKS</span></div>
-    <div><b>${EFX.packs}</b><span>OPENED</span></div>
-    <div><b>${pity}</b><span>TO GUARANTEED MYTHIC</span></div>
-    <div><b>${owned}</b><span>UNLOCKED</span></div>
+    <div><b id="rfs-free">${free}</b><span>FREE PACKS</span></div>
+    <div><b id="rfs-open">${EFX.packs}</b><span>OPENED</span></div>
+    <div><b id="rfs-pity">${pity}</b><span>TO GUARANTEED MYTHIC</span></div>
+    <div><b id="rfs-owned">${owned}</b><span>UNLOCKED</span></div>
   </div>
 
   <div class="rfarena" id="rfarena">
@@ -3339,29 +3411,64 @@ function raftersHTML(){
         </div>
         <div class="rftrack"></div>
         <div class="rftab" id="rftab"><div class="rftabb"></div>
-          <div class="rfhint">DRAG TO OPEN</div></div>
+          <div class="rfhint" id="rfhint">${rfHintText()}</div></div>
       </div>
     </div>
     <div class="rfreveal" id="rfreveal"></div>
   </div>
 
   <div class="rfbuy">
-    <button class="btn gold" onclick="raftersBuy()">
-      ${free>0?`OPEN FREE PACK (${free})`:`OPEN PACK \u00b7 ${PACK_COST} CR`}
-    </button>
-    ${free===0&&CR.bal<PACK_COST?`<div class="rfneed">Need ${(PACK_COST-CR.bal).toLocaleString()} more credits \u2014 play a draft, pack or the daily.</div>`:""}
-    <div class="rfnote">Duplicates refund credits automatically. A mythic is guaranteed at least
-    every ${PITY_AT} packs.</div>
+    <div id="rfcost">${rfCostHTML()}</div>
+    <div class="rfnote">Pull the zipper to open a pack \u2014 credits are spent the moment it moves.
+    Duplicates refund automatically, and a mythic is guaranteed at least every ${PITY_AT} packs.</div>
   </div>
   <div class="notice" id="notice"></div>`;
 }
 
-function raftersBuy(){
-  if(RF.open&&!RF.done)return;
+/* --- copy for the zipper, which now carries the price the button used to show --- */
+function rfHintText(){
+  if(RF.open&&!RF.done)return "KEEP PULLING";
+  return packsAvailable()>0?"PULL TO OPEN \u00b7 FREE":`PULL TO OPEN \u00b7 ${PACK_COST} CR`;
+}
+function rfCostHTML(){
+  const free=packsAvailable();
+  if(free>0)return `<div class="rfcost">${free} free pack${free===1?"":"s"} banked</div>`;
+  if(CR.bal<PACK_COST)
+    return `<div class="rfneed">Need ${(PACK_COST-CR.bal).toLocaleString()} more credits \u2014 play a draft, pack or the daily.</div>`;
+  return `<div class="rfcost">${PACK_COST} CR per pack</div>`;
+}
+/* Refresh the counters in place. A full render() would replace the zipper node
+   mid-gesture and drop pointer capture, so the numbers are patched by hand. */
+function rfSyncStats(){
+  const set=(id,v)=>{const el=$("#"+id);if(el)el.textContent=v;};
+  set("rfs-free",packsAvailable());
+  set("rfs-open",EFX.packs);
+  set("rfs-pity",Math.max(0,PITY_AT-EFX.sincePity));
+  set("rfs-owned",efxOwnedCount());
+  const bal=$("#rfbal");
+  if(bal)bal.innerHTML=`${CR.bal.toLocaleString()}<small>CREDITS</small>`;
+  const cost=$("#rfcost");if(cost)cost.innerHTML=rfCostHTML();
+  const hint=$("#rfhint");if(hint)hint.textContent=rfHintText();
+  const pill=$("#crpill");if(pill)pill.textContent=CR.bal.toLocaleString()+" CR";
+}
+/* Buying happens on first contact with the zipper. Returns false when the pull
+   can't be afforded, which aborts the drag before anything moves. */
+function rfArm(){
+  if(RF.done)return false;
+  if(RF.open&&RF.pull)return true;
   const paid=spendPack();
-  if(!paid){toast("Not enough credits \u2014 play a run or the daily.");return;}
+  /* toast() never existed \u2014 this path threw instead of explaining itself */
+  if(!paid){notice("Not enough credits \u2014 play a run, the daily or Pack Mode.");return false;}
   RF.pull=openRaftersPack();
-  RF.open=true;RF.done=false;RF.prog=0;
+  RF.open=true;RF.done=false;
+  rfSyncStats();
+  return true;
+}
+/* Reset the stage to a fresh sealed pack. Nothing is charged until it's pulled. */
+function raftersAgain(){
+  if(typeof RF.unbind==="function")RF.unbind();
+  cancelAnimationFrame(RF.raf);
+  RF={open:false,prog:0,done:false,pull:null,drag:false,raf:null};
   render();
   /* the rarity must stay unknown until the seam is peeled — start neutral */
   (window.requestAnimationFrame||setTimeout)(()=>{rfBind();rfSetGlow(true);rfApply(0);});
@@ -3377,52 +3484,120 @@ function rfBind(){
   const tab=$("#rftab"),stage=$("#rfstage");
   if(!tab||!stage||tab.dataset.bound)return;
   tab.dataset.bound="1";
-  const down=e=>{if(RF.done)return;RF.drag=true;e.preventDefault();};
+
+  /* Re-renders replace the zipper node. Clear old window listeners first so
+     repeated Rafters packs never accumulate input handlers. */
+  if(typeof RF.unbind==="function")RF.unbind();
+  const removers=[];
+  const on=(el,type,fn,opts)=>{
+    el.addEventListener(type,fn,opts);
+    removers.push(()=>el.removeEventListener(type,fn,opts));
+  };
+  RF.unbind=()=>{removers.splice(0).forEach(off=>off());RF.drag=false;};
+
+  let pointerId=null,startX=0,startProg=0,moved=false,suppressClickUntil=0;
+  const pointX=e=>{
+    if(Number.isFinite(e.clientX))return e.clientX;
+    const t=(e.touches&&e.touches[0])||(e.changedTouches&&e.changedTouches[0]);
+    return t&&Number.isFinite(t.clientX)?t.clientX:null;
+  };
+  const down=e=>{
+    if(RF.done)return;
+    const x=pointX(e);if(x==null)return;
+    if(!rfArm()){if(e.cancelable)e.preventDefault();return;}
+    RF.drag=true;pointerId=e.pointerId??null;startX=x;startProg=RF.prog;moved=false;
+    $("#rfpack")?.classList.add("live");
+    if(e.pointerId!=null&&tab.setPointerCapture){
+      try{tab.setPointerCapture(e.pointerId);}catch(_){/* harmless on older iOS */}
+    }
+    if(e.cancelable)e.preventDefault();
+  };
   const move=e=>{
     if(!RF.drag||RF.done)return;
-    const t=e.touches?e.touches[0]:e, b=stage.getBoundingClientRect();
-    rfApply((t.clientX-b.left-14)/(b.width-28));
-    if(RF.prog>=0.75)rfBurst();
-    e.preventDefault();
+    if(pointerId!=null&&e.pointerId!=null&&e.pointerId!==pointerId)return;
+    const x=pointX(e);if(x==null)return;
+    if(Math.abs(x-startX)>5)moved=true;
+    const b=stage.getBoundingClientRect();
+    rfApply(startProg+(x-startX)/Math.max(1,b.width-28));
+    if(RF.prog>=0.78)rfBurst();
+    if(e.cancelable)e.preventDefault();
   };
-  const up=()=>{
-    if(!RF.drag||RF.done)return; RF.drag=false;
-    if(RF.prog>=0.42)rfBurst(); else rfSpring(RF.prog,0,220);
+  const up=e=>{
+    if(!RF.drag||RF.done)return;
+    if(pointerId!=null&&e&&e.pointerId!=null&&e.pointerId!==pointerId)return;
+    RF.drag=false;pointerId=null;
+    if(e&&e.cancelable)e.preventDefault();
+    if(!moved&&RF.prog<=0.02){
+      suppressClickUntil=Date.now()+550;
+      rfSpring(0,1,820,rfBurst);
+    }else if(RF.prog>=0.46)rfBurst();
+    else rfSpring(RF.prog,0,220);
   };
-  tab.addEventListener("mousedown",down);
-  tab.addEventListener("touchstart",down,{passive:false});
-  window.addEventListener("mousemove",move);
-  window.addEventListener("touchmove",move,{passive:false});
-  window.addEventListener("mouseup",up);
-  window.addEventListener("touchend",up);
-  $("#rfpack").addEventListener("click",e=>{
-    if(RF.done||RF.prog>0.02||e.target.closest(".rftab"))return;
-    rfSpring(0,1,900,rfBurst);
+
+  /* The silver tab is the zipper and the only interaction target.
+     Pointer Events only — every browser that can parse this file's ?. and ??
+     syntax (Safari 13.1+, Chrome 80+, Firefox 72+) supports them, so a
+     mouse/touch fallback here would be unreachable code. */
+  on(tab,"pointerdown",down,{passive:false});
+  on(window,"pointermove",move,{passive:false});
+  on(window,"pointerup",up,{passive:false});
+  on(window,"pointercancel",up,{passive:false});
+  on(tab,"click",e=>{
+    if(Date.now()<suppressClickUntil||RF.done||RF.prog>0.02)return;
+    if(e.cancelable)e.preventDefault();
+    if(!rfArm())return;
+    rfSpring(0,1,820,rfBurst);
   });
 }
 function rfApply(p){
   RF.prog=Math.max(0,Math.min(1,p));
-  const seam=10, gap=RF.prog*RF.prog*22;
+  const seam=10,ease=RF.prog*RF.prog*(3-2*RF.prog),gap=2+ease*12;
   const top=$("#rftop"),bot=$("#rfbot"),tab=$("#rftab"),
         vd=$("#rfvoid"),sp=$("#rfspill"),ar=$("#rfarena"),st=$("#rfstage");
-  if(!top)return;
-  const tabPct=RF.prog*100, oT=seam-(gap/330*100), oB=seam+(gap/330*100);
-  top.style.clipPath=`polygon(0% 0%,100% 0%,100% ${seam}%,${tabPct}% ${seam}%,0% ${oT}%)`;
-  bot.style.clipPath=`polygon(0% ${oB}%,${tabPct}% ${seam}%,100% ${seam}%,100% 100%,0% 100%)`;
-  top.style.transform=`translateY(${-gap*.34}px) rotate(${-RF.prog*.9}deg)`;
-  bot.style.transform=`translateY(${gap*.34}px) rotate(${RF.prog*.9}deg)`;
-  tab.style.left=(14+(st.clientWidth-28)*RF.prog)+"px";
-  vd.style.opacity=Math.min(1,RF.prog*3);
-  vd.style.height=(3+gap*1.5)+"px";
-  sp.style.opacity=Math.min(.85,RF.prog*1.25);
-  sp.style.transform=`scaleY(${0.25+RF.prog*0.9})`;
-  /* the bottom-up projection brightens as the seam widens, and the rarity colour
-     only bleeds in once the seam is genuinely open */
-  if(ar){
-    ar.style.setProperty("--rf-lift",(0.35+RF.prog*0.65).toFixed(2));
-    if(RF.prog>0.04)rfSetGlow(false); else rfSetGlow(true);
+  /* A re-render can swap the stage out mid-animation, so every node is optional
+     from here down — a missing one skips its own writes instead of throwing and
+     killing the spring loop. */
+  if(!st)return;
+
+  const sw=st.clientWidth||1, sh=st.clientHeight||1;
+  const travel=Math.max(0,sw-28),px=travel*RF.prog;
+  const tabPct=14+px;
+  const xPct=(tabPct/sw)*100;
+  const gapPct=(gap/sh)*100;
+
+  /* Right side stays sealed. Only the already-zipped left section separates,
+     producing one crisp opening that follows the tab. */
+  if(top){
+    top.style.clipPath=`polygon(0 0,100% 0,100% ${seam}%,${xPct}% ${seam}%,${xPct}% ${seam-gapPct}%,0 ${seam-gapPct}%)`;
+    top.style.transform="translateY(0) rotate(0deg)";
   }
-  if(RF.prog>0.01)$("#rfpack").classList.add("live");
+  if(bot){
+    bot.style.clipPath=`polygon(0 ${seam+gapPct}%,${xPct}% ${seam+gapPct}%,${xPct}% ${seam}%,100% ${seam}%,100% 100%,0 100%)`;
+    bot.style.transform="translateY(0) rotate(0deg)";
+  }
+  if(tab){
+    tab.style.left=tabPct+"px";
+    tab.style.setProperty("--zip-p",RF.prog.toFixed(3));
+  }
+  if(vd){
+    vd.style.width=Math.max(0,px)+"px";
+    vd.style.opacity=RF.prog<.015?0:Math.min(1,.2+RF.prog*1.35);
+  }
+  if(sp){
+    sp.style.width=Math.max(0,px)+"px";
+    sp.style.opacity=Math.min(.68,RF.prog*.86);
+    sp.style.transform=`scaleY(${0.18+RF.prog*.72})`;
+  }
+
+  if(ar){
+    ar.style.setProperty("--rf-lift",(0.30+RF.prog*0.58).toFixed(2));
+    if(RF.prog>0.08)rfSetGlow(false); else rfSetGlow(true);
+  }
+  const pack=$("#rfpack");
+  if(pack){
+    if(RF.prog>0.01)pack.classList.add("live");
+    else pack.classList.remove("live");
+  }
 }
 function rfSpring(from,to,ms,cb){
   const t0=performance.now();
@@ -3475,7 +3650,7 @@ function rfReveal(){
               :`<div class="rfnew">NEW \u2014 equip it from your Collection</div>`}
     </div>
     <div class="rfbtns">
-      <button class="btn gold" onclick="raftersBuy()">OPEN ANOTHER</button>
+      <button class="btn gold" onclick="raftersAgain()">OPEN ANOTHER</button>
       <button class="btn" onclick="setScreen('collection')">GO TO COLLECTION</button>
     </div>`;
   rv.classList.add("show");
@@ -3556,18 +3731,18 @@ const CARD_ART=new Set([
   /* --- ICON (52) --- */
   "giannis-antetokounmpo",  // Giannis Antetokounmpo (97 MIL '20s) — Bucks primary art
   "allen-iverson-phi",  // Allen Iverson (96 PHI '00s)
-  "anthony-edwards",  // Anthony Edwards (96 MIN '20s)
+  // "anthony-edwards",  // Anthony Edwards (96 MIN '20s)
   "bill-russell",  // Bill Russell (98 BOS '60s)
   "bob-cousy",  // Bob Cousy (96 BOS '50s)
   "charles-barkley-phx",  // Charles Barkley (96 PHX '90s)
   "chris-paul-nop",  // Chris Paul (97 NOP '00s)
   // "clyde-drexler",  // Clyde Drexler (96 POR '90s)
-  "david-robinson",  // David Robinson (96 SAS '90s)
+  // "david-robinson",  // David Robinson (96 SAS '90s)
   "dirk-nowitzki",  // Dirk Nowitzki (98 DAL '00s)
   "dwyane-wade",  // Dwyane Wade (97 MIA '00s)
   // "elgin-baylor",  // Elgin Baylor (96 LAL '60s)
-  "giannis-antetokounmpo-mia",  // Giannis Antetokounmpo (97 MIA '20s)
-  "giannis-antetokounmpo-mil",  // Giannis Antetokounmpo (97 MIL '20s)
+  // "giannis-antetokounmpo-mia",  // Giannis Antetokounmpo (97 MIA '20s)
+  // "giannis-antetokounmpo-mil",  // Giannis Antetokounmpo (97 MIL '20s)
   "hakeem-olajuwon",  // Hakeem Olajuwon (99 HOU '90s)
   "jalen-brunson",  // Jalen Brunson (96 NYK '20s)
   // "jerry-west",  // Jerry West (97 LAL '60s)
@@ -3577,7 +3752,7 @@ const CARD_ART=new Set([
   // "kareem-abdul-jabbar-lal",  // Kareem Abdul-Jabbar (99 LAL '80s)
   "kareem-abdul-jabbar-mil",  // Kareem Abdul-Jabbar (97 MIL '70s)
   // "karl-malone",  // Karl Malone (97 UTA '90s)
-  "kawhi-leonard-sas",  // Kawhi Leonard (96 SAS '10s)
+  // "kawhi-leonard-sas",  // Kawhi Leonard (96 SAS '10s)
   // "kevin-durant-gsw",  // Kevin Durant (96 GSW '10s)
   "kevin-durant-okc",  // Kevin Durant (97 OKC '10s)
   "kevin-garnett-bos",  // Kevin Garnett (96 BOS '00s)
@@ -3585,23 +3760,23 @@ const CARD_ART=new Set([
   "kobe-bryant",  // Kobe Bryant (99 LAL '00s)
   "larry-bird",  // Larry Bird (99 BOS '80s)
   "lebron-james-cle",  // LeBron James (99 CLE '10s)
-  "lebron-james-lal",  // LeBron James (97 LAL '20s)
+  // "lebron-james-lal",  // LeBron James (97 LAL '20s)
   "lebron-james-mia",  // LeBron James (98 MIA '10s)
   // "luka-doncic-dal",  // Luka Doncic (97 DAL '20s)
   // "luka-doncic-lal",  // Luka Doncic (96 LAL '20s)
-  "magic-johnson",  // Magic Johnson (99 LAL '80s)
+  // "magic-johnson",  // Magic Johnson (99 LAL '80s)
   "michael-jordan",  // Michael Jordan (99 CHI '90s)
   // "moses-malone-hou",  // Moses Malone (97 HOU '80s)
   "moses-malone-phi",  // Moses Malone (96 PHI '80s)
   "nikola-jokic",  // Nikola Jokic (98 DEN '20s)
   // "oscar-robertson",  // Oscar Robertson (97 MIL '60s)
-  "scottie-pippen",  // Scottie Pippen (97 CHI '90s)
+  // "scottie-pippen",  // Scottie Pippen (97 CHI '90s)
   "shai-gilgeous-alexander",  // Shai Gilgeous-Alexander (98 OKC '20s)
   "shaquille-oneal-lal",  // Shaquille O'Neal (98 LAL '00s)
   // "shaquille-oneal-orl",  // Shaquille O'Neal (96 ORL '90s)
   "stephen-curry",  // Stephen Curry (98 GSW '10s)
   // "steve-nash-phx",  // Steve Nash (96 PHX '00s)
-  "tim-duncan",  // Tim Duncan (98 SAS '00s)
+  // "tim-duncan",  // Tim Duncan (98 SAS '00s)
   "victor-wembanyama",  // Victor Wembanyama (97 SAS '20s)
   "vince-carter-tor",  // Vince Carter (96 TOR '00s)
   // "wilt-chamberlain-gsw",  // Wilt Chamberlain (99 GSW '60s)
@@ -3609,15 +3784,15 @@ const CARD_ART=new Set([
   // "wilt-chamberlain-phi",  // Wilt Chamberlain (98 PHI '60s)
   /* --- ELITE (53) --- */
   // "allen-iverson-den",  // Allen Iverson (92 DEN '00s)
-  "anthony-davis-lal",  // Anthony Davis (94 LAL '20s)
+  // "anthony-davis-lal",  // Anthony Davis (94 LAL '20s)
   // "anthony-davis-was",  // Anthony Davis (93 WAS '20s)
   // "bob-pettit",  // Bob Pettit (94 ATL '50s)
-  "cade-cunningham",  // Cade Cunningham (92 DET '20s)
+  // "cade-cunningham",  // Cade Cunningham (92 DET '20s)
   // "carmelo-anthony-den",  // Carmelo Anthony (95 DEN '00s)
   // "carmelo-anthony-nyk",  // Carmelo Anthony (92 NYK '10s)
   // "charles-barkley-phi",  // Charles Barkley (94 PHI '80s)
   // "chris-paul-lac",  // Chris Paul (95 LAC '10s)
-  "damian-lillard",  // Damian Lillard (94 POR '10s)
+  // "damian-lillard",  // Damian Lillard (94 POR '10s)
   // "demarcus-cousins",  // DeMarcus Cousins (92 SAC '10s)
   "derrick-rose",  // Derrick Rose (95 CHI '10s)
   // "devin-booker",  // Devin Booker (93 PHX '20s)
@@ -3625,7 +3800,7 @@ const CARD_ART=new Set([
   // "donovan-mitchell",  // Donovan Mitchell (93 CLE '20s)
   // "dwight-howard-orl",  // Dwight Howard (93 ORL '00s)
   // "elvin-hayes",  // Elvin Hayes (92 WAS '70s)
-  "gary-payton",  // Gary Payton (95 OKC '90s)
+  // "gary-payton",  // Gary Payton (95 OKC '90s)
   // "george-gervin",  // George Gervin (94 SAS '70s)
   // "george-mikan",  // George Mikan (94 LAL '50s)
   // "isiah-thomas",  // Isiah Thomas (95 DET '80s)
@@ -3634,7 +3809,7 @@ const CARD_ART=new Set([
   // "james-worthy",  // James Worthy (95 LAL '80s)
   // "jason-kidd-bkn",  // Jason Kidd (95 BKN '00s)
   // "jason-kidd-phx",  // Jason Kidd (93 PHX '90s)
-  "jaylen-brown",  // Jaylen Brown (95 BOS '20s)
+  // "jaylen-brown",  // Jaylen Brown (95 BOS '20s)
   // "jayson-tatum",  // Jayson Tatum (95 BOS '20s)
   "jimmy-butler-mia",  // Jimmy Butler (95 MIA '20s)
   // "john-havlicek",  // John Havlicek (93 BOS '60s)
@@ -3644,15 +3819,15 @@ const CARD_ART=new Set([
   // "kevin-durant-hou",  // Kevin Durant (94 HOU '20s)
   // "kevin-mchale",  // Kevin McHale (92 BOS '80s)
   // "kyrie-irving-cle",  // Kyrie Irving (94 CLE '10s)
-  "kyrie-irving-dal",  // Kyrie Irving (92 DAL '20s)
+  // "kyrie-irving-dal",  // Kyrie Irving (92 DAL '20s)
   // "patrick-ewing",  // Patrick Ewing (95 NYK '90s)
   // "paul-pierce",  // Paul Pierce (94 BOS '00s)
   // "pete-maravich",  // Pete Maravich (94 UTA '70s)
   // "ray-allen-bos",  // Ray Allen (94 BOS '00s)
   // "ray-allen-okc",  // Ray Allen (93 OKC '00s)
-  "reggie-miller",  // Reggie Miller (93 IND '90s)
+  // "reggie-miller",  // Reggie Miller (93 IND '90s)
   // "rick-barry",  // Rick Barry (93 GSW '70s)
-  "russell-westbrook",  // Russell Westbrook (95 OKC '10s)
+  // "russell-westbrook",  // Russell Westbrook (95 OKC '10s)
   // "shaquille-oneal-mia",  // Shaquille O'Neal (95 MIA '00s)
   // "steve-nash-dal",  // Steve Nash (94 DAL '00s)
   // "tracy-mcgrady-hou",  // Tracy McGrady (94 HOU '00s)
@@ -4571,7 +4746,6 @@ function cardHTML(p,attrs,badge){
   const hasAura=/\ba-/.test(efx);
   const front=`
   <div class="card framed t-${p.tier}${art?" hasart":""}${efx?" "+efx:""}" ${attrs||""}>
-    ${hasAura?`<div class="efxaura2"></div><div class="efxaura"></div>`:""}
     <div class="efxframe"></div>
     ${/\be-/.test(efx)?`<div class="efxenergy"><i></i><i></i></div>`:""}
     ${/\bs-/.test(efx)?`<div class="efxsheen"></div>`:""}
@@ -4602,7 +4776,14 @@ function cardHTML(p,attrs,badge){
     <div class="c3face c3front">${front}</div>
     <div class="c3face c3back">${back}</div>
   </div></div>`;
-  return p.tier==="Icon"?`<div class="flame">${core}</div>`:core;}
+  /* The aura lives on a WRAPPER, not inside the card. That lets the card keep
+     overflow:hidden — so the Icon's sliding flare stays contained — while the
+     aura glow still spills outside. */
+  const wrapped=hasAura
+    ? `<div class="aurahost ${efx.split(" ").filter(c=>/^a-/.test(c)).join(" ")}">`+
+      `<div class="efxaura2"></div><div class="efxaura"></div>${core}</div>`
+    : core;
+  return p.tier==="Icon"?`<div class="flame${hasAura?" flame-dim":""}">${wrapped}</div>`:wrapped;}
 function SLOTNAMES(p){return p.positions.length>1?"multi-position":"specialist";}
 function flip3d(e){e.stopPropagation();e.preventDefault();
   const n=e.target.closest(".c3din");if(n)n.classList.toggle("flipped3");}
@@ -5037,6 +5218,19 @@ function reconcileDraftState(){
   return full;
 }
 function startEraByIndex(i){const e=viableEras()[i];if(e)startDraft(e);}
+/* Bail out of a half-finished draft. Same sheet pattern as the hub reset, so a
+   destructive action always asks first. */
+function confirmDraftReset(){
+  if(D.stage!=="picking")return;
+  const n=ALL_SLOTS.filter(s=>D.roster[s]!=null).length;
+  $("#sheet").innerHTML=`<div class="sheetbox"><h3>Restart this draft?</h3>
+    <div class="who">${n} pick${n===1?"":"s"} will be cleared and you'll choose a new captain.${DRAFT_ERA?" The "+eraLabel(DRAFT_ERA)+" era stays locked.":""} Your best draft OVR is kept.</div>
+    <button class="btn danger" onclick="doDraftReset()">Yes \u2014 restart</button>
+    <button class="btn" onclick="closeSheet()">Keep drafting</button></div>`;
+  $("#sheet").classList.add("show");
+  $("#sheet").onclick=e=>{if(e.target.id==="sheet")closeSheet();};
+}
+function doDraftReset(){closeSheet();startDraft(DRAFT_ERA);}
 function startDraft(era){
   DRAFT_ERA=era||null;
   beginDraftFairSession();
@@ -5195,6 +5389,11 @@ function draftHTML(){
     <div class="benchlabel">BENCH — ANY POSITION</div>
     <div class="benchrow">${BENCH_SLOTS.map(s=>draftSlotHTML(s)).join("")}</div>
   </div>
+  ${(!D.done&&D.stage==="picking")?`<div class="draftctl">
+    <button class="btn danger" onclick="confirmDraftReset()">\u21ba Restart draft</button>
+    <button class="btn" onclick="setScreen('landing')">Exit to modes</button>
+    <span class="draftctl-note">${filled} of 8 locked in${DRAFT_ERA?` \u00b7 ${eraLabel(DRAFT_ERA)} era`:""}</span>
+  </div>`:""}
   ${D.done?`<div style="display:flex;gap:10px;justify-content:center;margin-top:12px">
     <button class="btn gold" onclick="shareDraftImage()">Share as image</button>
       <button class="btn" onclick="shareRoster('draft')">Share roster</button>
@@ -5224,7 +5423,6 @@ function landingHTML(){
     <div class="modecard" onclick="setScreen('daily')"><h3>🗓 Daily Challenge</h3><p>A fresh seeded squad and a new constraint every day — same for everyone. Build the best team under today's rule and keep your streak alive.</p><div class="modebest">STREAK <b>${DAILY.streak||0}🔥</b></div><button class="btn gold">PLAY TODAY</button></div>
     <div class="modecard" onclick="setScreen('rafters')"><h3>🎫 The Rafters</h3><p>Open packs for card cosmetics — frames, auras, border light and card-face effects. Mythics are the chase.</p><div class="modebest">PACKS <b>${packsAvailable()} free</b></div><button class="btn gold">OPEN PACKS</button></div>
     <div class="modecard" onclick="setScreen('collection')"><h3>🗃 Collection</h3><p>Every card in the game — see what you've discovered and what's still out there. Pulls from any mode count.</p><div class="modebest">FOUND <b>${collectionStats().seen}/${collectionStats().total}</b></div><button class="btn">VIEW COLLECTION</button></div>
-    <div class="modecard" onclick="setScreen('shop')"><h3>🛒 Shop</h3><p>Spend credits earned from playing on card frames, backgrounds and effects. Mythic skins can never be bought — only earned.</p><div class="modebest">BALANCE <b>${CR.bal.toLocaleString()} CR</b></div><button class="btn gold">OPEN SHOP</button></div>
     <div class="modecard" onclick="setScreen('trophies')"><h3>🏆 Trophy Case</h3><p>Permanent collection progression, franchise and era archives, iconic chemistry discoveries, What If timelines, historic teams, records and hidden challenges.</p><div class="modebest">PROGRESS <b>${trophySummary().done}/${trophySummary().total}</b></div><button class="btn gold">OPEN TROPHY CASE</button></div>
   </div>`;
 }
@@ -5265,8 +5463,26 @@ const IMG_TIER={Icon:{ink:"#ff7ac8",glow:26},Elite:{ink:"#ff4d6d",glow:14},Gold:
 const IMG_FONT="'Impact','Arial Black',sans-serif";
 function rrPath(x,y,w,h,r){const c=IMG_CTX;c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();}
 let IMG_CTX=null;
+/* Shrink a label until it fits the card, then clip it with an ellipsis. Canvas has
+   no text wrapping, so a long name has to be measured down to size by hand. */
+function imgFit(txt,maxW,start,min,weight){
+  const c=IMG_CTX,f=s=>(weight?weight+" ":"")+s+"px Arial";
+  let s=start;c.font=f(s);
+  while(s>min&&c.measureText(txt).width>maxW){s--;c.font=f(s);}
+  return s;
+}
+function imgClip(txt,maxW){ /* call with the final font already set */
+  const c=IMG_CTX;
+  if(c.measureText(txt).width<=maxW)return txt;
+  let t=txt;
+  while(t.length>1&&c.measureText(t+"\u2026").width>maxW)t=t.slice(0,-1);
+  return t.replace(/[\s\u00b7]+$/,"")+"\u2026";
+}
+/* Fully self-contained: every card sets its own alignment and colours, so it can
+   never inherit them from whatever the caller drew last. */
 function imgCard(p,cx,cy,w,h){
   const c=IMG_CTX,x=cx-w/2,y=cy-h/2,t=IMG_TIER[p.tier];
+  c.save(); /* closed at the end of the function */
   const g=c.createLinearGradient(x,y,x,y+h);g.addColorStop(0,"#1c1c23");g.addColorStop(1,"#101014");
   c.save();
   if(t.glow){c.shadowColor=t.ink;c.shadowBlur=t.glow;}
@@ -5297,11 +5513,21 @@ function imgCard(p,cx,cy,w,h){
     c.fillStyle="#fff";c.font="700 "+Math.round(w*.15)+"px Arial";c.textAlign="center";
     c.fillText(ini,cx,y+h*.46+w*.055);}
   c.restore();
-  let fs=Math.round(w*.115);c.font="700 "+fs+"px Arial";
-  while(c.measureText(p.name).width>w-18&&fs>11){fs--;c.font="700 "+fs+"px Arial";}
-  c.fillText(p.name,cx,y+h*.72);
-  c.fillStyle="#8a8a94";c.font=Math.round(w*.075)+"px Arial";
-  c.fillText(p.team+" \u00b7 "+p.era+" \u00b7 "+p.tier.toUpperCase(),cx,y+h-14);
+  /* name + team block: centred on the card, shrunk to fit, clipped as a last resort */
+  c.save();
+  c.textAlign="center";
+  if(art){c.shadowColor="rgba(0,0,0,.92)";c.shadowBlur=7;}
+  const pad=Math.max(10,Math.round(w*.065)),maxW=w-pad*2;
+  c.fillStyle="#f2f2f5";
+  /* floor is low enough that even the longest name in the DB fits without clipping */
+  c.font="700 "+imgFit(p.name,maxW,Math.round(w*.115),Math.max(9,Math.round(w*.064)),"700")+"px Arial";
+  c.fillText(imgClip(p.name,maxW),cx,y+Math.round(h*.72));
+  const meta=p.team+" \u00b7 "+p.era+" \u00b7 "+p.tier.toUpperCase();
+  c.fillStyle="#9a9aa4";
+  c.font=imgFit(meta,maxW,Math.round(w*.075),Math.round(w*.05),"")+"px Arial";
+  c.fillText(imgClip(meta,maxW),cx,y+h-Math.round(h*.063));
+  c.restore();
+  c.restore();
 }
 /* art image cache for the share canvas (slug -> loaded Image) */
 const IMG_ART={};
@@ -5324,6 +5550,7 @@ function drawRosterCanvas(modeKey,roster,eraLocked){
   return new Promise(async res=>{
     try{
       await preloadRosterArt(roster); /* load any player art before painting so it appears on the export */
+      const CARD_W=156,CARD_H=222; /* starters and bench share one card size */
       const cv=document.createElement("canvas");cv.width=1080;cv.height=1350;
       const c=cv.getContext("2d");if(!c){res(null);return;}
       IMG_CTX=c;
@@ -5332,7 +5559,7 @@ function drawRosterCanvas(modeKey,roster,eraLocked){
       let rg=c.createRadialGradient(540,700,60,540,700,620);
       rg.addColorStop(0,"rgba(53,214,255,.07)");rg.addColorStop(1,"rgba(0,0,0,0)");
       c.fillStyle=rg;c.fillRect(0,0,1080,1350);
-      c.beginPath();c.arc(540,772,318,0,7);c.strokeStyle="rgba(80,200,140,.10)";c.lineWidth=2;c.stroke();
+      c.beginPath();c.arc(540,760,312,0,7);c.strokeStyle="rgba(80,200,140,.10)";c.lineWidth=2;c.stroke();
       /* header */
       c.textAlign="center";
       c.font="900 74px "+IMG_FONT;
@@ -5368,8 +5595,10 @@ function drawRosterCanvas(modeKey,roster,eraLocked){
         if(eraLocked){c.font="700 13px Arial";c.fillText(DRAFT_ERA?eraLabel(DRAFT_ERA).toUpperCase():"ERA",0,20);c.font="700 10px Arial";c.fillText("ERA SQUAD",0,38);}
         else{c.font="700 15px Arial";c.fillText("CLUB",0,20);c.font="700 9.5px Arial";c.fillText("PERFECTION CERTIFIED",0,40);}c.restore();
       }
-      /* pentagon web + starters — wider ring, smaller cards: no overlap */
-      const CTR={x:540,y:740},R=240,ANG={C:-90,SF:-18,PG:54,SG:126,PF:198},pos={};
+      /* pentagon web + starters. One card size everywhere — the bench used to be
+         drawn smaller, so the ring is pulled in slightly to make room for full-size
+         bench cards above the footer rule. */
+      const CTR={x:540,y:728},R=234,ANG={C:-90,SF:-18,PG:54,SG:126,PF:198},pos={};
       Object.entries(ANG).forEach(([s,a])=>{const r=a*Math.PI/180;
         pos[s]={x:CTR.x+R*Math.cos(r),y:CTR.y+R*Math.sin(r)};});
       const SL=["C","PF","SF","SG","PG"];
@@ -5387,11 +5616,13 @@ function drawRosterCanvas(modeKey,roster,eraLocked){
           c.globalAlpha=.55;c.lineWidth=6;c.stroke();
           c.shadowBlur=0;c.globalAlpha=.95;c.lineWidth=3;c.stroke();c.restore();}
       }
-      SL.forEach(s=>imgCard(DB[roster[s]],pos[s].x,pos[s].y,160,232));
+      SL.forEach(s=>imgCard(DB[roster[s]],pos[s].x,pos[s].y,CARD_W,CARD_H));
       /* bench */
       c.textAlign="center";c.fillStyle="#8a8a94";c.font="21px Arial";
-      c.fillText("B E N C H",540,1094);
-      BENCH_SLOTS.forEach((s,i)=>imgCard(DB[roster[s]],273+72+i*(144+51),1200,144,176));
+      c.fillText("B E N C H",540,1062);
+      /* same card size as the starting five, centred as a row */
+      const bstep=CARD_W+38,bx0=540-((BENCH_SLOTS.length-1)/2)*bstep;
+      BENCH_SLOTS.forEach((s,i)=>imgCard(DB[roster[s]],bx0+i*bstep,1186,CARD_W,CARD_H));
       /* footer */
       c.strokeStyle="rgba(255,255,255,.10)";c.lineWidth=1;
       c.beginPath();c.moveTo(80,1314);c.lineTo(1000,1314);c.stroke();
@@ -5589,11 +5820,16 @@ function render(){
   const best=Math.max(HS.main.ovr,HS.rare.ovr,HS.draft.ovr);
   app.innerHTML=`
     <header class="top">
-      <div class="logo">All-Time <em>Ultimate</em><small>NBA PACK OPENER</small></div>
+      <div class="topleft">
+        ${screen==="landing"?"":`<button class="homebtn" onclick="setScreen('landing')"
+          aria-label="Back to home" title="Back to home">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5 8 12l6.5 7"/></svg></button>`}
+        <div class="logo">All-Time <em>Ultimate</em><small>NBA PACK OPENER</small></div>
+      </div>
       <div class="hs">BEST TEAM OVR<br><b>${best}</b></div>
     </header>
     ${screen==="landing"?landingHTML():screen==="share"?shareHTML():screen==="team"?hubHTML("main"):screen==="packs"?packsHTML()
-      :screen==="draft"?draftHTML():screen==="classic"?hubHTML("classic"):screen==="trophies"?trophyHTML():screen==="daily"?dailyHTML():screen==="shop"?shopHTML():screen==="updates"?updatesHTML():screen==="collection"?collectionHTML():screen==="rafters"?raftersHTML():hubHTML("rare")}
+      :screen==="draft"?draftHTML():screen==="classic"?hubHTML("classic"):screen==="trophies"?trophyHTML():screen==="daily"?dailyHTML():screen==="updates"?updatesHTML():screen==="collection"?collectionHTML():screen==="rafters"?raftersHTML():hubHTML("rare")}
     <footer class="foot">
       <button onclick="showPrivacy()">Privacy Policy</button>
       <span>·</span><span>Fan-made sandbox — not affiliated with or endorsed by the NBA, its teams, or players.</span>
@@ -5601,6 +5837,12 @@ function render(){
   /* the collection grid is painted after mount so a big tier doesn't block the page */
   if(screen==="collection"&&typeof renderCollGrid==="function")
     (window.requestAnimationFrame||setTimeout)(()=>renderCollGrid());
+  /* the zipper is the buy button now, so it must be live the moment the screen mounts */
+  if(screen==="rafters")
+    (window.requestAnimationFrame||setTimeout)(()=>{
+      rfBind();
+      if(!RF.done){rfApply(RF.prog||0);if(!RF.pull)rfSetGlow(true);}
+    });
   if(typeof mountEfxOverlays==="function")
     (window.requestAnimationFrame||setTimeout)(()=>mountEfxOverlays());
 }
