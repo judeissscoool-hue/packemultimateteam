@@ -5433,7 +5433,7 @@ function landingHTML(){
   ];
   return `<div class="modes">
     <div class="modehero"><h2 class="disp" style="font-size:26px">Choose your mode</h2>
-    <p style="color:var(--dim);font-size:12px;letter-spacing:.08em">THREE WAYS TO CHASE A 99</p></div>
+    <p style="color:var(--dim);font-size:13px;letter-spacing:.03em;line-height:1.6">Can you out-draft your friends?<br>Chase the perfect 82–0 season.</p></div>
     ${modes.map(([scr,name,blurb,best,cta,cls])=>`
     <div class="modecard" onclick="setScreen('${scr}')">
       <h3>${name}</h3>
@@ -5845,7 +5845,7 @@ function render(){
         ${screen==="landing"?"":`<button class="homebtn" onclick="setScreen('landing')"
           aria-label="Back to home" title="Back to home">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5 8 12l6.5 7"/></svg></button>`}
-        <div class="logo">All-Time <em>Ultimate</em><small>NBA PACK OPENER</small></div>
+        <div class="logo">All-Time <em>Ultimate</em><small>DRAFT YOUR DREAM TEAM</small></div>
       </div>
       <div class="hs">BEST TEAM OVR<br><b>${best}</b></div>
     </header>
