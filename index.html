@@ -180,8 +180,13 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .card{width:104px;height:158px;border-radius:12px;padding:7px 7px 6px;position:relative;display:flex;flex-direction:column;
   background:var(--panel2);border:1.5px solid var(--line);user-select:none;cursor:pointer;overflow:hidden;transition:transform .12s}
 .card:active{transform:scale(.96)}
-/* ---- card art layer ---- */
+/* ---- card art layer ----
+   The art lives in .cardartwrap so it can be clipped to the PLATE rather than the
+   whole card. Full-bleed art would otherwise paint straight over the frame band
+   (.efxframe z0) and the energy/sheen riding it (z1), making every equipped frame
+   and effect invisible on any card that has artwork. */
 .card.hasart{background:#0a0a0a}
+.cardartwrap{position:absolute;inset:0;z-index:0;pointer-events:none}
 .cardart{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top;z-index:0;display:block}
 .cardart-fade{position:absolute;inset:0;z-index:1;background:linear-gradient(to bottom,rgba(0,0,0,.15) 0%,rgba(0,0,0,0) 32%,rgba(0,0,0,.55) 70%,rgba(0,0,0,.9) 100%)}
 /* top-left scrim: keeps the OVR + positions legible over light artwork */
@@ -735,6 +740,9 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .card.framed.t-Elite  .efxplate{background:linear-gradient(160deg,#2a0f1a,#150b12)}
 .card.framed.t-Icon   .efxplate{background:linear-gradient(160deg,#241322,#160d18)}
 /* framed cards: art, initials and type sit above the plate */
+/* The art wrapper takes the PLATE's footprint (not the card's), so the band around
+   it keeps showing the frame and the energy/sheen that ride it. */
+.card.framed .cardartwrap{inset:4px;z-index:3;clip-path:inset(0 round 8px)}
 .card.framed .cardart{z-index:3}
 .card.framed .cardart-fade,.card.framed .cardart-scrim{z-index:4}
 .card.framed .ini{position:relative;z-index:4}
@@ -744,18 +752,18 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .card.framed.t-Icon::after{z-index:5}
 
 /* --- shaped frames: band + plate + effect layers all take the same silhouette --- */
-.card.f-blade  .efxframe,.card.f-blade  .efxplate,.card.f-blade  .efxsheen,.card.f-blade  .efxenergy{clip-path:polygon(0% 0%,72% 0%,100% 16%,100% 100%,28% 100%,0% 84%)}
-.card.f-chamf  .efxframe,.card.f-chamf  .efxplate,.card.f-chamf  .efxsheen,.card.f-chamf  .efxenergy{clip-path:polygon(11% 0%,89% 0%,100% 8%,100% 92%,89% 100%,11% 100%,0% 92%,0% 8%)}
-.card.f-notch  .efxframe,.card.f-notch  .efxplate,.card.f-notch  .efxsheen,.card.f-notch  .efxenergy{clip-path:polygon(0% 0%,39% 0%,43% 5%,57% 5%,61% 0%,100% 0%,100% 100%,61% 100%,57% 95%,43% 95%,39% 100%,0% 100%)}
-.card.f-vault  .efxframe,.card.f-vault  .efxplate,.card.f-vault  .efxsheen,.card.f-vault  .efxenergy{clip-path:polygon(16% 0%,84% 0%,100% 13%,100% 28%,93% 33%,93% 67%,100% 72%,100% 87%,84% 100%,16% 100%,0% 87%,0% 72%,7% 67%,7% 33%,0% 28%,0% 13%)}
-.card.f-rune   .efxframe,.card.f-rune   .efxplate,.card.f-rune   .efxsheen,.card.f-rune   .efxenergy{clip-path:polygon(20% 0%,80% 0%,100% 10%,100% 40%,94% 45%,94% 55%,100% 60%,100% 90%,80% 100%,68% 94%,56% 100%,44% 94%,32% 100%,20% 100%,0% 90%,0% 60%,6% 55%,6% 45%,0% 40%,0% 10%)}
-.card.f-shield .efxframe,.card.f-shield .efxplate,.card.f-shield .efxsheen,.card.f-shield .efxenergy{clip-path:polygon(0% 0%,100% 0%,100% 58%,86% 78%,50% 100%,14% 78%,0% 58%)}
-.card.f-deco   .efxframe,.card.f-deco   .efxplate,.card.f-deco   .efxsheen,.card.f-deco   .efxenergy{clip-path:polygon(30% 0%,70% 0%,70% 3%,82% 3%,82% 8%,92% 8%,92% 14%,100% 14%,100% 86%,92% 86%,92% 92%,82% 92%,82% 97%,70% 97%,70% 100%,30% 100%,30% 97%,18% 97%,18% 92%,8% 92%,8% 86%,0% 86%,0% 14%,8% 14%,8% 8%,18% 8%,18% 3%,30% 3%)}
-.card.f-crown  .efxframe,.card.f-crown  .efxplate,.card.f-crown  .efxsheen,.card.f-crown  .efxenergy{clip-path:polygon(50% 0%,57% 7%,65% 1%,72% 8%,82% 3%,86% 11%,100% 9%,100% 89%,88% 100%,12% 100%,0% 89%,0% 9%,14% 11%,18% 3%,28% 8%,35% 1%,43% 7%)}
-.card.f-obel   .efxframe,.card.f-obel   .efxplate,.card.f-obel   .efxsheen,.card.f-obel   .efxenergy{clip-path:polygon(34% 0%,66% 0%,66% 4%,74% 4%,74% 9%,82% 9%,82% 15%,100% 15%,100% 85%,82% 85%,82% 91%,74% 91%,74% 96%,66% 96%,66% 100%,34% 100%,34% 96%,26% 96%,26% 91%,18% 91%,18% 85%,0% 85%,0% 15%,18% 15%,18% 9%,26% 9%,26% 4%,34% 4%)}
+.card.f-blade  .efxframe,.card.f-blade  .efxplate,.card.f-blade  .efxsheen,.card.f-blade  .efxenergy,.card.f-blade  .cardartwrap{clip-path:polygon(0% 0%,72% 0%,100% 16%,100% 100%,28% 100%,0% 84%)}
+.card.f-chamf  .efxframe,.card.f-chamf  .efxplate,.card.f-chamf  .efxsheen,.card.f-chamf  .efxenergy,.card.f-chamf  .cardartwrap{clip-path:polygon(11% 0%,89% 0%,100% 8%,100% 92%,89% 100%,11% 100%,0% 92%,0% 8%)}
+.card.f-notch  .efxframe,.card.f-notch  .efxplate,.card.f-notch  .efxsheen,.card.f-notch  .efxenergy,.card.f-notch  .cardartwrap{clip-path:polygon(0% 0%,39% 0%,43% 5%,57% 5%,61% 0%,100% 0%,100% 100%,61% 100%,57% 95%,43% 95%,39% 100%,0% 100%)}
+.card.f-vault  .efxframe,.card.f-vault  .efxplate,.card.f-vault  .efxsheen,.card.f-vault  .efxenergy,.card.f-vault  .cardartwrap{clip-path:polygon(16% 0%,84% 0%,100% 13%,100% 28%,93% 33%,93% 67%,100% 72%,100% 87%,84% 100%,16% 100%,0% 87%,0% 72%,7% 67%,7% 33%,0% 28%,0% 13%)}
+.card.f-rune   .efxframe,.card.f-rune   .efxplate,.card.f-rune   .efxsheen,.card.f-rune   .efxenergy,.card.f-rune   .cardartwrap{clip-path:polygon(20% 0%,80% 0%,100% 10%,100% 40%,94% 45%,94% 55%,100% 60%,100% 90%,80% 100%,68% 94%,56% 100%,44% 94%,32% 100%,20% 100%,0% 90%,0% 60%,6% 55%,6% 45%,0% 40%,0% 10%)}
+.card.f-shield .efxframe,.card.f-shield .efxplate,.card.f-shield .efxsheen,.card.f-shield .efxenergy,.card.f-shield .cardartwrap{clip-path:polygon(0% 0%,100% 0%,100% 58%,86% 78%,50% 100%,14% 78%,0% 58%)}
+.card.f-deco   .efxframe,.card.f-deco   .efxplate,.card.f-deco   .efxsheen,.card.f-deco   .efxenergy,.card.f-deco   .cardartwrap{clip-path:polygon(30% 0%,70% 0%,70% 3%,82% 3%,82% 8%,92% 8%,92% 14%,100% 14%,100% 86%,92% 86%,92% 92%,82% 92%,82% 97%,70% 97%,70% 100%,30% 100%,30% 97%,18% 97%,18% 92%,8% 92%,8% 86%,0% 86%,0% 14%,8% 14%,8% 8%,18% 8%,18% 3%,30% 3%)}
+.card.f-crown  .efxframe,.card.f-crown  .efxplate,.card.f-crown  .efxsheen,.card.f-crown  .efxenergy,.card.f-crown  .cardartwrap{clip-path:polygon(50% 0%,57% 7%,65% 1%,72% 8%,82% 3%,86% 11%,100% 9%,100% 89%,88% 100%,12% 100%,0% 89%,0% 9%,14% 11%,18% 3%,28% 8%,35% 1%,43% 7%)}
+.card.f-obel   .efxframe,.card.f-obel   .efxplate,.card.f-obel   .efxsheen,.card.f-obel   .efxenergy,.card.f-obel   .cardartwrap{clip-path:polygon(34% 0%,66% 0%,66% 4%,74% 4%,74% 9%,82% 9%,82% 15%,100% 15%,100% 85%,82% 85%,82% 91%,74% 91%,74% 96%,66% 96%,66% 100%,34% 100%,34% 96%,26% 96%,26% 91%,18% 91%,18% 85%,0% 85%,0% 15%,18% 15%,18% 9%,26% 9%,26% 4%,34% 4%)}
 /* shaped frames get a fatter band so the silhouette reads at grid size.
    The plate re-uses the frame polygon (set above) rather than a rounded inset. */
-.card[class*="f-"] .efxplate{inset:5px;border-radius:0}
+.card[class*="f-"] .efxplate,.card[class*="f-"] .cardartwrap{inset:5px;border-radius:0}
 
 /* --- sheen + energy now sit UNDER the plate, so only the band shows --- */
 .efxsheen{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden;border-radius:12px}
@@ -4731,7 +4739,7 @@ function cardArtFail(img){
   if(i<CARD_ART_EXTS.length){img.dataset.v=i;img.src=CARD_ART_BASE+slug+CARD_ART_EXTS[i];return;}
   /* out of variants: hide the art layer and restore the initials look */
   const card=img.closest(".card");if(card){card.classList.remove("hasart");
-    const fade=card.querySelector(".cardart-fade");if(fade)fade.remove();
+    const wrap=card.querySelector(".cardartwrap");if(wrap)wrap.remove();
     if(!card.querySelector(".ini")){const nm=card.querySelector(".nm");
       const ini=document.createElement("div");ini.className="ini";
       ini.textContent=(nm?nm.textContent:"").split(" ").map(s=>s[0]||"").join("").slice(0,2).toUpperCase();
@@ -4772,7 +4780,7 @@ function cardHTML(p,attrs,badge){
     ${/\bs-/.test(efx)?`<div class="efxsheen"></div>`:""}
     <div class="efxplate"></div>
     ${ovId?`<div class="efxov ov-${ovId}" data-ov="${ovId}" data-card="${p.id}"></div>`:""}
-    ${art?`<img class="cardart" src="${variants[0]}" ${fallbackJS} alt=""><div class="cardart-fade"></div><div class="cardart-scrim"></div>`:""}
+    ${art?`<div class="cardartwrap"><img class="cardart" src="${variants[0]}" ${fallbackJS} alt=""><div class="cardart-fade"></div><div class="cardart-scrim"></div></div>`:""}
     <div class="card-top" style="display:flex;justify-content:space-between;align-items:flex-start">
       <div><div class="ovr">${p.ovr}</div><div class="pos" style="font-size:${p.positions.length>2?7.5:9}px">${p.positions.join("/")}</div></div>
     </div>
