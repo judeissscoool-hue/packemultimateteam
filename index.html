@@ -985,7 +985,14 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 @keyframes betapulse{0%,100%{background:linear-gradient(90deg,rgba(255,197,61,.22),rgba(53,214,255,.18))}
   50%{background:linear-gradient(90deg,rgba(255,197,61,.40),rgba(53,214,255,.30))}}
 @media(prefers-reduced-motion:reduce){#betabar{animation:none}}
-#betabar button{background:none;border:none;color:var(--cyan);font:inherit;text-decoration:underline;cursor:pointer;padding:0}
+#betabar button{background:none;border:none;color:var(--cyan);font:inherit;font-size:36px;font-weight:900;
+  text-decoration:none;cursor:pointer;padding:0 6px;display:inline-flex;align-items:center;gap:12px;line-height:1;vertical-align:middle}
+#betabar button span{text-decoration:underline}
+#betabar button::before{content:"▶";animation:betaarrowL 1.2s ease-in-out infinite}
+#betabar button::after{content:"◀";animation:betaarrowR 1.2s ease-in-out infinite}
+@keyframes betaarrowL{0%,100%{transform:translateX(0)}50%{transform:translateX(5px)}}
+@keyframes betaarrowR{0%,100%{transform:translateX(0)}50%{transform:translateX(-5px)}}
+@media(prefers-reduced-motion:reduce){#betabar button::before,#betabar button::after{animation:none}}
 #crpill{margin-left:auto;background:rgba(0,0,0,.35);border:1px solid rgba(255,197,61,.45);color:var(--gold);
   border-radius:999px;padding:3px 10px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap}
 .credittoast{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;z-index:80;
@@ -1056,7 +1063,7 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
   </g>
 </svg></div>
 <div id="arena"></div>
-<div id="betabar">BETA · in active development — <button onclick="setScreen('updates')">see what's coming</button><span id="crpill" onclick="setScreen('rafters')"></span></div>
+<div id="betabar">BETA · in active development — <button onclick="setScreen('updates')"><span>see what's coming</span></button><span id="crpill" onclick="setScreen('rafters')"></span></div>
 <div id="app"></div>
 <div id="overlay"></div>
 <div id="sheet"></div>
