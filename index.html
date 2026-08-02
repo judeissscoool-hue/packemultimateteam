@@ -585,8 +585,10 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
   radial-gradient(50% 44% at 82% 66%,#30d158,transparent 56%),radial-gradient(50% 44% at 50% 80%,#0a84ff,transparent 56%),
   radial-gradient(50% 44% at 20% 68%,#bf5af2,transparent 56%);animation:efxhue 7s linear infinite}
 .aurahost.a-spect .efxaura2{background:radial-gradient(60% 60%,#8e5bff,transparent 74%)}
-@keyframes efxhue{to{filter:blur(15px) hue-rotate(360deg)}}
-@keyframes efxvolt{0%{opacity:.75}50%{opacity:1}100%{opacity:.85}}
+@keyframes efxhue{
+  from{filter:blur(17px) saturate(1.6) brightness(1.22) hue-rotate(0deg)}
+  to  {filter:blur(17px) saturate(1.6) brightness(1.22) hue-rotate(360deg)}}
+@keyframes efxvolt{0%{opacity:.82}50%{opacity:1}100%{opacity:.9}}
 
 /* --- SHEENS: light riding the border --- */
 .card.s-sweep .efxsheen{background:linear-gradient(112deg,transparent 42%,rgba(255,255,255,.6) 50%,transparent 58%);
@@ -766,13 +768,18 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
        .t-Icon::after, the Icon tier's flare) and tightly bounded so they
        hug the card instead of eating grid space --- */
 .efxaura,.efxaura2{position:absolute;inset:0;pointer-events:none;border-radius:50%}
-.efxaura {z-index:-1;transform:scale(1.30);filter:blur(15px)}
-.efxaura2{z-index:-2;transform:scale(1.55);filter:blur(26px);opacity:.75}
+/* Positive z-index inside .aurahost's own isolated context. The old -1/-2 escaped
+   to the nearest ancestor stacking context, so any parent with isolation or a
+   background could bury the glow. */
+.efxaura {z-index:1;transform:scale(1.42);filter:blur(17px) saturate(1.6) brightness(1.22)}
+.efxaura2{z-index:0;transform:scale(1.85);filter:blur(34px) saturate(1.45) brightness(1.12);opacity:.88}
 /* The aura sits on a wrapper, so the card keeps overflow:hidden and the Icon's
    sliding flare can no longer escape. That means the flare can stay ON — just
    turned down so the aura reads through it. */
-.aurahost{position:relative;display:block;overflow:visible}
+.aurahost{position:relative;display:block;overflow:visible;isolation:isolate}
 .aurahost .efxaura,.aurahost .efxaura2{position:absolute;inset:0;pointer-events:none;border-radius:50%}
+/* the card rides above both glow layers */
+.aurahost>.c3d{position:relative;z-index:2}
 .card.has-aura.t-Icon::after{opacity:.42}
 /* an equipped aura takes priority over the Icon pink — the wrapper is dimmed,
    not the aura. .flame wraps the card, so it has to be targeted directly. */
@@ -871,12 +878,17 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .rfreveal{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;
   isolation:isolate;
   justify-content:center;gap:14px;padding:16px;text-align:center}
+/* showcase moment \u2014 the glow gets more room than it does in a crowded grid */
+.rfitem .efxaura {transform:scale(1.52);filter:blur(19px) saturate(1.75) brightness(1.3)}
+.rfitem .efxaura2{transform:scale(2.05);filter:blur(40px) saturate(1.5) brightness(1.18);opacity:.95}
 .rfreveal.show{display:flex}
 /* scale a normal-size card rather than resizing it, so initials, padding and type
    stay in exactly the proportions they have in pack and draft mode */
 .rfitem{width:150px;height:228px;display:flex;align-items:center;justify-content:center;
   transform-origin:center}
-.rfitem .card{transform:scale(1.44);transform-origin:center;flex:0 0 auto}
+/* Scale the WRAPPER, not .card \u2014 scaling the card alone left the aura at 1\u00d7
+   behind a 1.44\u00d7 card, which hid the glow almost completely. */
+.rfitem>*{transform:scale(1.44);transform-origin:center;flex:0 0 auto}
 .rfrar{font-family:var(--disp);font-size:23px;letter-spacing:.08em}
 .rfename{font-size:14px;color:#fff;font-weight:700;margin-top:2px}
 .rffor{font-size:11px;color:var(--dim);margin-top:2px}
@@ -939,6 +951,8 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
   filter:drop-shadow(0 26px 42px rgba(0,0,0,.75))}
 /* the enlarged copy needs room around it for the scaled card */
 .zoomfloat{margin:calc(158px * 0.8) calc(104px * 0.8)}
+.zoomscale .efxaura {transform:scale(1.5);filter:blur(18px) saturate(1.7) brightness(1.28)}
+.zoomscale .efxaura2{transform:scale(2);filter:blur(38px) saturate(1.5) brightness(1.16);opacity:.95}
 .zoomscale .card{transition:none}
 .zoomscale .card:active{transform:none}
 .zoomhint{font-size:11px;letter-spacing:.14em;color:var(--dim);text-align:center}
@@ -3731,18 +3745,18 @@ const CARD_ART=new Set([
   /* --- ICON (52) --- */
   "giannis-antetokounmpo",  // Giannis Antetokounmpo (97 MIL '20s) — Bucks primary art
   "allen-iverson-phi",  // Allen Iverson (96 PHI '00s)
-  "anthony-edwards",  // Anthony Edwards (96 MIN '20s)
+  // "anthony-edwards",  // Anthony Edwards (96 MIN '20s)
   "bill-russell",  // Bill Russell (98 BOS '60s)
   "bob-cousy",  // Bob Cousy (96 BOS '50s)
   "charles-barkley-phx",  // Charles Barkley (96 PHX '90s)
   "chris-paul-nop",  // Chris Paul (97 NOP '00s)
   // "clyde-drexler",  // Clyde Drexler (96 POR '90s)
-  "david-robinson",  // David Robinson (96 SAS '90s)
+  // "david-robinson",  // David Robinson (96 SAS '90s)
   "dirk-nowitzki",  // Dirk Nowitzki (98 DAL '00s)
   "dwyane-wade",  // Dwyane Wade (97 MIA '00s)
   // "elgin-baylor",  // Elgin Baylor (96 LAL '60s)
-  "giannis-antetokounmpo-mia",  // Giannis Antetokounmpo (97 MIA '20s)
-  "giannis-antetokounmpo-mil",  // Giannis Antetokounmpo (97 MIL '20s)
+  // "giannis-antetokounmpo-mia",  // Giannis Antetokounmpo (97 MIA '20s)
+  // "giannis-antetokounmpo-mil",  // Giannis Antetokounmpo (97 MIL '20s)
   "hakeem-olajuwon",  // Hakeem Olajuwon (99 HOU '90s)
   "jalen-brunson",  // Jalen Brunson (96 NYK '20s)
   // "jerry-west",  // Jerry West (97 LAL '60s)
@@ -3752,7 +3766,7 @@ const CARD_ART=new Set([
   // "kareem-abdul-jabbar-lal",  // Kareem Abdul-Jabbar (99 LAL '80s)
   "kareem-abdul-jabbar-mil",  // Kareem Abdul-Jabbar (97 MIL '70s)
   // "karl-malone",  // Karl Malone (97 UTA '90s)
-  "kawhi-leonard-sas",  // Kawhi Leonard (96 SAS '10s)
+  // "kawhi-leonard-sas",  // Kawhi Leonard (96 SAS '10s)
   // "kevin-durant-gsw",  // Kevin Durant (96 GSW '10s)
   "kevin-durant-okc",  // Kevin Durant (97 OKC '10s)
   "kevin-garnett-bos",  // Kevin Garnett (96 BOS '00s)
@@ -3760,23 +3774,23 @@ const CARD_ART=new Set([
   "kobe-bryant",  // Kobe Bryant (99 LAL '00s)
   "larry-bird",  // Larry Bird (99 BOS '80s)
   "lebron-james-cle",  // LeBron James (99 CLE '10s)
-  "lebron-james-lal",  // LeBron James (97 LAL '20s)
+  // "lebron-james-lal",  // LeBron James (97 LAL '20s)
   "lebron-james-mia",  // LeBron James (98 MIA '10s)
-  "luka-doncic-dal",  // Luka Doncic (97 DAL '20s)
-  "luka-doncic-lal",  // Luka Doncic (96 LAL '20s)
-  "magic-johnson",  // Magic Johnson (99 LAL '80s)
+  // "luka-doncic-dal",  // Luka Doncic (97 DAL '20s)
+  // "luka-doncic-lal",  // Luka Doncic (96 LAL '20s)
+  // "magic-johnson",  // Magic Johnson (99 LAL '80s)
   "michael-jordan",  // Michael Jordan (99 CHI '90s)
   // "moses-malone-hou",  // Moses Malone (97 HOU '80s)
   "moses-malone-phi",  // Moses Malone (96 PHI '80s)
   "nikola-jokic",  // Nikola Jokic (98 DEN '20s)
   // "oscar-robertson",  // Oscar Robertson (97 MIL '60s)
-  "scottie-pippen",  // Scottie Pippen (97 CHI '90s)
+  // "scottie-pippen",  // Scottie Pippen (97 CHI '90s)
   "shai-gilgeous-alexander",  // Shai Gilgeous-Alexander (98 OKC '20s)
   "shaquille-oneal-lal",  // Shaquille O'Neal (98 LAL '00s)
   // "shaquille-oneal-orl",  // Shaquille O'Neal (96 ORL '90s)
   "stephen-curry",  // Stephen Curry (98 GSW '10s)
   // "steve-nash-phx",  // Steve Nash (96 PHX '00s)
-  "tim-duncan",  // Tim Duncan (98 SAS '00s)
+  // "tim-duncan",  // Tim Duncan (98 SAS '00s)
   "victor-wembanyama",  // Victor Wembanyama (97 SAS '20s)
   "vince-carter-tor",  // Vince Carter (96 TOR '00s)
   // "wilt-chamberlain-gsw",  // Wilt Chamberlain (99 GSW '60s)
@@ -3784,32 +3798,32 @@ const CARD_ART=new Set([
   // "wilt-chamberlain-phi",  // Wilt Chamberlain (98 PHI '60s)
   /* --- ELITE (53) --- */
   // "allen-iverson-den",  // Allen Iverson (92 DEN '00s)
-  "anthony-davis-lal",  // Anthony Davis (94 LAL '20s)
+  // "anthony-davis-lal",  // Anthony Davis (94 LAL '20s)
   // "anthony-davis-was",  // Anthony Davis (93 WAS '20s)
   // "bob-pettit",  // Bob Pettit (94 ATL '50s)
-  "cade-cunningham",  // Cade Cunningham (92 DET '20s)
+  // "cade-cunningham",  // Cade Cunningham (92 DET '20s)
   // "carmelo-anthony-den",  // Carmelo Anthony (95 DEN '00s)
   // "carmelo-anthony-nyk",  // Carmelo Anthony (92 NYK '10s)
   // "charles-barkley-phi",  // Charles Barkley (94 PHI '80s)
-  "chris-paul-lac",  // Chris Paul (95 LAC '10s)
-  "damian-lillard",  // Damian Lillard (94 POR '10s)
+  // "chris-paul-lac",  // Chris Paul (95 LAC '10s)
+  // "damian-lillard",  // Damian Lillard (94 POR '10s)
   // "demarcus-cousins",  // DeMarcus Cousins (92 SAC '10s)
   "derrick-rose",  // Derrick Rose (95 CHI '10s)
   // "devin-booker",  // Devin Booker (93 PHX '20s)
   // "dominique-wilkins",  // Dominique Wilkins (95 ATL '80s)
   // "donovan-mitchell",  // Donovan Mitchell (93 CLE '20s)
-  "dwight-howard-orl",  // Dwight Howard (93 ORL '00s)
+  // "dwight-howard-orl",  // Dwight Howard (93 ORL '00s)
   // "elvin-hayes",  // Elvin Hayes (92 WAS '70s)
-  "gary-payton",  // Gary Payton (95 OKC '90s)
+  // "gary-payton",  // Gary Payton (95 OKC '90s)
   // "george-gervin",  // George Gervin (94 SAS '70s)
   // "george-mikan",  // George Mikan (94 LAL '50s)
   // "isiah-thomas",  // Isiah Thomas (95 DET '80s)
   "ja-morant-mem",  // Ja Morant (92 MEM '20s)
   "james-harden-hou",  // James Harden (95 HOU '10s)
-  "james-worthy",  // James Worthy (95 LAL '80s)
+  // "james-worthy",  // James Worthy (95 LAL '80s)
   // "jason-kidd-bkn",  // Jason Kidd (95 BKN '00s)
   // "jason-kidd-phx",  // Jason Kidd (93 PHX '90s)
-  "jaylen-brown",  // Jaylen Brown (95 BOS '20s)
+  // "jaylen-brown",  // Jaylen Brown (95 BOS '20s)
   // "jayson-tatum",  // Jayson Tatum (95 BOS '20s)
   "jimmy-butler-mia",  // Jimmy Butler (95 MIA '20s)
   // "john-havlicek",  // John Havlicek (93 BOS '60s)
@@ -3819,15 +3833,15 @@ const CARD_ART=new Set([
   // "kevin-durant-hou",  // Kevin Durant (94 HOU '20s)
   // "kevin-mchale",  // Kevin McHale (92 BOS '80s)
   // "kyrie-irving-cle",  // Kyrie Irving (94 CLE '10s)
-  "kyrie-irving-dal",  // Kyrie Irving (92 DAL '20s)
-  "patrick-ewing",  // Patrick Ewing (95 NYK '90s)
+  // "kyrie-irving-dal",  // Kyrie Irving (92 DAL '20s)
+  // "patrick-ewing",  // Patrick Ewing (95 NYK '90s)
   // "paul-pierce",  // Paul Pierce (94 BOS '00s)
   // "pete-maravich",  // Pete Maravich (94 UTA '70s)
   // "ray-allen-bos",  // Ray Allen (94 BOS '00s)
   // "ray-allen-okc",  // Ray Allen (93 OKC '00s)
-  "reggie-miller",  // Reggie Miller (93 IND '90s)
+  // "reggie-miller",  // Reggie Miller (93 IND '90s)
   // "rick-barry",  // Rick Barry (93 GSW '70s)
-  "russell-westbrook",  // Russell Westbrook (95 OKC '10s)
+  // "russell-westbrook",  // Russell Westbrook (95 OKC '10s)
   // "shaquille-oneal-mia",  // Shaquille O'Neal (95 MIA '00s)
   // "steve-nash-dal",  // Steve Nash (94 DAL '00s)
   // "tracy-mcgrady-hou",  // Tracy McGrady (94 HOU '00s)
