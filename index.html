@@ -127,6 +127,7 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .chemlinks span.ck-duo{border-color:var(--ck-duo);color:#ff98a8}
 .chemlinks span.ck-story{border-color:var(--ck-story);color:#ffb3e0}
 .chemlinks span.ck-depth{border-color:var(--green);color:var(--green)}
+.chemlinks span.ck-depth.prov{border-style:dashed;opacity:.72}
 .chemlinks span.ck-era{border-color:var(--ck-era);color:#8ee6ff}
 .chemlinks span.ck-style{border-color:var(--ck-style);color:#8fffc8}
 .chemlegend{border-left:1px solid rgba(255,255,255,.08);padding-left:14px;display:flex;flex-direction:column;gap:6px;min-width:200px}
@@ -1912,10 +1913,12 @@ function eligible(player,slot){const p=slotPos(slot);return p==="B"||player.posi
 function rosterHas(roster,pid){return ALL_SLOTS.some(s=>roster[s]===pid);}
 
 /* ---- Iconic Duos & Trios: name-based chemistry, card team/era irrelevant ----
-   +0.6 per link (duo 0.6, full trio 1.2), scored inside the tag cap of 5 so the
-   total chemistry ceiling is unchanged. A duo that is a subset of an already-credited
-   larger group never double-pays. */
-const DUO_W=0.5;
+   +0.8 per link (duo 0.8, full trio 1.6), scored inside the tag cap. Raised from 0.5
+   alongside the team-core taper: a partnership now pays over half what a same-jersey
+   pair does (0.8 vs 1.35) instead of a third, and real duos stack on top of the core
+   when both apply — Stockton & Malone earn the UTA link AND the partnership. A duo
+   that is a subset of an already-credited larger group never double-pays. */
+const DUO_W=0.8;
 const DUOS=[
  {l:"Jordan & Pippen",m:["Michael Jordan", "Scottie Pippen"]},
  {l:"Shaq & Kobe",m:["Shaquille O'Neal", "Kobe Bryant"]},
@@ -2044,14 +2047,21 @@ function startersFull(roster){return STARTER_SLOTS.every(s=>roster[s]!=null);}
    card is Gold (85+), nothing at 75 or below, smooth in between. Applied to the
    win projection only — raw team OVR stays talent + chemistry. */
 const DEPTH_MAX=1.8;
-/* legend chip so the depth bonus is visible rather than a hidden modifier */
+/* legend chip so the depth bonus is visible rather than a hidden modifier.
+   While the roster is still being built it shows the running value off the cards
+   picked so far, flagged as provisional — the bonus only scores once all eight are in. */
 function depthChip(o){
-  if(!o||!o.full||!o.depth)return "";
-  return `<span class="ck-depth">Squad Depth → +${o.depth.toFixed(1)}</span>`;
+  if(!o)return "";
+  if(o.full)return o.depth?`<span class="ck-depth">Squad Depth → +${o.depth.toFixed(1)}</span>`:"";
+  if(!o.depthSoFar)return "";
+  return `<span class="ck-depth prov">Squad Depth so far ~+${o.depthSoFar.toFixed(1)}</span>`;
 }
-function rosterDepth(roster){
-  const ids=ALL_SLOTS.map(s=>roster[s]);
-  if(ids.some(id=>id==null))return 0; /* needs the full eight to mean anything */
+/* min OVR across the slots that are filled; scores only on a complete roster, but the
+   running value drives the provisional chip so you can see depth building as you draft */
+function rosterDepth(roster,partial){
+  const ids=ALL_SLOTS.map(s=>roster[s]).filter(id=>id!=null);
+  if(!partial&&ids.length<ALL_SLOTS.length)return 0; /* needs the full eight to score */
+  if(!ids.length)return 0;
   const mn=Math.min(...ids.map(id=>DB[id].ovr));
   return +(DEPTH_MAX*Math.max(0,Math.min(1,(mn-75)/10))).toFixed(2);
 }
@@ -2067,7 +2077,9 @@ function teamOVR(roster){
   const depth=rosterDepth(roster); /* a squad with no weak link projects better */
   const eff=base+chem.bonus*CHEM_WIN_MULT+depth; /* Phase 2 tune: chemistry remains decisive without making 82–0 routine */
   const full=startersFull(roster)&&BENCH_SLOTS.every(s=>roster[s]!=null);
-  return {base:Math.round(base),chem,total,eff,depth,ready:startersFull(roster),full};
+  /* display only — never fed into eff, so a part-built roster can't inflate a record */
+  const depthSoFar=rosterDepth(roster,true);
+  return {base:Math.round(base),chem,total,eff,depth,depthSoFar,ready:startersFull(roster),full};
 }
 /* logistic-style win curve on anchor points with cosine easing between them:
    flat-ish under 75, climbing through the 80s, exploding past 90 */
@@ -2100,7 +2112,10 @@ function projection(eff){
   return {wins,losses:82-wins,label:identity.title,identity};
 }
 function recordIdentityHTML(pr,ready){
-  if(!ready)return `<div class="recordid"><div><div class="rid-main">Identity Pending</div><div class="rid-sub">Fill the starting five</div></div><div class="rid-record">—</div></div>`;
+  /* shows a live verdict from the first pick — empty slots still count as 60, so the
+     record climbs as the roster fills rather than sitting blank until it's complete */
+  if(!ready){const j=pr.identity||recordIdentity(pr.wins);
+    return `<div class="recordid"><div><div class="rid-main">${j.title}</div><div class="rid-sub">so far — fill the starting five</div></div><div class="rid-record">${pr.wins}–${pr.losses}</div></div>`;}
   const i=pr.identity||recordIdentity(pr.wins);
   return `<div class="recordid ${i.cls}"><div><div class="rid-main">${i.title}</div><div class="rid-sub">${i.sub}</div></div><div class="rid-record">${pr.wins}–${pr.losses}</div></div>`;
 }
@@ -2865,9 +2880,9 @@ function dailyHTML(){
     <div class="db-meta"><span>🔥 <b>${DAILY.streak||0}</b></span>${best?`<span>BEST <b>${best.wins}W</b></span>`:`<span>Unplayed</span>`}</div>
   </div>
   <div class="panel" style="margin-bottom:12px"><div class="scoreboard">
-    <div class="ovrbig">${ovr.total}<small>TEAM OVR</small><small class="exact">${ovr.ready?ovr.eff.toFixed(1)+" Ovr w Chem":"—"}</small></div>
+    <div class="ovrbig">${ovr.total}<small>TEAM OVR</small><small class="exact">${ovr.eff.toFixed(1)+(ovr.full?" Ovr w Chem":" Ovr w Chem · so far")}</small></div>
     <div><div class="projrow">
-      <div><b>${ovr.ready?pr.wins+"–"+pr.losses:"—"}</b>projected record</div>
+      <div><b>${pr.wins+"–"+pr.losses}</b>projected record</div>
       <div><b>${DD.done?"8 / 8 — FINAL":filled+" / 8"}</b>picks locked</div>
       <div><b>+${ovr.chem.bonus.toFixed(1)}</b>chemistry</div></div>
       ${recordIdentityHTML(pr,ovr.ready)}
@@ -4950,7 +4965,7 @@ function dropToColl(e,side){e.preventDefault();if(!DRAG||DRAG.from==="coll")retu
   const from=DRAG.from;dragEnd();unslot(side,from);}
 function hubHTML(side){
   const st=S[side],ovr=teamOVR(st.roster),pr=projection(ovr.eff);
-  const rec=ovr.ready?`${pr.wins}–${pr.losses}`:"—";
+  const rec=`${pr.wins}–${pr.losses}`;
   const chemHTML=ovr.chem.links.length
     ?ovr.chem.links.map(l=>`<span class="${"ck-"+l.kind}">${l.label} ×${l.n} → +${l.bonus.toFixed(1)}</span>`).join("")
     :`<span>No chemistry — link teams, eras, styles, draft classes or rivalries</span>`;
@@ -4970,7 +4985,7 @@ function hubHTML(side){
     <div class="stack">
       <div class="panel">
         <div class="scoreboard hub-scoreboard">
-          <div class="ovrbig" id="ovr-${side}">${ovr.total}<small>TEAM OVR</small><small class="exact">${ovr.ready?ovr.eff.toFixed(1)+" Ovr w Chem":"—"}</small></div>
+          <div class="ovrbig" id="ovr-${side}">${ovr.total}<small>TEAM OVR</small><small class="exact">${ovr.eff.toFixed(1)+(ovr.full?" Ovr w Chem":" Ovr w Chem · so far")}</small></div>
           <div>
             <div class="projrow">
               <div><b>${rec}</b>projected record</div>
@@ -5422,9 +5437,9 @@ function draftHTML(){
   return `
   ${DRAFT_ERA?`<div class="erabadge">◷ ${eraLabel(DRAFT_ERA)} ERA DRAFT · practice mode — doesn\u2019t count toward records</div>`:""}
   <div class="panel" style="margin-bottom:12px"><div class="scoreboard">
-    <div class="ovrbig">${ovr.total}<small>TEAM OVR</small><small class="exact">${ovr.ready?ovr.eff.toFixed(1)+" Ovr w Chem":"—"}</small></div>
+    <div class="ovrbig">${ovr.total}<small>TEAM OVR</small><small class="exact">${ovr.eff.toFixed(1)+(ovr.full?" Ovr w Chem":" Ovr w Chem · so far")}</small></div>
     <div><div class="projrow">
-      <div><b>${ovr.ready?pr.wins+"–"+pr.losses:"—"}</b>projected record</div>
+      <div><b>${pr.wins+"–"+pr.losses}</b>projected record</div>
       <div><b>${D.done?"8 / 8 — FINAL":filled+" / 8"}</b>picks locked</div>
       <div><b>+${ovr.chem.bonus.toFixed(1)}</b>chemistry</div></div>
       ${recordIdentityHTML(pr,ovr.ready)}
@@ -5738,9 +5753,9 @@ function shareHTML(){
     <div class="rowhead"><h2>Shared ${SHARED.mode==="draft"?"Classic Draft":"Pack Mode"} Squad</h2>
       <span class="sub">someone sent you their lineup — think you can beat it?</span></div>
     <div class="scoreboard">
-      <div class="ovrbig">${ovr.total}<small>TEAM OVR</small><small class="exact">${ovr.ready?ovr.eff.toFixed(1)+" Ovr w Chem":"—"}</small></div>
+      <div class="ovrbig">${ovr.total}<small>TEAM OVR</small><small class="exact">${ovr.eff.toFixed(1)+(ovr.full?" Ovr w Chem":" Ovr w Chem · so far")}</small></div>
       <div><div class="projrow">
-        <div><b>${ovr.ready?pr.wins+"\u2013"+pr.losses:"\u2014"}</b>projected record</div>
+        <div><b>${pr.wins+"\u2013"+pr.losses}</b>projected record</div>
         <div><b>+${ovr.chem.bonus.toFixed(1)}</b>chemistry</div></div>
         ${recordIdentityHTML(pr,ovr.ready)}
         <div class="chemlinks">${ovr.chem.links.map(l=>`<span class="${"ck-"+l.kind}">${l.label} ×${l.n} → +${l.bonus.toFixed(1)}</span>`).join("")||"<span>No chemistry links</span>"}${depthChip(ovr)}</div>${nearMissHTML(ovr)}
