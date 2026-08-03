@@ -2084,7 +2084,13 @@ function teamOVR(roster){
 /* logistic-style win curve on anchor points with cosine easing between them:
    flat-ish under 75, climbing through the 80s, exploding past 90 */
 const CHEM_WIN_MULT=2.10; /* shared by teamOVR and the near-miss readout — must stay top-level */
-const EIGHTY_TWO_EFF=102.8;
+/* Effective rating required for a perfect season. Pure rarity dial — it does not
+   change which build strategies win, only how high the summit sits. Simulated over
+   4000 full drafts played to win (greedy pick per slot + end-of-draft rearrange):
+   102.8 -> 82-0 in 7.8% of drafts (1 in 13), 104.0 -> 4.2% (1 in 24),
+   105.2 -> 2.1% (1 in 47). Set to 105.2 so perfection stays a trophy moment;
+   average team OVR, chemistry and team-core are unchanged across all three. */
+const EIGHTY_TWO_EFF=105.2;
 const PROJ=[[60,15],[70,26],[75,31],[80,38],[84,46],[87,54],[90,65],[92,70],[95,76],[97,78],[100,80],[EIGHTY_TWO_EFF,82]];
 function recordIdentity(wins){
   if(wins>=82)return {title:"82–0 Club",sub:"Perfection certified",cls:"rid-perfect",stamp:"TRUE 82–0"};
