@@ -126,8 +126,6 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .chemlinks span.ck-team{border-color:var(--ck-team);color:var(--ck-team)}
 .chemlinks span.ck-duo{border-color:var(--ck-duo);color:#ff98a8}
 .chemlinks span.ck-story{border-color:var(--ck-story);color:#ffb3e0}
-.chemlinks span.ck-depth{border-color:var(--green);color:var(--green)}
-.chemlinks span.ck-depth.prov{border-style:dashed;opacity:.72}
 .chemlinks span.ck-era{border-color:var(--ck-era);color:#8ee6ff}
 .chemlinks span.ck-style{border-color:var(--ck-style);color:#8fffc8}
 .chemlegend{border-left:1px solid rgba(255,255,255,.08);padding-left:14px;display:flex;flex-direction:column;gap:6px;min-width:200px}
@@ -168,6 +166,7 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .benchlabel{width:100%;text-align:center;font-size:10px;letter-spacing:.3em;color:var(--dim);margin-top:12px}
 
 /* ============ CARDS ============ */
+.slot.slotlocked{opacity:.42;border-style:dotted;cursor:not-allowed}
 .slot{width:104px;min-height:148px;border:1.5px dashed var(--line);border-radius:12px;display:flex;
   align-items:center;justify-content:center;flex-direction:column;gap:4px;color:var(--dim);
   font-size:10px;letter-spacing:.15em;text-transform:uppercase;background:rgba(10,10,10,.45);position:relative;transition:all .18s;font-family:var(--body)}
@@ -1913,12 +1912,10 @@ function eligible(player,slot){const p=slotPos(slot);return p==="B"||player.posi
 function rosterHas(roster,pid){return ALL_SLOTS.some(s=>roster[s]===pid);}
 
 /* ---- Iconic Duos & Trios: name-based chemistry, card team/era irrelevant ----
-   +0.8 per link (duo 0.8, full trio 1.6), scored inside the tag cap. Raised from 0.5
-   alongside the team-core taper: a partnership now pays over half what a same-jersey
-   pair does (0.8 vs 1.35) instead of a third, and real duos stack on top of the core
-   when both apply — Stockton & Malone earn the UTA link AND the partnership. A duo
-   that is a subset of an already-credited larger group never double-pays. */
-const DUO_W=0.8;
+   +0.6 per link (duo 0.6, full trio 1.2), scored inside the tag cap of 5 so the
+   total chemistry ceiling is unchanged. A duo that is a subset of an already-credited
+   larger group never double-pays. */
+const DUO_W=0.5;
 const DUOS=[
  {l:"Jordan & Pippen",m:["Michael Jordan", "Scottie Pippen"]},
  {l:"Shaq & Kobe",m:["Shaquille O'Neal", "Kobe Bryant"]},
@@ -2003,22 +2000,16 @@ function duoBonus(starters,links){
   }
   return total;
 }
-/* Team-core payout by how many starters share a franchise. Tapered so the 4th and
-   5th same-team starter add less than the 2nd and 3rd: stacking one roster is still
-   the single biggest chemistry link, but it no longer buys the whole chem budget
-   (it used to pay (n-1)*1.5 up to 6.0 — worth +18 OVR on every starter, which made
-   a same-franchise squad of Silvers beat a roster of all-time greats). */
-const CORE_STEP=[0,0,1.35,2.5,3.45,4.0];
 function chemistry(roster){
   const links=[];
-  /* team cores: starters sharing a franchise (strongest single link) */
+  /* team cores: starters sharing a franchise (strongest link) */
   const counts={};
   STARTER_SLOTS.forEach(s=>{const pid=roster[s];if(pid==null)return;
     const t=DB[pid].team;counts[t]=(counts[t]||0)+1;});
   let team=0;
   Object.entries(counts).forEach(([t,n])=>{
-    if(n>=2){const b=CORE_STEP[Math.min(5,n)];team+=b;links.push({label:t+" Core",n,bonus:b,kind:"team"});}});
-  team=Math.min(CORE_STEP[5],team);
+    if(n>=2){const b=(n-1)*1.5;team+=b;links.push({label:t+" Core",n,bonus:b,kind:"team"});}});
+  team=Math.min(6,team);
   /* tag synergies: scan starters + bench; unique player NAMES per tag so two
      versions of the same player never self-link */
   /* STARTERS ONLY: the bench is ignored entirely for chemistry */
@@ -2033,38 +2024,12 @@ function chemistry(roster){
     tag+=b;links.push({label:TAG_LABEL[t]||t,n,bonus:b,
       kind:t.startsWith("Story_")?"story":t.startsWith("Era_")?"era":"style"});});
   tag+=duoBonus(STARTER_SLOTS.filter(s=>roster[s]!=null).map(s=>DB[roster[s]]),links);
-  tag=Math.min(5.5,tag); /* duos live inside the same cap; raised as team cores were tapered,
-                            so name-based chemistry (duos, eras, styles) carries more weight */
+  tag=Math.min(4.5,tag); /* duos live inside the same cap — total ceiling unchanged */
   links.sort((a,b)=>b.bonus-a.bonus);
   const bonus=+Math.min(10,team+tag).toFixed(1);
   return {bonus,links};
 }
 function startersFull(roster){return STARTER_SLOTS.every(s=>roster[s]!=null);}
-/* ---- squad depth: rewards a roster with no weak link ----
-   Scales off the WEAKEST of all eight players, so it can't be bought with a
-   same-franchise stack of Silvers (their benches drag the minimum down) and it
-   can't be faked by five stars carried by a scrub bench. Full value once every
-   card is Gold (85+), nothing at 75 or below, smooth in between. Applied to the
-   win projection only — raw team OVR stays talent + chemistry. */
-const DEPTH_MAX=1.8;
-/* legend chip so the depth bonus is visible rather than a hidden modifier.
-   While the roster is still being built it shows the running value off the cards
-   picked so far, flagged as provisional — the bonus only scores once all eight are in. */
-function depthChip(o){
-  if(!o)return "";
-  if(o.full)return o.depth?`<span class="ck-depth">Squad Depth → +${o.depth.toFixed(1)}</span>`:"";
-  if(!o.depthSoFar)return "";
-  return `<span class="ck-depth prov">Squad Depth so far ~+${o.depthSoFar.toFixed(1)}</span>`;
-}
-/* min OVR across the slots that are filled; scores only on a complete roster, but the
-   running value drives the provisional chip so you can see depth building as you draft */
-function rosterDepth(roster,partial){
-  const ids=ALL_SLOTS.map(s=>roster[s]).filter(id=>id!=null);
-  if(!partial&&ids.length<ALL_SLOTS.length)return 0; /* needs the full eight to score */
-  if(!ids.length)return 0;
-  const mn=Math.min(...ids.map(id=>DB[id].ovr));
-  return +(DEPTH_MAX*Math.max(0,Math.min(1,(mn-75)/10))).toFixed(2);
-}
 function teamOVR(roster){
   /* starting five = 70% of team OVR, bench = 30% */
   const sv=STARTER_SLOTS.map(s=>roster[s]==null?60:Math.max(60,DB[roster[s]].ovr));
@@ -2074,17 +2039,20 @@ function teamOVR(roster){
   const total=Math.max(60,Math.min(99,Math.round(base+chem.bonus)));
   /* effective rating drives the win curve: chemistry counts double there,
      so a lower-OVR team with perfect chem can out-project a chem-less one */
-  const depth=rosterDepth(roster); /* a squad with no weak link projects better */
-  const eff=base+chem.bonus*CHEM_WIN_MULT+depth; /* Phase 2 tune: chemistry remains decisive without making 82–0 routine */
+  const eff=base+chem.bonus*CHEM_WIN_MULT; /* Phase 2 tune: chemistry remains decisive without making 82–0 routine */
   const full=startersFull(roster)&&BENCH_SLOTS.every(s=>roster[s]!=null);
-  /* display only — never fed into eff, so a part-built roster can't inflate a record */
-  const depthSoFar=rosterDepth(roster,true);
-  return {base:Math.round(base),chem,total,eff,depth,depthSoFar,ready:startersFull(roster),full};
+  return {base:Math.round(base),chem,total,eff,ready:startersFull(roster),full};
 }
 /* logistic-style win curve on anchor points with cosine easing between them:
    flat-ish under 75, climbing through the 80s, exploding past 90 */
 const CHEM_WIN_MULT=2.10; /* shared by teamOVR and the near-miss readout — must stay top-level */
-const EIGHTY_TWO_EFF=102.8;
+/* Effective rating required for a perfect season — the dial that sets how hard 82–0 is.
+   Calibrated by simulating full drafts played to win under the real draft rules: pick a
+   captain from the three anchors, then one slot at a time (slots lock, so you cannot
+   peek ahead), choosing each pick to maximise OVR *and* chemistry together, finishing
+   with the end-of-draft rearrange. Tier caps of 2 Icons / 4 Elites enforced throughout.
+   102.8 -> 82–0 in 3.5% of drafts (1 in 29); 101.6 -> 7.1% (1 in 14). */
+const EIGHTY_TWO_EFF=101.6;
 const PROJ=[[60,15],[70,26],[75,31],[80,38],[84,46],[87,54],[90,65],[92,70],[95,76],[97,78],[100,80],[EIGHTY_TWO_EFF,82]];
 function recordIdentity(wins){
   if(wins>=82)return {title:"82–0 Club",sub:"Perfection certified",cls:"rid-perfect",stamp:"TRUE 82–0"};
@@ -2112,8 +2080,8 @@ function projection(eff){
   return {wins,losses:82-wins,label:identity.title,identity};
 }
 function recordIdentityHTML(pr,ready){
-  /* shows a live verdict from the first pick — empty slots still count as 60, so the
-     record climbs as the roster fills rather than sitting blank until it's complete */
+  /* live verdict from the first pick — empty slots still count as 60, so the record
+     climbs as the roster fills rather than sitting blank until it is complete */
   if(!ready){const j=pr.identity||recordIdentity(pr.wins);
     return `<div class="recordid"><div><div class="rid-main">${j.title}</div><div class="rid-sub">so far — fill the starting five</div></div><div class="rid-record">${pr.wins}–${pr.losses}</div></div>`;}
   const i=pr.identity||recordIdentity(pr.wins);
@@ -2886,7 +2854,7 @@ function dailyHTML(){
       <div><b>${DD.done?"8 / 8 — FINAL":filled+" / 8"}</b>picks locked</div>
       <div><b>+${ovr.chem.bonus.toFixed(1)}</b>chemistry</div></div>
       ${recordIdentityHTML(pr,ovr.ready)}
-      <div class="chemlinks">${ovr.chem.links.length?ovr.chem.links.map(l=>`<span class="${"ck-"+l.kind}">${l.label} ×${l.n} → +${l.bonus.toFixed(1)}</span>`).join(""):`<span>Tap an empty slot to draft — banned cards for today are never offered</span>`}${depthChip(ovr)}</div>${nearMissHTML(ovr)}
+      <div class="chemlinks">${ovr.chem.links.length?ovr.chem.links.map(l=>`<span class="${"ck-"+l.kind}">${l.label} ×${l.n} → +${l.bonus.toFixed(1)}</span>`).join(""):`<span>Tap an empty slot to draft — banned cards for today are never offered</span>`}</div>${nearMissHTML(ovr)}
     </div>
     <div class="chemlegend">
       <div class="clg-h">TODAY'S RULE</div>
@@ -5315,11 +5283,22 @@ function pickCaptain(pid){
   D.roster[p.pos]=pid;D.taken.push(pid);D.lastSlot=p.pos;D.stage="picking";
   reconcileDraftState();render();
 }
+/* A slot whose five options have been revealed but not yet spent. Only one may exist
+   at a time: opening a slot commits you to drafting from it. Without this you could tap
+   every empty slot to reveal all forty cards (options are cached, so Cancel never
+   re-rolls), then cherry-pick the best whole roster — which trivialised the draft. */
+function draftPendingSlot(){
+  if(!D||!D.slotOpts)return null;
+  return ALL_SLOTS.find(s=>D.slotOpts[s]&&D.roster[s]==null)||null;
+}
 function draftSlotTap(slot){
   if(D.stage!=="picking")return;
   if(D.roster[slot]!=null){
     if(D.done){openDraftSwap(slot);return;} /* final board: rearrange freely */
     notice("Draft picks are locked in — fill the empty slots.");return;}
+  const pend=draftPendingSlot();
+  if(pend&&pend!==slot){
+    notice("Finish the "+(SLOT_LABEL[pend]||pend)+" pick first — one slot at a time.");return;}
   D.activeSlot=slot;
   if(!D.slotOpts[slot]){
     D.slotOpts[slot]=draftOptionsFor(slot,D.taken,D.tierCounts,D.offeredNames); /* cached: no re-roll via Cancel */
@@ -5407,9 +5386,11 @@ function doDraftSwap(a,b){
 }
 function draftSlotHTML(slot){
   const pid=D.roster[slot],p=slotPos(slot);
-  if(pid==null)return `<button class="slot slot-${slot} ${D.activeSlot===slot?"eligible":""}" onclick="draftSlotTap('${slot}')">
+  if(pid==null){
+    const pend=draftPendingSlot(),locked=pend&&pend!==slot;
+    return `<button class="slot slot-${slot} ${D.activeSlot===slot?"eligible":""}${locked?" slotlocked":""}" onclick="draftSlotTap('${slot}')">
     <div class="postag">${p==="B"?"BN":p}</div><div>${SLOT_LABEL[slot]}</div>
-    <div style="font-size:8px;color:var(--cyan)">TAP TO DRAFT</div></button>`;
+    <div style="font-size:8px;color:${locked?"var(--dim)":"var(--cyan)"}">${locked?"🔒 LOCKED":"TAP TO DRAFT"}</div></button>`;}
   const tappable=D.done; /* after the draft, any card can be moved */
   return `<div class="slot-${slot}" style="position:relative${tappable?";cursor:pointer":""}" ${tappable?`onclick="draftSlotTap('${slot}')"`:""}><div class="${D.lastSlot===slot?"snapin":""}">${cardHTML(DB[pid])}</div>${tappable?`<div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:8px;letter-spacing:.15em;color:var(--cyan);pointer-events:none">TAP TO MOVE</div>`:""}</div>`;
 }
@@ -5443,7 +5424,7 @@ function draftHTML(){
       <div><b>${D.done?"8 / 8 — FINAL":filled+" / 8"}</b>picks locked</div>
       <div><b>+${ovr.chem.bonus.toFixed(1)}</b>chemistry</div></div>
       ${recordIdentityHTML(pr,ovr.ready)}
-      <div class="chemlinks">${ovr.chem.links.length?ovr.chem.links.map(l=>`<span class="${"ck-"+l.kind}">${l.label} ×${l.n} → +${l.bonus.toFixed(1)}</span>`).join(""):`<span>Tap an empty slot to draft — links light the web in their colors</span>`}${depthChip(ovr)}</div>${nearMissHTML(ovr)}
+      <div class="chemlinks">${ovr.chem.links.length?ovr.chem.links.map(l=>`<span class="${"ck-"+l.kind}">${l.label} ×${l.n} → +${l.bonus.toFixed(1)}</span>`).join(""):`<span>Tap an empty slot to draft — links light the web in their colors</span>`}</div>${nearMissHTML(ovr)}
     </div>
     <div class="chemlegend">
       <div class="clg-h">CHEMISTRY RANKS</div>
@@ -5758,7 +5739,7 @@ function shareHTML(){
         <div><b>${pr.wins+"\u2013"+pr.losses}</b>projected record</div>
         <div><b>+${ovr.chem.bonus.toFixed(1)}</b>chemistry</div></div>
         ${recordIdentityHTML(pr,ovr.ready)}
-        <div class="chemlinks">${ovr.chem.links.map(l=>`<span class="${"ck-"+l.kind}">${l.label} ×${l.n} → +${l.bonus.toFixed(1)}</span>`).join("")||"<span>No chemistry links</span>"}${depthChip(ovr)}</div>${nearMissHTML(ovr)}
+        <div class="chemlinks">${ovr.chem.links.map(l=>`<span class="${"ck-"+l.kind}">${l.label} ×${l.n} → +${l.bonus.toFixed(1)}</span>`).join("")||"<span>No chemistry links</span>"}</div>${nearMissHTML(ovr)}
       </div></div>
   </div>
   <div class="court">
@@ -5825,7 +5806,7 @@ function renderDraftOverlay(){
       <div class="captainwrap">${D.opts.map((p,i)=>(D.taken.includes(p.id)||draftCapHit(p.tier))
         ?`<div class="${p.tier==="Icon"?"spindrop":"dropin"}" style="animation-delay:${(i*0.22).toFixed(2)}s;opacity:.35;pointer-events:none">${cardHTML(p)}</div>`
         :stagger(p,i,`onclick="draftPickInto(${p.id})"`)).join("")}</div>
-      <button class="btn" style="margin:6px 0 18px" onclick="D.activeSlot=null;D.opts=null;render()">Cancel</button>`;
+      <button class="btn" style="margin:6px 0 18px" onclick="D.activeSlot=null;D.opts=null;render()">Back to board (slot stays open)</button>`;
   }
   o.classList.add("show");
 }
