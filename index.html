@@ -126,6 +126,7 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .chemlinks span.ck-team{border-color:var(--ck-team);color:var(--ck-team)}
 .chemlinks span.ck-duo{border-color:var(--ck-duo);color:#ff98a8}
 .chemlinks span.ck-story{border-color:var(--ck-story);color:#ffb3e0}
+.chemlinks span.ck-depth{border-color:var(--green);color:var(--green)}
 .chemlinks span.ck-era{border-color:var(--ck-era);color:#8ee6ff}
 .chemlinks span.ck-style{border-color:var(--ck-style);color:#8fffc8}
 .chemlegend{border-left:1px solid rgba(255,255,255,.08);padding-left:14px;display:flex;flex-direction:column;gap:6px;min-width:200px}
@@ -2000,6 +2001,25 @@ function duoBonus(starters,links){
   }
   return total;
 }
+/* Team-core payout by how many starters share a franchise, tapered so the 4th and 5th
+   same-jersey starter add less than the 2nd and 3rd. Still the biggest single link, but a
+   five-man stack no longer buys most of the chemistry budget on its own. */
+const CORE_STEP=[0,0,1.35,2.5,3.45,4.0];
+/* Squad Depth — a chemistry link earned by the whole roster rather than by pairings.
+   Scored off the WEAKEST of all eight cards: full value once every card is Gold (85+),
+   nothing at 75 or below. A jersey stack carried by a Bronze bench cannot earn it. */
+const DEPTH_MAX=1.2;
+function depthChem(roster,partial){
+  const ids=ALL_SLOTS.map(s=>roster[s]).filter(id=>id!=null);
+  if(!ids.length)return 0;
+  if(!partial&&ids.length<ALL_SLOTS.length)return 0; /* needs the full eight to score */
+  const mn=Math.min(...ids.map(id=>DB[id].ovr));
+  return +(DEPTH_MAX*Math.max(0,Math.min(1,(mn-75)/10))).toFixed(2);
+}
+function rosterMinOvr(roster){
+  const ids=ALL_SLOTS.map(s=>roster[s]).filter(id=>id!=null);
+  return ids.length?Math.min(...ids.map(id=>DB[id].ovr)):0;
+}
 function chemistry(roster){
   const links=[];
   /* team cores: starters sharing a franchise (strongest link) */
@@ -2008,8 +2028,8 @@ function chemistry(roster){
     const t=DB[pid].team;counts[t]=(counts[t]||0)+1;});
   let team=0;
   Object.entries(counts).forEach(([t,n])=>{
-    if(n>=2){const b=(n-1)*1.5;team+=b;links.push({label:t+" Core",n,bonus:b,kind:"team"});}});
-  team=Math.min(6,team);
+    if(n>=2){const b=CORE_STEP[Math.min(5,n)];team+=b;links.push({label:t+" Core",n,bonus:b,kind:"team"});}});
+  team=Math.min(CORE_STEP[5],team);
   /* tag synergies: scan starters + bench; unique player NAMES per tag so two
      versions of the same player never self-link */
   /* STARTERS ONLY: the bench is ignored entirely for chemistry */
@@ -2025,8 +2045,14 @@ function chemistry(roster){
       kind:t.startsWith("Story_")?"story":t.startsWith("Era_")?"era":"style"});});
   tag+=duoBonus(STARTER_SLOTS.filter(s=>roster[s]!=null).map(s=>DB[roster[s]]),links);
   tag=Math.min(4.5,tag); /* duos live inside the same cap — total ceiling unchanged */
+  /* squad depth scores as its own chemistry link, outside the core and tag caps */
+  const full=ALL_SLOTS.every(s=>roster[s]!=null);
+  const depth=depthChem(roster);
+  if(depth>0)links.push({label:"Squad Depth",n:rosterMinOvr(roster),bonus:depth,kind:"depth"});
+  else if(!full){const soFar=depthChem(roster,true);
+    if(soFar>0)links.push({label:"Squad Depth",n:rosterMinOvr(roster),bonus:soFar,kind:"depth",prov:true});}
   links.sort((a,b)=>b.bonus-a.bonus);
-  const bonus=+Math.min(10,team+tag).toFixed(1);
+  const bonus=+Math.min(10,team+tag+depth).toFixed(1);
   return {bonus,links};
 }
 function startersFull(roster){return STARTER_SLOTS.every(s=>roster[s]!=null);}
@@ -2039,21 +2065,28 @@ function teamOVR(roster){
   const total=Math.max(60,Math.min(99,Math.round(base+chem.bonus)));
   /* effective rating drives the win curve: chemistry counts double there,
      so a lower-OVR team with perfect chem can out-project a chem-less one */
-  const eff=base+chem.bonus*CHEM_WIN_MULT; /* Phase 2 tune: chemistry remains decisive without making 82–0 routine */
+  let eff=base+chem.bonus*CHEM_WIN_MULT; /* Phase 2 tune: chemistry remains decisive without making 82–0 routine */
   const full=startersFull(roster)&&BENCH_SLOTS.every(s=>roster[s]!=null);
-  return {base:Math.round(base),chem,total,eff,ready:startersFull(roster),full};
+  /* Perfection gate: a roster is only allowed to reach 82–0 if EVERY card is Gold or
+     better. Chemistry alone used to carry a five-man jersey stack with a 66-rated bench
+     to a perfect season; the weakest link now caps the ceiling instead. */
+  const minOvr=full?rosterMinOvr(roster):0;
+  const gated=full&&minOvr<PERFECT_MIN_OVR;
+  if(gated)eff=Math.min(eff,EFF_CAP_NO_PERFECT);
+  return {base:Math.round(base),chem,total,eff,ready:startersFull(roster),full,minOvr,gated};
 }
 /* logistic-style win curve on anchor points with cosine easing between them:
    flat-ish under 75, climbing through the 80s, exploding past 90 */
 const CHEM_WIN_MULT=2.10; /* shared by teamOVR and the near-miss readout — must stay top-level */
-/* Effective rating required for a perfect season — the dial that sets how hard 82–0 is.
-   Calibrated by simulating full drafts played to win under the real draft rules: pick a
-   captain from the three anchors, then one slot at a time (slots lock, so you cannot
-   peek ahead), choosing each pick to maximise OVR *and* chemistry together, finishing
-   with the end-of-draft rearrange. Tier caps of 2 Icons / 4 Elites enforced throughout.
-   102.8 -> 82–0 in 3.5% of drafts (1 in 29); 101.6 -> 7.1% (1 in 14). */
-const EIGHTY_TWO_EFF=101.6;
+/* Effective rating required for a perfect season. Calibrated by simulating full drafts
+   played to win under the real rules: captain from three anchors, then one slot at a time
+   (slots lock, so no peeking ahead), each pick chosen to maximise OVR *and* chemistry,
+   finishing with the end-of-draft rearrange, tier caps of 2 Icons / 4 Elites enforced.
+   With the core taper, Squad Depth chemistry and the Gold gate in place, 102.6 yields
+   82-0 in 7.2% of drafts (1 in 14). */
+const EIGHTY_TWO_EFF=102.6;
 const PROJ=[[60,15],[70,26],[75,31],[80,38],[84,46],[87,54],[90,65],[92,70],[95,76],[97,78],[100,80],[EIGHTY_TWO_EFF,82]];
+const PERFECT_MIN_OVR=85; /* Gold — every one of the eight must clear this for 82–0 */
 function recordIdentity(wins){
   if(wins>=82)return {title:"82–0 Club",sub:"Perfection certified",cls:"rid-perfect",stamp:"TRUE 82–0"};
   if(wins===81)return {title:"Perfect Season Threat",sub:"One loss from immortality",cls:"rid-near"};
@@ -2079,6 +2112,11 @@ function projection(eff){
   const identity=recordIdentity(wins);
   return {wins,losses:82-wins,label:identity.title,identity};
 }
+/* highest effective rating that still projects 81 wins — the ceiling applied to any
+   roster carrying a sub-Gold card. Derived from the curve so it tracks EIGHTY_TWO_EFF. */
+const EFF_CAP_NO_PERFECT=(()=>{let lo=60,hi=EIGHTY_TWO_EFF;
+  for(let i=0;i<80;i++){const mid=(lo+hi)/2;if(projection(mid).wins>=82)hi=mid;else lo=mid;}
+  return lo;})();
 function recordIdentityHTML(pr,ready){
   /* live verdict from the first pick — empty slots still count as 60, so the record
      climbs as the roster fills rather than sitting blank until it is complete */
