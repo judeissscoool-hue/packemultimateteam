@@ -5332,9 +5332,7 @@ function draftPendingSlot(){
 }
 function draftSlotTap(slot){
   if(D.stage!=="picking")return;
-  if(D.roster[slot]!=null){
-    if(D.done){openDraftSwap(slot);return;} /* final board: rearrange freely */
-    notice("Draft picks are locked in — fill the empty slots.");return;}
+  if(D.roster[slot]!=null){openDraftSwap(slot);return;} /* rearrange legal occupied slots at any point */
   const pend=draftPendingSlot();
   if(pend&&pend!==slot){
     notice("Finish the "+(SLOT_LABEL[pend]||pend)+" pick first — one slot at a time.");return;}
@@ -5363,11 +5361,10 @@ function draftPickInto(pid){
   }
   render(); /* re-render snaps the card in + relights the chemistry web */
 }
-/* post-completion rearrangement: tap any player, then send them to any slot
-   they're eligible for. The player currently in the destination drops into the
-   tapped player's old slot. Starter slots need a position match; the bench takes
-   anyone \u2014 so moving a starter down is always legal, and moving a bench player up
-   is allowed into any starter slot their position fits. */
+/* In-draft rearrangement: tap any picked player and swap them with another
+   OCCUPIED slot when both cards fit their destinations. Empty slots are deliberately
+   excluded: moving into them would reopen cached position boards and reintroduce
+   the reveal/cherry-pick exploit. The same rules remain available after pick eight. */
 function openDraftSwap(slot){
   const cur=DB[D.roster[slot]];
   const fromBench=BENCH_SLOTS.includes(slot);
@@ -5376,9 +5373,9 @@ function openDraftSwap(slot){
      (Bench slots accept anyone, so a bench origin/target always fits.) */
   const canLand=(mover,dest)=>BENCH_SLOTS.includes(dest)||eligible(mover,dest);
   const legalStarter=s2=>{
-    if(s2===slot)return false;
+    if(s2===slot||D.roster[s2]==null)return false;
     const occ=DB[D.roster[s2]];
-    return canLand(cur,s2)&&canLand(occ,slot); /* two-way check */
+    return canLand(cur,s2)&&canLand(occ,slot); /* occupied + two-way check */
   };
   const starterDests=STARTER_SLOTS.filter(legalStarter);
   const rows=starterDests.map(s2=>{
@@ -5387,21 +5384,13 @@ function openDraftSwap(slot){
       <span>Start at ${SLOT_LABEL[s2]}</span>
       <small style="color:var(--dim)">swaps with ${esc(occ.name)} ${occ.ovr}</small></button>`;
   }).join("");
-  /* bench action for a starter: prefer an OPEN bench spot (pure move, no displacement);
-     otherwise swap with the bench player who can legally start this slot, if any. */
+  /* During an unfinished draft, swap only with an occupied bench slot. This keeps
+     the number of locked picks unchanged and prevents cached option boards reopening. */
   let benchRow="";
   if(!fromBench){
-    const open=BENCH_SLOTS.find(s2=>D.roster[s2]==null);
-    if(open!=null){
-      benchRow=`<button class="btn" onclick="doDraftSwap('${slot}','${open}')"><span>Move to bench</span></button>`;
-    }else{
-      /* find a bench player who can start the vacated slot (so the swap is legal) */
-      const t=BENCH_SLOTS.find(s2=>eligible(DB[D.roster[s2]],slot));
-      if(t!=null){const occ=DB[D.roster[t]];
-        benchRow=`<button class="btn" onclick="doDraftSwap('${slot}','${t}')"><span>Move to bench</span><small style="color:var(--dim)">swaps with ${esc(occ.name)} ${occ.ovr}</small></button>`;}
-    }
-  }else{
-    /* from bench: offer starting at any slot this player fits whose occupant can bench (always true) */
+    const t=BENCH_SLOTS.find(s2=>D.roster[s2]!=null&&eligible(DB[D.roster[s2]],slot));
+    if(t!=null){const occ=DB[D.roster[t]];
+      benchRow=`<button class="btn" onclick="doDraftSwap('${slot}','${t}')"><span>Move to bench</span><small style="color:var(--dim)">swaps with ${esc(occ.name)} ${occ.ovr}</small></button>`;}
   }
   const any=rows||benchRow;
   const none=any?"":`<div class="who" style="color:var(--dim)">No legal moves \u2014 nobody else can cover ${SLOT_LABEL[slot]} and ${esc(cur.name)} only fits ${cur.positions.join("/")}.</div>`;
@@ -5418,9 +5407,12 @@ function doDraftSwap(a,b){
   if(!eligible(pa,b)||!eligible(pb,a)){notice("Those positions don't fit.");return;}
   [D.roster[a],D.roster[b]]=[D.roster[b],D.roster[a]];
   D.lastSlot=b;closeSheet();
-  const o=teamOVR(D.roster),pr=projection(o.eff);
-  if(!DRAFT_ERA&&o.total>HS.draft.ovr){HS.draft.ovr=o.total;HS.draft.wins=pr.wins;saveHS();}
-  trophyRoster("draft",D.roster,{eraLocked:!!DRAFT_ERA});render();
+  if(D.done){
+    const o=teamOVR(D.roster),pr=projection(o.eff);
+    if(!DRAFT_ERA&&o.total>HS.draft.ovr){HS.draft.ovr=o.total;HS.draft.wins=pr.wins;saveHS();}
+    trophyRoster("draft",D.roster,{eraLocked:!!DRAFT_ERA});
+  }
+  render();
   notice(esc(pa.name)+" \u2192 "+SLOT_LABEL[b]+".");
 }
 function draftSlotHTML(slot){
@@ -5430,7 +5422,7 @@ function draftSlotHTML(slot){
     return `<button class="slot slot-${slot} ${D.activeSlot===slot?"eligible":""}${locked?" slotlocked":""}" onclick="draftSlotTap('${slot}')">
     <div class="postag">${p==="B"?"BN":p}</div><div>${SLOT_LABEL[slot]}</div>
     <div style="font-size:8px;color:${locked?"var(--dim)":"var(--cyan)"}">${locked?"🔒 LOCKED":"TAP TO DRAFT"}</div></button>`;}
-  const tappable=D.done; /* after the draft, any card can be moved */
+  const tappable=D.stage==="picking"; /* picked cards can be swapped throughout the draft */
   return `<div class="slot-${slot}" style="position:relative${tappable?";cursor:pointer":""}" ${tappable?`onclick="draftSlotTap('${slot}')"`:""}><div class="${D.lastSlot===slot?"snapin":""}">${cardHTML(DB[pid])}</div>${tappable?`<div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:8px;letter-spacing:.15em;color:var(--cyan);pointer-events:none">TAP TO MOVE</div>`:""}</div>`;
 }
 function draftHTML(){
