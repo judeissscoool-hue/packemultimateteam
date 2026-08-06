@@ -5,7 +5,9 @@ This project keeps its existing static `index.html` client. Supabase supplies au
 ## 1. Create and configure the project
 
 1. Create a Supabase project.
-2. Apply `supabase/migrations/202608060001_async_backend.sql`.
+2. Apply every file in `supabase/migrations/` in filename order. The first migration
+   creates the schema; the later migrations preserve the exact fixes applied while
+   validating the live project.
 3. In Authentication > URL Configuration, set the production Site URL to `https://packemultimateteam.com`.
 4. Add the local development URL and production URL to the redirect allow list.
 5. Keep email confirmation enabled.
@@ -30,11 +32,14 @@ The publishable key is safe in browser code when Row Level Security is enabled. 
 
 ## 4. Security model
 
-- Players may read and update only their own cloud save.
-- Players may read only challenges in which they participate.
+- Raw tables have explicit deny-all RLS policies and no browser grants.
+- Players read and update only their own cloud save through revision-checked RPCs.
+- Players read their own challenge state through ownership-checked RPCs.
 - A challenge code exposes limited invitation metadata through an RPC.
 - Browsers cannot insert, update, or delete challenge results or leaderboard entries.
-- Result submission must go through a server-side Edge Function using the service role after validating the deterministic seed, roster, rules version, and score.
+- Result submission must go through a server-side Edge Function using a server-only
+  secret key after replaying the deterministic draft and independently validating the
+  seed, run token, transcript, roster, rules version, OVR, score, and projected record.
 - Public leaderboards are read through `get_leaderboard(mode, period, limit)`.
 
 ## 5. Asynchronous 1v1 lifecycle
@@ -46,3 +51,15 @@ The publishable key is safe in browser code when Row Level Security is enabled. 
 5. The server validates both rosters, computes the result, closes the challenge, and writes verified ranking entries.
 
 Do not trust client-submitted OVR, points, wins, card ownership, or challenge outcomes.
+
+## 6. Database regression test
+
+`supabase/tests/backend_security_regression.sql` runs entirely inside a transaction
+that ends with `ROLLBACK`. It verifies profile sanitization, conflict-safe cloud saves,
+hidden pre-acceptance seeds, delayed seed release, challenge completion, winner
+calculation, verified leaderboard writes and run-token replay rejection.
+
+The Supabase security advisor reports the deliberately exposed RPC functions because
+they use `SECURITY DEFINER`; this is expected. Each function has an empty search path,
+an explicit role grant, input limits, and authentication/ownership checks. Raw table
+access remains denied. “Unused index” notices are expected before production traffic.
