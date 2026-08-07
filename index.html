@@ -12,6 +12,11 @@
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="All-Time Ultimate — Draft Your NBA Dream Team">
 <meta name="twitter:description" content="Draft your all-time NBA dream team and chase the perfect 82-0 season.">
+<script src="./supabase-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.2/dist/umd/supabase.js"
+  integrity="sha384-OUpie84zd1LdwNlK9uJJQRwab0BLqo3eKYKFh7hSVL58FSk7wPp2l0kfUMIIoaQd"
+  crossorigin="anonymous"></script>
+<script src="./backend.js"></script>
 <style>
 /* ============ TOKENS: arena at night ============ */
 :root{
@@ -126,7 +131,6 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .chemlinks span.ck-team{border-color:var(--ck-team);color:var(--ck-team)}
 .chemlinks span.ck-duo{border-color:var(--ck-duo);color:#ff98a8}
 .chemlinks span.ck-story{border-color:var(--ck-story);color:#ffb3e0}
-.chemlinks span.ck-depth{border-color:var(--green);color:var(--green)}
 .chemlinks span.ck-era{border-color:var(--ck-era);color:#8ee6ff}
 .chemlinks span.ck-style{border-color:var(--ck-style);color:#8fffc8}
 .chemlegend{border-left:1px solid rgba(255,255,255,.08);padding-left:14px;display:flex;flex-direction:column;gap:6px;min-width:200px}
@@ -1037,6 +1041,78 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .dailyblock{background:rgba(255,77,109,.14);border:1px solid rgba(255,77,109,.5);color:#ff9caa}
 @media(max-width:560px){.dailybanner{flex-wrap:wrap;gap:8px}.dailybanner .db-meta{text-align:left}}
 @media(max-width:560px){.trophyhero{grid-template-columns:1fr}.tpbig{text-align:left}.trophygrid,.archivegrid{grid-template-columns:1fr}}
+
+/* ===== ACCOUNT, PROFILE & CLOUD SAVE ===== */
+.topright{display:flex;align-items:center;gap:10px;margin-left:auto}
+.accountpill{display:flex;align-items:center;gap:7px;padding:8px 11px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.035);font-size:11px;color:var(--ink);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.accountpill:hover{border-color:var(--cyan)}
+.accountdot{width:8px;height:8px;flex:0 0 auto;border-radius:50%;background:var(--amber);box-shadow:0 0 9px rgba(242,169,59,.65)}
+.accountdot.synced{background:var(--green);box-shadow:0 0 9px rgba(57,255,156,.65)}
+.accountdot.offline{background:#777;box-shadow:none}
+.accountwrap{max-width:820px;margin:12px auto 40px}
+.accountintro{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:14px;padding:4px 2px}
+.accountintro h2,.accountcard h2{font-size:28px;margin:4px 0 6px}
+.accountintro p,.accountcard p{font-size:12px;line-height:1.55;color:var(--dim)}
+.eyebrow{font-size:9px;letter-spacing:.2em;color:var(--cyan);font-weight:800}
+.accountcard{background:linear-gradient(145deg,rgba(29,29,29,.98),rgba(20,20,20,.98));border:1px solid var(--line);border-radius:14px;padding:18px}
+.accountcard h3{font-size:18px;margin-bottom:5px}
+.accountsub{margin-bottom:14px}
+.accountcard form{display:grid;gap:12px;margin-top:12px}
+.accountcard label{display:grid;gap:6px;font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:#c8c8d0;font-weight:700}
+.accountcard label small{font-size:9px;color:var(--dim);font-weight:500;letter-spacing:.04em;text-transform:none}
+.accountcard input{width:100%;border:1px solid rgba(255,255,255,.12);border-radius:9px;background:#101010;color:var(--ink);font:inherit;font-size:14px;padding:11px 12px;outline:none}
+.accountcard input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(53,214,255,.1)}
+.accountsubmit{width:100%;margin-top:2px;padding:11px 14px}
+.accountor{display:flex;align-items:center;gap:10px;color:var(--dim);font-size:10px;margin:14px 0}
+.accountor::before,.accountor::after{content:"";height:1px;background:var(--line);flex:1}
+.googlebtn{width:100%;padding:11px;border:1px solid rgba(255,255,255,.16);border-radius:9px;background:#f5f5f5;color:#181818;font-size:13px;font-weight:700}
+.googlebtn b{font-size:16px;color:#4285f4;margin-right:7px}
+.googlebtn:disabled{opacity:.5}
+.accountswitch{text-align:center;color:var(--dim);font-size:12px;margin-top:14px}
+.accountswitch button,.textbtn{color:var(--cyan);font-size:12px;text-decoration:underline;text-underline-offset:3px}
+.textbtn{display:block;margin:12px auto 0}
+.accountfine{margin-top:15px!important;font-size:10px!important;text-align:center}
+.accountmsg{padding:10px 12px;border-radius:9px;border:1px solid var(--line);font-size:12px;line-height:1.45;margin-bottom:12px}
+.accountmsg.ok{border-color:rgba(57,255,156,.4);background:rgba(57,255,156,.09);color:#94ffd0}
+.accountmsg.warn{border-color:rgba(242,169,59,.45);background:rgba(242,169,59,.09);color:#ffd295}
+.accountmsg.error{border-color:rgba(255,77,109,.45);background:rgba(255,77,109,.09);color:#ffacba}
+.accountgrid{display:grid;grid-template-columns:1.2fr .8fr;gap:12px}
+.accountfacts{display:grid;gap:0;margin:13px 0 18px;border-top:1px solid var(--line)}
+.accountfacts div{display:grid;gap:4px;padding:10px 0;border-bottom:1px solid var(--line)}
+.accountfacts span{font-size:9px;letter-spacing:.11em;text-transform:uppercase;color:var(--dim)}
+.accountfacts b{font-size:12px;overflow-wrap:anywhere}
+.cloudstate{display:flex;align-items:center;gap:9px;min-width:160px;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.025)}
+.cloudstate>span{width:10px;height:10px;flex:0 0 auto;border-radius:50%;background:#777}
+.cloudstate.synced>span{background:var(--green);box-shadow:0 0 10px rgba(57,255,156,.65)}
+.cloudstate.syncing>span,.cloudstate.checking>span{background:var(--cyan);box-shadow:0 0 10px rgba(53,214,255,.65);animation:syncpulse 1s ease-in-out infinite}
+.cloudstate.conflict>span,.cloudstate.error>span{background:var(--amber);box-shadow:0 0 10px rgba(242,169,59,.65)}
+.cloudstate b,.cloudstate small{display:block}.cloudstate b{font-size:11px}.cloudstate small{font-size:9px;color:var(--dim);margin-top:2px}
+@keyframes syncpulse{50%{opacity:.35}}
+.saveconflict{border:1px solid rgba(242,169,59,.48);background:rgba(242,169,59,.08);border-radius:12px;padding:14px;margin-bottom:12px}
+.saveconflict h3{font-size:17px;color:var(--amber)}.saveconflict p{font-size:11px;color:#d7d7dc;line-height:1.5;margin:5px 0 12px}.saveconflict>div{display:flex;gap:8px;flex-wrap:wrap}
+
+/* ===== DRAFT DUELS & THE 82-0 CLUB ===== */
+.challengehero{position:relative;display:flex;align-items:flex-start;justify-content:space-between;gap:18px;overflow:hidden;padding:22px;margin:4px 0 16px;border:1px solid rgba(255,197,61,.48);border-radius:17px;background:radial-gradient(circle at 8% 10%,rgba(53,214,255,.2),transparent 36%),radial-gradient(circle at 92% 90%,rgba(255,197,61,.2),transparent 34%),linear-gradient(135deg,#0d2028,#141414 58%,#241b08);box-shadow:0 12px 34px rgba(0,0,0,.3),inset 0 1px rgba(255,255,255,.05)}
+.challengehero::after{content:"";position:absolute;right:-65px;top:-82px;width:210px;height:210px;border:1px solid rgba(53,214,255,.14);border-radius:50%;box-shadow:0 0 55px rgba(53,214,255,.08);pointer-events:none}.challengehero>*{position:relative;z-index:1}.challengehero h2{font-size:32px;margin:6px 0;color:#fff;text-shadow:0 0 22px rgba(255,197,61,.18)}.challengehero p{max-width:650px;color:#d9d9df;font-size:13px;line-height:1.55}.challengehero>.btn{box-shadow:0 0 20px rgba(255,197,61,.11)}
+.challengekicker{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.fairbadge{display:inline-flex;align-items:center;padding:4px 8px;border:1px solid rgba(57,255,156,.36);border-radius:999px;background:rgba(57,255,156,.09);color:#8affc8;font-size:8px;font-weight:800;letter-spacing:.1em}
+.challengeprogress{display:flex;align-items:center;justify-content:center;gap:7px;color:var(--dim);font-size:9px;letter-spacing:.08em;text-transform:uppercase;margin:16px 0}
+.challengeprogress b{display:grid;place-items:center;width:24px;height:24px;border:1px solid var(--gold);border-radius:50%;background:rgba(255,197,61,.09);color:var(--gold);box-shadow:0 0 13px rgba(255,197,61,.12)}.challengeprogress i{width:35px;height:1px;background:linear-gradient(90deg,rgba(255,197,61,.42),rgba(53,214,255,.35))}
+.challengecards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}.captaincards{grid-template-columns:repeat(3,minmax(0,1fr));max-width:720px;margin:0 auto}
+.challengecard{position:relative;min-height:154px;padding:13px 9px 11px;border:1px solid rgba(255,255,255,.13);border-radius:12px;background:linear-gradient(160deg,#242424,#111);color:var(--ink);text-align:left;overflow:hidden;transition:.15s transform,.15s border-color}
+.challengecard:hover:not(:disabled){transform:translateY(-3px);border-color:var(--cyan)}.challengecard:disabled{filter:grayscale(.7);opacity:.38;cursor:not-allowed}.challengecard.selected{border-color:var(--gold);box-shadow:0 0 0 2px rgba(255,197,61,.22),0 0 18px rgba(255,197,61,.16)}
+.challengecard b,.challengecard strong,.challengecard small{display:block}.challengecard b{font-size:14px;line-height:1.15;margin-top:23px;min-height:34px}.challengecard strong{font-family:var(--disp);font-size:34px;color:var(--gold);line-height:1}.challengecard small{font-size:9px;color:var(--dim);margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.challengetier{position:absolute;top:9px;left:9px;font-size:8px;letter-spacing:.12em;color:var(--cyan)}.tier-icon{background:linear-gradient(150deg,#332a0b,#17150d)}.tier-elite{background:linear-gradient(150deg,#162531,#111)}
+.tiercaps{display:flex;justify-content:center;gap:10px;margin:11px 0}.tiercaps span{padding:6px 10px;border:1px solid var(--line);border-radius:999px;font-size:9px;letter-spacing:.12em;color:var(--dim)}.tiercaps b{color:var(--ink)}
+.challengemetrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}.challengemetrics div{text-align:center;padding:11px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}.challengemetrics span,.challengeinvite span,.sharechallenge>span{display:block;font-size:8px;letter-spacing:.15em;color:var(--dim)}.challengemetrics b{display:block;margin-top:4px;font:22px var(--disp);color:var(--gold)}
+.challengeroster{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}.challengerosterslot{position:relative;padding-top:22px}.challengerosterslot>span{position:absolute;top:3px;left:8px;z-index:2;font:11px var(--disp);color:var(--cyan)}.challengerosterslot .challengecard{width:100%}
+.challengeactions{display:flex;align-items:center;justify-content:center;gap:11px;flex-wrap:wrap;margin:17px 0}.challengeactions small{width:100%;text-align:center;color:var(--dim);font-size:9px}
+.challengeexplain{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.challengeexplain>div{padding:17px;border:1px solid rgba(255,255,255,.11);border-radius:13px;background:radial-gradient(circle at 10% 0,rgba(53,214,255,.09),transparent 45%),linear-gradient(145deg,#191919,#111)}.challengeexplain>div>b{display:grid;place-items:center;width:32px;height:32px;border:1px solid rgba(255,197,61,.42);border-radius:50%;background:rgba(255,197,61,.1);color:var(--gold);font:17px var(--disp)}.challengeexplain h3{font-size:18px;margin:11px 0 4px}.challengeexplain p{font-size:12px;color:#b9b9c1;line-height:1.5}
+.sharechallenge{text-align:center;max-width:540px;margin:20px auto;padding:26px;border:1px solid rgba(255,197,61,.5);border-radius:15px;background:radial-gradient(circle at 50% 0,rgba(53,214,255,.17),transparent 48%),linear-gradient(150deg,rgba(255,197,61,.09),rgba(57,255,156,.055));box-shadow:0 0 32px rgba(53,214,255,.08)}.sharechallenge>b{display:block;font:32px var(--disp);letter-spacing:.14em;color:var(--gold);margin:8px 0;text-shadow:0 0 18px rgba(255,197,61,.28)}.sharechallenge p{font-size:11px;color:#c8c8ce;margin-bottom:15px}
+.challengeinvite{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}.challengeinvite div{padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}.challengeinvite b{display:block;font-size:11px;margin-top:4px;overflow-wrap:anywhere}.challengeaccept{display:block;margin:18px auto}
+.challengeresult{display:grid;grid-template-columns:1fr auto 1fr;align-items:stretch;gap:10px;max-width:760px;margin:20px auto}.resultplayer{padding:18px;border:1px solid var(--line);border-radius:14px;background:var(--panel);text-align:center}.resultplayer.winner{border-color:rgba(255,197,61,.55);box-shadow:0 0 28px rgba(255,197,61,.08)}.resultplayer>span{font-size:8px;letter-spacing:.18em;color:var(--dim)}.resultplayer.winner>span{color:var(--gold)}.resultplayer h3{margin:7px 0}.resultscore{font:48px var(--disp);color:var(--cyan)}.resultscore small{display:block;font:8px var(--sans);letter-spacing:.14em;color:var(--dim)}.resultplayer dl{margin-top:13px}.resultplayer dl div{display:flex;justify-content:space-between;border-top:1px solid var(--line);padding:7px 0;font-size:10px}.resultplayer dt{color:var(--dim)}.resultversus{align-self:center;font:18px var(--disp);color:var(--dim)}
+.rankingwrap{max-width:880px;margin:0 auto}.rankingfilters{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.rankingfilters button{padding:8px 12px;border:1px solid var(--line);border-radius:999px;color:var(--dim);font-size:10px}.rankingfilters button.on{border-color:var(--cyan);background:rgba(53,214,255,.1);color:var(--cyan)}.rankingfilters.periods{margin-bottom:14px}
+.rankingtable{border:1px solid rgba(53,214,255,.24);border-radius:13px;overflow:hidden;box-shadow:0 12px 28px rgba(0,0,0,.2)}.rankinghead,.rankingrow{display:grid;grid-template-columns:45px minmax(120px,1fr) 70px 90px 100px;align-items:center;gap:6px;padding:11px 12px}.rankinghead{background:linear-gradient(90deg,#111d22,#171308);color:#a9a9b2;font-size:8px;letter-spacing:.12em}.rankingrow{border-top:1px solid var(--line);background:rgba(255,255,255,.015);font-size:11px}.rankingrow:nth-child(odd){background:rgba(53,214,255,.025)}.rankingrow>b{font:18px var(--disp);color:var(--gold)}.rankingrow>strong{text-align:right;color:var(--cyan)}.rankingempty{text-align:center;padding:42px 12px;border:1px dashed rgba(255,197,61,.3);border-radius:12px;background:rgba(255,197,61,.025);color:var(--dim);font-size:11px}.rankingempty b,.rankingempty span{display:block}.rankingempty b{font-size:18px;color:var(--gold);margin-bottom:5px}
+@media(max-width:680px){.topright{width:100%;justify-content:space-between}.accountpill{order:-1}.accountintro{align-items:flex-start;flex-direction:column}.accountgrid{grid-template-columns:1fr}.cloudstate{width:100%}.challengehero{flex-direction:column;padding:19px}.challengehero h2{font-size:28px}.challengecards{grid-template-columns:repeat(2,minmax(0,1fr))}.captaincards{grid-template-columns:1fr}.challengeroster{grid-template-columns:repeat(2,minmax(0,1fr))}.challengeexplain{grid-template-columns:1fr}.challengeinvite{grid-template-columns:1fr}.challengeresult{grid-template-columns:1fr}.resultversus{text-align:center}.rankinghead,.rankingrow{grid-template-columns:32px minmax(95px,1fr) 48px 70px}.rankinghead span:last-child,.rankingrow strong{display:none}.challengeprogress span{display:none}}
 
 </style>
 </head>
@@ -2005,17 +2081,6 @@ function duoBonus(starters,links){
    same-jersey starter add less than the 2nd and 3rd. Still the biggest single link, but a
    five-man stack no longer buys most of the chemistry budget on its own. */
 const CORE_STEP=[0,0,1.35,2.5,3.45,4.0];
-/* Squad Depth — a chemistry link earned by the whole roster rather than by pairings.
-   Scored off the WEAKEST of all eight cards: full value once every card is Gold (85+),
-   nothing at 75 or below. A jersey stack carried by a Bronze bench cannot earn it. */
-const DEPTH_MAX=1.2;
-function depthChem(roster,partial){
-  const ids=ALL_SLOTS.map(s=>roster[s]).filter(id=>id!=null);
-  if(!ids.length)return 0;
-  if(!partial&&ids.length<ALL_SLOTS.length)return 0; /* needs the full eight to score */
-  const mn=Math.min(...ids.map(id=>DB[id].ovr));
-  return +(DEPTH_MAX*Math.max(0,Math.min(1,(mn-75)/10))).toFixed(2);
-}
 function rosterMinOvr(roster){
   const ids=ALL_SLOTS.map(s=>roster[s]).filter(id=>id!=null);
   return ids.length?Math.min(...ids.map(id=>DB[id].ovr)):0;
@@ -2045,14 +2110,8 @@ function chemistry(roster){
       kind:t.startsWith("Story_")?"story":t.startsWith("Era_")?"era":"style"});});
   tag+=duoBonus(STARTER_SLOTS.filter(s=>roster[s]!=null).map(s=>DB[roster[s]]),links);
   tag=Math.min(4.5,tag); /* duos live inside the same cap — total ceiling unchanged */
-  /* squad depth scores as its own chemistry link, outside the core and tag caps */
-  const full=ALL_SLOTS.every(s=>roster[s]!=null);
-  const depth=depthChem(roster);
-  if(depth>0)links.push({label:"Squad Depth",n:rosterMinOvr(roster),bonus:depth,kind:"depth"});
-  else if(!full){const soFar=depthChem(roster,true);
-    if(soFar>0)links.push({label:"Squad Depth",n:rosterMinOvr(roster),bonus:soFar,kind:"depth",prov:true});}
   links.sort((a,b)=>b.bonus-a.bonus);
-  const bonus=+Math.min(10,team+tag+depth).toFixed(1);
+  const bonus=+Math.min(10,team+tag).toFixed(1);
   return {bonus,links};
 }
 function startersFull(roster){return STARTER_SLOTS.every(s=>roster[s]!=null);}
@@ -2315,7 +2374,7 @@ const updateProjectedRecord=projection;
 /* ================= PERSISTENCE (safe: falls back to memory) ================= */
 const MEM={};
 function sGet(k){try{return JSON.parse(localStorage.getItem(k));}catch(e){return MEM[k]??null;}}
-function sSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){MEM[k]=v;}}
+function sSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));if(window.ATUBackend)ATUBackend.noteLocalWrite(k);}catch(e){MEM[k]=v;}}
 function sDel(k){try{localStorage.removeItem(k);}catch(e){delete MEM[k];}}
 
 function emptySide(){return {coll:{},roster:emptyRoster()};}
@@ -4911,7 +4970,7 @@ function notice(msg){const n=$("#notice");if(!n)return;n.textContent=msg;
   clearTimeout(notice.t);notice.t=setTimeout(()=>{if($("#notice"))$("#notice").textContent="";},2600);}
 
 /* ================= NAV ================= */
-function setScreen(s){screen=s;render();window.scrollTo(0,0);}
+function setScreen(s){screen=s;render();ATUBackend.onScreen(s);window.scrollTo(0,0);}
 function renderTabs(){
   const bar=$("#tabs");if(!bar)return;
   let items;
@@ -4925,6 +4984,9 @@ function renderTabs(){
   else if(screen==="collection")items=[["landing","☰ Modes"],["collection","🗃 Collection"],["rafters","🎫 Rafters"]];
   else if(screen==="rafters")items=[["landing","☰ Modes"],["rafters","🎫 Rafters"],["collection","🗃 Collection"]];
   else if(screen==="updates")items=[["landing","☰ Modes"],["updates","📋 Updates"]];
+  else if(screen==="account")items=[["landing","☰ Modes"],["account","👤 Account"]];
+  else if(screen==="challenge")items=[["landing","☰ Modes"],["challenge","⚔ 1v1"],["rankings","🏆 82-0 Club"]];
+  else if(screen==="rankings")items=[["landing","☰ Modes"],["challenge","⚔ 1v1"],["rankings","🏆 82-0 Club"]];
   else items=[["landing","☰ Modes"],["team","My Team"],["packs","Packs"],["rare","Rare Pull"],["trophies","🏆 Trophies"]];
   bar.innerHTML=items.map(([k,l])=>`<button class="${screen===k?"on":""}" onclick="setScreen('${k}')">${l}</button>`).join("");
   bar.style.display=items.length?"":"none";
@@ -5332,9 +5394,7 @@ function draftPendingSlot(){
 }
 function draftSlotTap(slot){
   if(D.stage!=="picking")return;
-  if(D.roster[slot]!=null){
-    if(D.done){openDraftSwap(slot);return;} /* final board: rearrange freely */
-    notice("Draft picks are locked in — fill the empty slots.");return;}
+  if(D.roster[slot]!=null){openDraftSwap(slot);return;} /* rearrange legal occupied slots at any point */
   const pend=draftPendingSlot();
   if(pend&&pend!==slot){
     notice("Finish the "+(SLOT_LABEL[pend]||pend)+" pick first — one slot at a time.");return;}
@@ -5363,11 +5423,10 @@ function draftPickInto(pid){
   }
   render(); /* re-render snaps the card in + relights the chemistry web */
 }
-/* post-completion rearrangement: tap any player, then send them to any slot
-   they're eligible for. The player currently in the destination drops into the
-   tapped player's old slot. Starter slots need a position match; the bench takes
-   anyone \u2014 so moving a starter down is always legal, and moving a bench player up
-   is allowed into any starter slot their position fits. */
+/* In-draft rearrangement: tap any picked player and swap them with another
+   OCCUPIED slot when both cards fit their destinations. Empty slots are deliberately
+   excluded: moving into them would reopen cached position boards and reintroduce
+   the reveal/cherry-pick exploit. The same rules remain available after pick eight. */
 function openDraftSwap(slot){
   const cur=DB[D.roster[slot]];
   const fromBench=BENCH_SLOTS.includes(slot);
@@ -5376,9 +5435,9 @@ function openDraftSwap(slot){
      (Bench slots accept anyone, so a bench origin/target always fits.) */
   const canLand=(mover,dest)=>BENCH_SLOTS.includes(dest)||eligible(mover,dest);
   const legalStarter=s2=>{
-    if(s2===slot)return false;
+    if(s2===slot||D.roster[s2]==null)return false;
     const occ=DB[D.roster[s2]];
-    return canLand(cur,s2)&&canLand(occ,slot); /* two-way check */
+    return canLand(cur,s2)&&canLand(occ,slot); /* occupied + two-way check */
   };
   const starterDests=STARTER_SLOTS.filter(legalStarter);
   const rows=starterDests.map(s2=>{
@@ -5387,21 +5446,13 @@ function openDraftSwap(slot){
       <span>Start at ${SLOT_LABEL[s2]}</span>
       <small style="color:var(--dim)">swaps with ${esc(occ.name)} ${occ.ovr}</small></button>`;
   }).join("");
-  /* bench action for a starter: prefer an OPEN bench spot (pure move, no displacement);
-     otherwise swap with the bench player who can legally start this slot, if any. */
+  /* During an unfinished draft, swap only with an occupied bench slot. This keeps
+     the number of locked picks unchanged and prevents cached option boards reopening. */
   let benchRow="";
   if(!fromBench){
-    const open=BENCH_SLOTS.find(s2=>D.roster[s2]==null);
-    if(open!=null){
-      benchRow=`<button class="btn" onclick="doDraftSwap('${slot}','${open}')"><span>Move to bench</span></button>`;
-    }else{
-      /* find a bench player who can start the vacated slot (so the swap is legal) */
-      const t=BENCH_SLOTS.find(s2=>eligible(DB[D.roster[s2]],slot));
-      if(t!=null){const occ=DB[D.roster[t]];
-        benchRow=`<button class="btn" onclick="doDraftSwap('${slot}','${t}')"><span>Move to bench</span><small style="color:var(--dim)">swaps with ${esc(occ.name)} ${occ.ovr}</small></button>`;}
-    }
-  }else{
-    /* from bench: offer starting at any slot this player fits whose occupant can bench (always true) */
+    const t=BENCH_SLOTS.find(s2=>D.roster[s2]!=null&&eligible(DB[D.roster[s2]],slot));
+    if(t!=null){const occ=DB[D.roster[t]];
+      benchRow=`<button class="btn" onclick="doDraftSwap('${slot}','${t}')"><span>Move to bench</span><small style="color:var(--dim)">swaps with ${esc(occ.name)} ${occ.ovr}</small></button>`;}
   }
   const any=rows||benchRow;
   const none=any?"":`<div class="who" style="color:var(--dim)">No legal moves \u2014 nobody else can cover ${SLOT_LABEL[slot]} and ${esc(cur.name)} only fits ${cur.positions.join("/")}.</div>`;
@@ -5418,9 +5469,12 @@ function doDraftSwap(a,b){
   if(!eligible(pa,b)||!eligible(pb,a)){notice("Those positions don't fit.");return;}
   [D.roster[a],D.roster[b]]=[D.roster[b],D.roster[a]];
   D.lastSlot=b;closeSheet();
-  const o=teamOVR(D.roster),pr=projection(o.eff);
-  if(!DRAFT_ERA&&o.total>HS.draft.ovr){HS.draft.ovr=o.total;HS.draft.wins=pr.wins;saveHS();}
-  trophyRoster("draft",D.roster,{eraLocked:!!DRAFT_ERA});render();
+  if(D.done){
+    const o=teamOVR(D.roster),pr=projection(o.eff);
+    if(!DRAFT_ERA&&o.total>HS.draft.ovr){HS.draft.ovr=o.total;HS.draft.wins=pr.wins;saveHS();}
+    trophyRoster("draft",D.roster,{eraLocked:!!DRAFT_ERA});
+  }
+  render();
   notice(esc(pa.name)+" \u2192 "+SLOT_LABEL[b]+".");
 }
 function draftSlotHTML(slot){
@@ -5430,7 +5484,7 @@ function draftSlotHTML(slot){
     return `<button class="slot slot-${slot} ${D.activeSlot===slot?"eligible":""}${locked?" slotlocked":""}" onclick="draftSlotTap('${slot}')">
     <div class="postag">${p==="B"?"BN":p}</div><div>${SLOT_LABEL[slot]}</div>
     <div style="font-size:8px;color:${locked?"var(--dim)":"var(--cyan)"}">${locked?"🔒 LOCKED":"TAP TO DRAFT"}</div></button>`;}
-  const tappable=D.done; /* after the draft, any card can be moved */
+  const tappable=D.stage==="picking"; /* picked cards can be swapped throughout the draft */
   return `<div class="slot-${slot}" style="position:relative${tappable?";cursor:pointer":""}" ${tappable?`onclick="draftSlotTap('${slot}')"`:""}><div class="${D.lastSlot===slot?"snapin":""}">${cardHTML(DB[pid])}</div>${tappable?`<div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:8px;letter-spacing:.15em;color:var(--cyan);pointer-events:none">TAP TO MOVE</div>`:""}</div>`;
 }
 function draftHTML(){
@@ -5512,9 +5566,12 @@ function landingHTML(){
       <button class="btn ${cls}">${cta}</button>
     </div>`).join("")}
     <div class="modecard" onclick="setScreen('daily')"><h3>🗓 Daily Challenge</h3><p>A fresh seeded squad and a new constraint every day — same for everyone. Build the best team under today's rule and keep your streak alive.</p><div class="modebest">STREAK <b>${DAILY.streak||0}🔥</b></div><button class="btn gold">PLAY TODAY</button></div>
+    <div class="modecard" onclick="setScreen('challenge')"><h3>⚔ Challenge a Friend</h3><p>Build your squad. Send the link. Your friend gets the same draft. Who drafted better?</p><div class="modebest">FORMAT <b>YOU VS THEM</b></div><button class="btn primary">START A 1V1</button></div>
+    <div class="modecard" onclick="setScreen('rankings')"><h3>🏆 The 82-0 Club</h3><p>Chase the best record. Own today, climb the weekly table, or become an all-time legend.</p><div class="modebest">GOAL <b>CAN YOU GO 82-0?</b></div><button class="btn">VIEW LEADERBOARD</button></div>
     <div class="modecard" onclick="setScreen('rafters')"><h3>🎫 The Rafters</h3><p>Open packs for card cosmetics — frames, auras, border light and card-face effects. Mythics are the chase.</p><div class="modebest">PACKS <b>${packsAvailable()} free</b></div><button class="btn gold">OPEN PACKS</button></div>
     <div class="modecard" onclick="setScreen('collection')"><h3>🗃 Collection</h3><p>Every card in the game — see what you've discovered and what's still out there. Pulls from any mode count.</p><div class="modebest">FOUND <b>${collectionStats().seen}/${collectionStats().total}</b></div><button class="btn">VIEW COLLECTION</button></div>
     <div class="modecard" onclick="setScreen('trophies')"><h3>🏆 Trophy Case</h3><p>Permanent collection progression, franchise and era archives, iconic chemistry discoveries, What If timelines, historic teams, records and hidden challenges.</p><div class="modebest">PROGRESS <b>${trophySummary().done}/${trophySummary().total}</b></div><button class="btn gold">OPEN TROPHY CASE</button></div>
+    <div class="modecard" onclick="setScreen('account')"><h3>☁️ Save Your Progress</h3><p>Keep your cards, trophies and records safe—even when you switch devices.</p><div class="modebest">STATUS <b>${ATUBackend.isSignedIn()?"SAFE &amp; SYNCED":"DEVICE SAVE"}</b></div><button class="btn primary">${ATUBackend.isSignedIn()?"OPEN MY SAVE":"SAVE MY GAME"}</button></div>
   </div>`;
 }
 /* ---- share roster (Draft + Classic) ---- */
@@ -5856,22 +5913,32 @@ function showPrivacy(){
     <div class="p-date">All-Time Ultimate · effective with this version of the app</div>
 
     <h3>1. Overview</h3>
-    <p>All-Time Ultimate is a browser-based game. This policy explains what information is and isn't
-    handled when you play, and how advertising and analytics technologies may operate on this site.</p>
+    <p>All-Time Ultimate is a browser-based game. You can play without an account using device storage,
+    or create an account to sync progress, play Draft Duels and join The 82-0 Club.</p>
 
-    <h3>2. Your game data stays on your device</h3>
-    <p>Your collections, rosters, pack history, and high scores are saved locally on your device using
-    your browser's LocalStorage. <b>No personal server data is harvested</b> — game progress is never
-    uploaded, and there are no accounts or sign-ups. Clearing your browser's site data (or using the
-    in-game Reset) permanently deletes it.</p>
+    <h3>2. Device and cloud game data</h3>
+    <p>Collections, rosters, pack history, trophies, credits and high scores are stored in your browser's
+    LocalStorage. If you sign in, a versioned copy is also stored in Supabase so it can be restored on
+    another device. Save conflicts are not silently overwritten.</p>
 
-    <h3>3. Analytics &amp; device identifiers</h3>
+    <h3>3. Account and public profile data</h3>
+    <p>Supabase Auth processes your email address, authentication identity and session information.
+    Passwords are handled by Supabase Auth and are not stored by the game. Your username, optional
+    display name and optional avatar URL may be shown publicly on challenge results and rankings.
+    Your email address and internal account ID are not exposed through public game APIs.</p>
+
+    <h3>4. Draft Duels and The 82-0 Club</h3>
+    <p>Ranked and challenge runs may store draft actions, final rosters, calculated scores and result
+    metadata. These records are used to validate results, prevent replay or forged submissions, and
+    produce sanitized public rankings and challenge results.</p>
+
+    <h3>5. Analytics &amp; device identifiers</h3>
     <p>To understand aggregate usage and improve the game, this site may collect basic device
     identifiers and use cookies or similar technologies for analytics — such as browser type, device
     category, approximate region, and pages visited. This information is aggregated and is not used to
     personally identify you.</p>
 
-    <h3>4. Third-party advertising</h3>
+    <h3>6. Third-party advertising</h3>
     <p>This site may integrate third-party advertising partners, such as Google AdSense and gaming ad
     networks. <b>Third-party vendors, including Google, use cookies to serve ads based on your prior
     visits to this website and other websites across the internet.</b> Google's use of advertising
@@ -5879,18 +5946,20 @@ function showPrivacy(){
     <p>You may opt out of personalized advertising by visiting Google's Ads Settings
     (adssettings.google.com) or www.aboutads.info/choices.</p>
 
-    <h3>5. Cookies &amp; your choices</h3>
-    <p>You can control or delete cookies through your browser settings. Blocking cookies does not
-    affect your saved game progress, which lives in LocalStorage, not cookies.</p>
+    <h3>7. Your choices</h3>
+    <p>You can play without an account, sign out on one device, delete browser storage, or request
+    deletion of your account and cloud data. Deleting browser storage does not automatically delete an
+    account or its cloud save.</p>
 
-    <h3>6. Children</h3>
-    <p>This site does not knowingly collect personal information from children. Game progress is stored
-    only on the device, and no personal data is requested from any player.</p>
+    <h3>8. Children</h3>
+    <p>This site is not directed to children and does not knowingly collect personal information from
+    children.</p>
 
-    <h3>7. Sharing features</h3>
-    <p>Share links encode only the card IDs of a lineup. They contain no personal information.</p>
+    <h3>9. Sharing features</h3>
+    <p>Roster share links encode card IDs. Challenge links contain an opaque challenge code and expose
+    only the limited public profile and result information described above.</p>
 
-    <h3>8. Changes to this policy</h3>
+    <h3>10. Changes to this policy</h3>
     <p>This policy ships with the app and is updated alongside it. Material changes will be reflected
     on this page.</p>
 
@@ -5917,10 +5986,13 @@ function render(){
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5 8 12l6.5 7"/></svg></button>`}
         <div class="logo">All-Time <em>Ultimate</em><small>DRAFT YOUR DREAM TEAM</small></div>
       </div>
-      <div class="hs">BEST TEAM OVR<br><b>${best}</b></div>
+      <div class="topright">
+        <div class="hs">BEST TEAM OVR<br><b>${best}</b></div>
+        ${ATUBackend.accountButtonHTML()}
+      </div>
     </header>
     ${screen==="landing"?landingHTML():screen==="share"?shareHTML():screen==="team"?hubHTML("main"):screen==="packs"?packsHTML()
-      :screen==="draft"?draftHTML():screen==="classic"?hubHTML("classic"):screen==="trophies"?trophyHTML():screen==="daily"?dailyHTML():screen==="updates"?updatesHTML():screen==="collection"?collectionHTML():screen==="rafters"?raftersHTML():hubHTML("rare")}
+      :screen==="draft"?draftHTML():screen==="classic"?hubHTML("classic"):screen==="trophies"?trophyHTML():screen==="daily"?dailyHTML():screen==="updates"?updatesHTML():screen==="collection"?collectionHTML():screen==="rafters"?raftersHTML():screen==="account"?ATUBackend.accountHTML():screen==="challenge"?ATUBackend.challengeHTML():screen==="rankings"?ATUBackend.rankingsHTML():hubHTML("rare")}
     <footer class="foot">
       <button onclick="showPrivacy()">Privacy Policy</button>
       <span>·</span><span>Fan-made sandbox — not affiliated with or endorsed by the NBA, its teams, or players.</span>
@@ -6001,7 +6073,12 @@ initArena();
 /* init check: a ?share= link bypasses the normal game start and renders the saved roster */
 const __sh=parseShare();
 if(__sh){SHARED=__sh;screen="share";}
+else if(/^[A-F0-9]{16}$/i.test(new URLSearchParams(location.search).get("challenge")||""))screen="challenge";
+else if(new URLSearchParams(location.search).get("auth")==="account")screen="account";
+ATUBackend.init();
 render();
+if(new URLSearchParams(location.search).get("privacy")==="1")
+  (window.requestAnimationFrame||setTimeout)(()=>showPrivacy());
 </script>
 </body>
 </html>
