@@ -3,6 +3,7 @@
 window.ATU_BACKEND_CONFIG = Object.freeze({
   supabaseUrl: "",
   supabasePublishableKey: "",
-  siteUrl: "https://packemultimateteam.com",
+  // Leave blank to redirect back to the current page in each environment.
+  siteUrl: "",
   rulesVersion: "atu-v1"
 });

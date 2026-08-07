@@ -1,0 +1,9 @@
+{
+  "name": "all-time-ultimate",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:engine-data": "node scripts/build-engine-data.cjs",
+    "test": "node tests/backend-client.test.cjs && node tests/atu-engine-v1.test.mjs"
+  }
+}
