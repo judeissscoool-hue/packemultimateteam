@@ -1,6 +1,6 @@
 import { CARDS, DUOS } from "./atu-data-v1.js";
 
-export const ENGINE_VERSION = "atu-challenge-v1";
+export const ENGINE_VERSION = "atu-challenge-v2";
 export const RULES_VERSION = "atu-v1";
 export const STARTER_SLOTS = Object.freeze(["PG", "SG", "SF", "PF", "C"]);
 export const BENCH_SLOTS = Object.freeze(["B1", "B2", "B3"]);
@@ -16,7 +16,6 @@ const PACK_ODDS = Object.freeze({ Bronze: 0.18, Silver: 0.42, Gold: 0.34, Elite:
 const PREMIUM_PACK_ODDS = Object.freeze({ Bronze: 0.04, Silver: 0.24, Gold: 0.54, Elite: 0.15, Icon: 0.03 });
 const CORE_STEP = [0, 0, 1.35, 2.5, 3.45, 4.0];
 const DUO_WEIGHT = 0.5;
-const DEPTH_MAX = 1.2;
 const CHEM_WIN_MULT = 2.10;
 const EIGHTY_TWO_EFF = 103.1;
 const PERFECT_MIN_OVR = 85;
@@ -232,11 +231,7 @@ function chemistry(roster) {
     tags += +((names.size - 1) * weight).toFixed(1);
   }
   tags = Math.min(4.5, tags + duoBonus(starters));
-
-  const allCards = ALL_SLOTS.map(slot => CARD_BY_ID.get(roster[slot]));
-  const minimum = Math.min(...allCards.map(card => card.o));
-  const depth = +(DEPTH_MAX * Math.max(0, Math.min(1, (minimum - 75) / 10))).toFixed(2);
-  return +Math.min(10, team + tags + depth).toFixed(1);
+  return +Math.min(10, team + tags).toFixed(1);
 }
 
 function projectWins(effectiveRating) {

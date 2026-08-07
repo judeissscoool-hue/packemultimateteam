@@ -131,7 +131,6 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .chemlinks span.ck-team{border-color:var(--ck-team);color:var(--ck-team)}
 .chemlinks span.ck-duo{border-color:var(--ck-duo);color:#ff98a8}
 .chemlinks span.ck-story{border-color:var(--ck-story);color:#ffb3e0}
-.chemlinks span.ck-depth{border-color:var(--green);color:var(--green)}
 .chemlinks span.ck-era{border-color:var(--ck-era);color:#8ee6ff}
 .chemlinks span.ck-style{border-color:var(--ck-style);color:#8fffc8}
 .chemlegend{border-left:1px solid rgba(255,255,255,.08);padding-left:14px;display:flex;flex-direction:column;gap:6px;min-width:200px}
@@ -2082,17 +2081,6 @@ function duoBonus(starters,links){
    same-jersey starter add less than the 2nd and 3rd. Still the biggest single link, but a
    five-man stack no longer buys most of the chemistry budget on its own. */
 const CORE_STEP=[0,0,1.35,2.5,3.45,4.0];
-/* Squad Depth — a chemistry link earned by the whole roster rather than by pairings.
-   Scored off the WEAKEST of all eight cards: full value once every card is Gold (85+),
-   nothing at 75 or below. A jersey stack carried by a Bronze bench cannot earn it. */
-const DEPTH_MAX=1.2;
-function depthChem(roster,partial){
-  const ids=ALL_SLOTS.map(s=>roster[s]).filter(id=>id!=null);
-  if(!ids.length)return 0;
-  if(!partial&&ids.length<ALL_SLOTS.length)return 0; /* needs the full eight to score */
-  const mn=Math.min(...ids.map(id=>DB[id].ovr));
-  return +(DEPTH_MAX*Math.max(0,Math.min(1,(mn-75)/10))).toFixed(2);
-}
 function rosterMinOvr(roster){
   const ids=ALL_SLOTS.map(s=>roster[s]).filter(id=>id!=null);
   return ids.length?Math.min(...ids.map(id=>DB[id].ovr)):0;
@@ -2122,14 +2110,8 @@ function chemistry(roster){
       kind:t.startsWith("Story_")?"story":t.startsWith("Era_")?"era":"style"});});
   tag+=duoBonus(STARTER_SLOTS.filter(s=>roster[s]!=null).map(s=>DB[roster[s]]),links);
   tag=Math.min(4.5,tag); /* duos live inside the same cap — total ceiling unchanged */
-  /* squad depth scores as its own chemistry link, outside the core and tag caps */
-  const full=ALL_SLOTS.every(s=>roster[s]!=null);
-  const depth=depthChem(roster);
-  if(depth>0)links.push({label:"Squad Depth",n:rosterMinOvr(roster),bonus:depth,kind:"depth"});
-  else if(!full){const soFar=depthChem(roster,true);
-    if(soFar>0)links.push({label:"Squad Depth",n:rosterMinOvr(roster),bonus:soFar,kind:"depth",prov:true});}
   links.sort((a,b)=>b.bonus-a.bonus);
-  const bonus=+Math.min(10,team+tag+depth).toFixed(1);
+  const bonus=+Math.min(10,team+tag).toFixed(1);
   return {bonus,links};
 }
 function startersFull(roster){return STARTER_SLOTS.every(s=>roster[s]!=null);}

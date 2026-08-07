@@ -8,6 +8,7 @@ import {
   BOARD_SLOTS,
   ENGINE_VERSION,
   TIER_LIMITS,
+  calculateResult,
   createDraftManifest,
   createPackManifest,
   createRunManifest,
@@ -53,6 +54,7 @@ function validTranscript(seed, mode = "draft") {
 }
 
 const seed = "0123456789abcdef".repeat(4);
+assert.equal(ENGINE_VERSION, "atu-challenge-v2");
 const first = createDraftManifest(seed);
 const second = createDraftManifest(seed);
 assert.deepEqual(first, second);
@@ -90,6 +92,31 @@ assert.ok(validated.result.teamOvr >= 60 && validated.result.teamOvr <= 99);
 assert.ok(validated.result.projectedWins >= 12 && validated.result.projectedWins <= 82);
 assert.ok(validated.result.score >= 0 && validated.result.score <= 1000000);
 assert.deepEqual(validateTranscript(seed, transcript).result, validated.result);
+
+const cards = Array.from({ length: 2000 }, (_, id) => publicCard(id)).filter(Boolean);
+const highStarters = {};
+const usedHighIds = new Set();
+for (const slot of ["PG", "SG", "SF", "PF", "C"]) {
+  const card = cards.find(candidate => candidate.ovr >= 90 && candidate.positions.includes(slot) && !usedHighIds.has(candidate.id));
+  assert.ok(card, `No high-rated ${slot} found for bench chemistry test`);
+  highStarters[slot] = card.id;
+  usedHighIds.add(card.id);
+}
+const highBench = cards.filter(card => card.ovr >= 90 && !usedHighIds.has(card.id)).slice(0, 3);
+const lowBench = cards.filter(card => card.ovr <= 75 && !usedHighIds.has(card.id)).slice(0, 3);
+assert.equal(highBench.length, 3);
+assert.equal(lowBench.length, 3);
+const rosterWithBench = bench => ({
+  ...highStarters,
+  B1: bench[0].id,
+  B2: bench[1].id,
+  B3: bench[2].id
+});
+assert.equal(
+  calculateResult(rosterWithBench(highBench)).chemistry,
+  calculateResult(rosterWithBench(lowBench)).chemistry,
+  "Bench ratings must not add chemistry"
+);
 
 const packTranscript = validTranscript(seed, "pack");
 const validatedPack = validateTranscript(seed, packTranscript, "pack");
