@@ -13,8 +13,10 @@ This project keeps its existing static `index.html` client. Supabase supplies au
 4. Add these production redirects to the allow list:
    - `https://packemultimateteam.com/?auth=account`
    - `https://packemultimateteam.com/?challenge=*`
+   - `https://*-judeissscoool-5284s-projects.vercel.app/**` while testing Vercel previews
    The second pattern preserves the opaque 16-character challenge code through sign-in;
-   it does not expose the seed. Add localhost callbacks only while actively developing.
+   it does not expose the seed. Remove the Vercel wildcard after preview testing if it is
+   no longer needed. Add localhost callbacks only while actively developing.
 5. Keep email confirmation enabled.
 6. Configure custom SMTP before production email sign-up. Supabase's trial mailer is not a production sender.
 
