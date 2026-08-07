@@ -776,14 +776,14 @@
       if (active.role === "ranked") {
         state.challenge.phase = "ranked_result";
         state.rankings.status = "idle";
-        setMessage("Server verified your ranked result.", "ok");
+        setMessage("You made the leaderboard!", "ok");
       } else if (active.role === "creator") {
         state.challenge.phase = "share";
-        setMessage("Server verified your draft. The challenge link is ready.", "ok");
+        setMessage("Your team is locked in. Send the challenge!", "ok");
       } else {
         await loadChallengeResult(active.code);
         state.challenge.phase = "result";
-        setMessage("Challenge completed and verified.", "ok");
+        setMessage("Final buzzer! Your Draft Duel is complete.", "ok");
       }
     } catch (error) {
       state.challenge.error = errorText(error, "Could not submit this draft.");
@@ -1120,24 +1120,24 @@
   }
 
   function challengeHeaderHTML(kicker, title, copy) {
-    return '<div class="challengehero"><div><span class="eyebrow">' + html(kicker)
-      + '</span><h2>' + html(title) + '</h2><p>' + html(copy) + "</p></div>"
-      + '<button class="btn" onclick="setScreen(\'rankings\')">VIEW RANKINGS</button></div>';
+    return '<div class="challengehero"><div><div class="challengekicker"><span class="eyebrow">' + html(kicker)
+      + '</span><span class="fairbadge">✓ FAIR PLAY</span></div><h2>' + html(title) + '</h2><p>' + html(copy) + "</p></div>"
+      + '<button class="btn" onclick="setScreen(\'rankings\')">82-0 CLUB</button></div>';
   }
 
   function challengeDraftHTML(active) {
     if (!active || !state.engine || !active.manifest) {
-      return challengeHeaderHTML("VERIFIED 1V1", "Loading draft…", "Preparing the pinned challenge rules.");
+      return challengeHeaderHTML("DRAFT DUEL", "Building your draft…", "Get ready to make the first pick.");
     }
     const ranked = active.role === "ranked";
     const pack = active.mode === "pack";
-    const modeLabel = ranked ? (pack ? "RANKED PACK" : "RANKED DRAFT") : "VERIFIED 1V1";
+    const modeLabel = ranked ? (pack ? "RANKED PACKS" : "RANKED DRAFT") : "DRAFT DUEL";
     if (active.stage === "captain") {
-      return challengeHeaderHTML(modeLabel + " · CAPTAIN", "Choose your anchor", ranked
-        ? "This server-seeded run counts only after every choice and score passes replay validation."
-        : "Your opponent gets this exact hidden draft after accepting the link.")
+      return challengeHeaderHTML(modeLabel + " · FIRST PICK", "Choose your Franchise Player", ranked
+        ? "Start strong. Every pick can move you closer to the top."
+        : "Choose wisely—your friend gets the same draft after accepting.")
         + challengeMessageHTML()
-        + '<div class="challengeprogress"><b>1</b><span>Captain</span><i></i><b>2</b><span>Seven picks</span><i></i><b>3</b><span>Arrange &amp; verify</span></div>'
+        + '<div class="challengeprogress"><b>1</b><span>Franchise Player</span><i></i><b>2</b><span>Build Your Team</span><i></i><b>3</b><span>Set Your Lineup</span></div>'
         + '<div class="challengecards captaincards">'
         + active.manifest.captain.map(function (id) {
           return challengeCardHTML(id, "ATUBackend.chooseChallengeCaptain(" + id + ")", false, false);
@@ -1147,8 +1147,9 @@
       const pickIndex = active.picks.length;
       const board = active.manifest.boards[pickIndex];
       const counts = challengeTierCounts(active);
-      return challengeHeaderHTML(modeLabel + " · PICK " + (pickIndex + 1) + "/7", "Fill " + board.slot,
-        "Choose one of " + board.cards.length + " server-replayable " + (pack ? (board.pack || "pack") + " pack" : "draft") + " offers. Tier caps apply across the roster.")
+      return challengeHeaderHTML(modeLabel + " · PICK " + (pickIndex + 1) + "/7", "Fill " + board.slot, ranked
+        ? "Every choice counts. Build the strongest lineup you can."
+        : "Choose wisely—your friend gets these same options when they play.")
         + challengeMessageHTML()
         + '<div class="tiercaps"><span>ICON <b>' + html(counts.Icon || 0) + "/2</b></span><span>ELITE <b>"
         + html(counts.Elite || 0) + "/4</b></span></div>"
@@ -1158,7 +1159,7 @@
         }).join("") + "</div>";
     }
     const result = active.localResult || state.engine.calculateResult(active.roster);
-    return challengeHeaderHTML(modeLabel + " · FINAL BOARD", "Arrange your roster", "Tap one player and then another to swap them. A starter can only land at an eligible position.")
+    return challengeHeaderHTML(modeLabel + " · FINAL LINEUP", "Set your lineup", "Tap two players to swap them. Put everyone in their best position before you lock it in.")
       + challengeMessageHTML()
       + '<div class="challengemetrics"><div><span>TEAM OVR</span><b>' + html(result.teamOvr)
       + '</b></div><div><span>PROJECTED</span><b>' + html(result.projectedWins) + "–" + html(82 - result.projectedWins)
@@ -1170,87 +1171,89 @@
           + challengeCardHTML(id, "ATUBackend.selectChallengeSwap('" + slot + "')", false, selected) + "</div>";
       }).join("") + "</div>"
       + '<div class="challengeactions"><button class="btn primary" onclick="ATUBackend.submitChallenge()" '
-      + (state.busy ? "disabled" : "") + ">" + (state.busy ? "VERIFYING…" : "SUBMIT VERIFIED RESULT") + "</button>"
-      + '<small>The server rebuilds every offer, pick, position and score before accepting it.</small></div>';
+      + (state.busy ? "disabled" : "") + ">" + (state.busy ? "LOCKING IN…" : "LOCK IN MY TEAM") + "</button>"
+      + '<small>Fair Play checks the result and keeps every run honest.</small></div>';
   }
 
   function rankedResultHTML() {
     const active = state.challenge.active || {};
     const result = active.serverResult || {};
-    const label = active.mode === "pack" ? "RANKED PACK" : "RANKED DRAFT";
-    return challengeHeaderHTML(label + " · VERIFIED", "Result accepted", "The trusted validator rebuilt the seed, offers, choices, final positions and score before publishing this entry.")
+    const label = active.mode === "pack" ? "RANKED PACKS" : "RANKED DRAFT";
+    return challengeHeaderHTML(label + " · COMPLETE", "You made the leaderboard!", "Your team is locked in and your score is live.")
       + statusMessageHTML()
       + '<div class="challengemetrics"><div><span>TEAM OVR</span><b>' + html(result.teamOvr || "—")
       + '</b></div><div><span>PROJECTED</span><b>' + html(result.projectedWins == null ? "—" : result.projectedWins + "–" + (82 - result.projectedWins))
       + '</b></div><div><span>CHEMISTRY</span><b>' + html(result.chemistry == null ? "—" : result.chemistry + "/10") + "</b></div></div>"
-      + '<div class="challengeactions"><button class="btn gold" onclick="ATUBackend.finishRankedRun()">VIEW RANKINGS</button></div>';
+      + '<div class="challengeactions"><button class="btn gold" onclick="ATUBackend.finishRankedRun()">SEE MY RANK</button></div>';
   }
 
   function challengeResultHTML() {
     const rows = state.challenge.resultRows || [];
     if (rows.length !== 2) {
-      return challengeHeaderHTML("VERIFIED 1V1", "Result unavailable", "The verified result is not ready yet.")
-        + '<button class="btn" onclick="ATUBackend.loadChallengeInvitation(\'' + html(state.challenge.code) + "\')\">REFRESH</button>";
+      return challengeHeaderHTML("DRAFT DUEL", "Waiting on your opponent", "Share the link and come back after they finish their team.")
+        + '<button class="btn" onclick="ATUBackend.loadChallengeInvitation(\'' + html(state.challenge.code) + "\')\">CHECK AGAIN</button>";
     }
     const winnerId = rows[0].winner_public_id;
-    return challengeHeaderHTML("VERIFIED 1V1 · FINAL", winnerId ? "Challenge complete" : "Draw", "Both drafts were independently replayed and scored by the server.")
+    return challengeHeaderHTML("DRAFT DUEL · FINAL", winnerId ? "The final buzzer" : "Dead even!", winnerId
+      ? "Two teams entered. One draft came out on top."
+      : "Neither team could be separated.")
       + '<div class="challengeresult">' + rows.map(function (row) {
         const winner = winnerId && row.player_public_id === winnerId;
         return '<div class="resultplayer ' + (winner ? "winner" : "") + '"><span>' + (winner ? "WINNER" : "FINAL")
           + '</span><h3>@' + html(row.username || "Player") + '</h3><div class="resultscore">' + html(row.projected_wins)
           + '<small>WINS</small></div><dl><div><dt>Team OVR</dt><dd>' + html(row.team_ovr)
-          + '</dd></div><div><dt>Verified score</dt><dd>' + html(row.score) + "</dd></div></dl></div>";
+          + '</dd></div><div><dt>Final score</dt><dd>' + html(row.score) + "</dd></div></dl></div>";
       }).join('<div class="resultversus">VS</div>') + "</div>"
-      + '<div class="challengeactions"><button class="btn gold" onclick="ATUBackend.resetChallenge()">CREATE A NEW CHALLENGE</button></div>';
+      + '<div class="challengeactions"><button class="btn gold" onclick="ATUBackend.resetChallenge()">RUN IT BACK</button></div>';
   }
 
   function challengeHTML() {
     if (!state.available) {
-      return challengeHeaderHTML("VERIFIED 1V1", "Challenges unavailable", "The secure backend client could not load. Device-only game modes still work.");
+      return challengeHeaderHTML("DRAFT DUEL", "1v1 is taking a timeout", "Try again soon. Your other game modes still work.");
     }
     if (state.challenge.phase === "loading") {
-      return challengeHeaderHTML("VERIFIED 1V1", "Loading challenge…", "Checking the public invitation without exposing its draft seed.");
+      return challengeHeaderHTML("DRAFT DUEL", "Opening the challenge…", "Get ready to answer the call.");
     }
     if (state.challenge.phase === "draft") return challengeDraftHTML(state.challenge.active);
     if (state.challenge.phase === "ranked_result") return rankedResultHTML();
     if (state.challenge.phase === "result") return challengeResultHTML();
     if (state.challenge.phase === "share") {
       const serverResult = state.challenge.active && state.challenge.active.serverResult || {};
-      return challengeHeaderHTML("VERIFIED 1V1 · READY", "Your link is ready", "Your result is locked. The seed remains hidden until another signed-in player accepts.")
+      return challengeHeaderHTML("DRAFT DUEL · READY", "Your challenge is live!", "Send the link to a friend. Your lineup stays secret until they accept.")
         + statusMessageHTML() + challengeMessageHTML()
         + '<div class="sharechallenge"><span>CHALLENGE CODE</span><b>' + html(state.challenge.code)
         + '</b><p>' + html(serverResult.projectedWins || "—") + " projected wins · " + html(serverResult.teamOvr || "—") + " team OVR</p>"
         + '<button class="btn primary" onclick="ATUBackend.copyChallengeLink()">COPY CHALLENGE LINK</button></div>'
-        + '<div class="challengeactions"><button class="btn" onclick="ATUBackend.loadChallengeInvitation(\'' + html(state.challenge.code) + "\')\">CHECK OPPONENT</button>"
-        + '<button class="btn" onclick="ATUBackend.resetChallenge()">NEW CHALLENGE</button></div>';
+        + '<div class="challengeactions"><button class="btn" onclick="ATUBackend.loadChallengeInvitation(\'' + html(state.challenge.code) + "\')\">SEE IF THEY PLAYED</button>"
+        + '<button class="btn" onclick="ATUBackend.resetChallenge()">START ANOTHER</button></div>';
     }
     if (state.challenge.phase === "invitation") {
       const invite = state.challenge.invitation || {};
       const creator = invite.creator_username || invite.creator_display_name || "Player";
       const isCreator = state.profile && state.profile.public_id === invite.creator_public_id;
       const available = invite.status === "open" && !isCreator;
-      return challengeHeaderHTML("VERIFIED 1V1 · INVITATION", "@" + creator + " challenged you", "Accept first; only then will this challenge's draft seed be released to your authenticated run.")
+      return challengeHeaderHTML("DRAFT DUEL · CALL OUT", "@" + creator + " is calling you out!", "Think you can build a better squad from the same draft?")
         + statusMessageHTML() + challengeMessageHTML()
-        + '<div class="challengeinvite"><div><span>STATUS</span><b>' + html(invite.status || "unknown")
-        + '</b></div><div><span>RULESET</span><b>' + html(invite.rules_version || "—")
+        + '<div class="challengeinvite"><div><span>CHALLENGE</span><b>' + html(available ? "READY" : String(invite.status || "unknown").toUpperCase())
+        + '</b></div><div><span>DRAFT</span><b>SAME PICKS'
         + '</b></div><div><span>EXPIRES</span><b>' + html(invite.expires_at ? new Date(invite.expires_at).toLocaleString() : "—") + "</b></div></div>"
         + (isCreator ? '<div class="accountmsg warn">This is your challenge link. Share it with another player.</div><button class="btn primary" onclick="ATUBackend.copyChallengeLink()">COPY LINK</button>'
-          : available ? '<button class="btn primary challengeaccept" onclick="ATUBackend.acceptChallenge()" ' + (state.busy ? "disabled" : "") + ">" + (state.session ? "ACCEPT & START THE SAME DRAFT" : "SIGN IN TO ACCEPT") + "</button>"
+          : available ? '<button class="btn primary challengeaccept" onclick="ATUBackend.acceptChallenge()" ' + (state.busy ? "disabled" : "") + ">" + (state.session ? "ACCEPT CHALLENGE" : "SIGN IN TO PLAY") + "</button>"
             : '<div class="accountmsg warn">This challenge is no longer open for a new opponent.</div>');
     }
     if (state.challenge.phase === "not_found") {
-      return challengeHeaderHTML("VERIFIED 1V1", "Challenge not found", "The link may be invalid, unfinished or expired. Unfinished creator drafts are intentionally private.")
-        + '<button class="btn" onclick="ATUBackend.resetChallenge()">BACK TO CHALLENGES</button>';
+      return challengeHeaderHTML("DRAFT DUEL", "That challenge is gone", "The link may be unfinished, expired or already claimed.")
+        + '<button class="btn" onclick="ATUBackend.resetChallenge()">START A NEW 1V1</button>';
     }
     if (state.challenge.phase === "error") {
-      return challengeHeaderHTML("VERIFIED 1V1", "Could not load challenge", "Your local game progress is unaffected.")
-        + challengeMessageHTML() + '<button class="btn" onclick="ATUBackend.resetChallenge()">BACK TO CHALLENGES</button>';
+      return challengeHeaderHTML("DRAFT DUEL", "The challenge would not load", "Your game progress is safe. Give it another shot.")
+        + challengeMessageHTML() + '<button class="btn" onclick="ATUBackend.resetChallenge()">BACK TO 1V1</button>';
     }
-    return challengeHeaderHTML("ASYNCHRONOUS 1V1", "Draft now. Your friend plays later.", "Complete a server-verified draft, share an opaque link and compare results after your opponent accepts and plays the same hidden seed.")
+    return challengeHeaderHTML("1V1 CHALLENGE", "Build it. Send it. Settle it.", "Draft your squad, send the link, and your friend plays the exact same draft whenever they are ready.")
       + statusMessageHTML()
-      + '<div class="challengeexplain"><div><b>1</b><h3>Draft</h3><p>A server-created seed generates your offers.</p></div><div><b>2</b><h3>Share</h3><p>The public link contains only a random challenge code.</p></div><div><b>3</b><h3>Settle</h3><p>The server replays both drafts and publishes a sanitized result.</p></div></div>'
-      + '<div class="challengeactions"><button class="btn gold" onclick="ATUBackend.createChallenge()" ' + (state.busy ? "disabled" : "") + ">CREATE VERIFIED CHALLENGE</button>"
-      + (!state.session ? '<small>Sign-in and a unique username are required.</small>' : "") + "</div>";
+      + '<div class="challengeexplain"><div><b>1</b><h3>Build</h3><p>Draft your ultimate squad.</p></div><div><b>2</b><h3>Send</h3><p>Call out a friend with your link.</p></div><div><b>3</b><h3>Settle It</h3><p>Compare teams and crown the winner.</p></div></div>'
+      + '<div class="challengeactions"><button class="btn gold" onclick="ATUBackend.createChallenge()" ' + (state.busy ? "disabled" : "") + ">START MY CHALLENGE</button>"
+      + (!state.session ? '<small>Sign in and choose a username to start calling out friends.</small>' : "") + "</div>";
   }
 
   function rankingFilterHTML(kind, values, labels, selected) {
@@ -1265,13 +1268,13 @@
     const modes = { draft: "Draft", pack: "Pack", one_v_one: "1v1" };
     const periods = { all_time: "All time", daily: "Today", weekly: "This week" };
     const rows = state.rankings.rows || [];
-    return '<div class="rankingwrap"><div class="challengehero"><div><span class="eyebrow">SERVER-VERIFIED</span><h2>Rankings</h2><p>Only one-time runs replayed and accepted by the trusted validator appear here.</p></div><button class="btn gold" onclick="setScreen(\'challenge\')">PLAY 1V1</button></div>'
-      + '<div class="challengeactions"><button class="btn primary" onclick="ATUBackend.startRankedRun(\'draft\')">PLAY RANKED DRAFT</button><button class="btn" onclick="ATUBackend.startRankedRun(\'pack\')">PLAY RANKED PACK</button></div>'
+    return '<div class="rankingwrap"><div class="challengehero"><div><div class="challengekicker"><span class="eyebrow">LEADERBOARD</span><span class="fairbadge">✓ FAIR PLAY</span></div><h2>The 82-0 Club</h2><p>Own today. Rule the week. Become an all-time legend.</p></div><button class="btn gold" onclick="setScreen(\'challenge\')">START A 1V1</button></div>'
+      + '<div class="challengeactions"><button class="btn primary" onclick="ATUBackend.startRankedRun(\'draft\')">PLAY RANKED DRAFT</button><button class="btn" onclick="ATUBackend.startRankedRun(\'pack\')">PLAY RANKED PACKS</button></div>'
       + rankingFilterHTML("modes", Object.keys(modes), modes, state.rankings.mode)
       + rankingFilterHTML("periods", Object.keys(periods), periods, state.rankings.period)
-      + (state.rankings.status === "loading" ? '<div class="rankingempty">Loading verified rankings…</div>'
+      + (state.rankings.status === "loading" ? '<div class="rankingempty">Loading the leaderboard…</div>'
         : state.rankings.status === "error" ? '<div class="accountmsg error">' + html(state.rankings.error) + "</div>"
-          : !rows.length ? '<div class="rankingempty"><b>No verified entries yet</b><span>Be the first player on this board.</span></div>'
+          : !rows.length ? '<div class="rankingempty"><b>The throne is empty</b><span>Be the first player to take the top spot.</span></div>'
             : '<div class="rankingtable"><div class="rankinghead"><span>#</span><span>PLAYER</span><span>GAMES</span><span>' + (state.rankings.mode === "one_v_one" ? "W–L" : "BEST") + "</span><span>POINTS</span></div>"
               + rows.map(function (row) {
                 return '<div class="rankingrow"><b>' + html(row.rank) + "</b><span>@" + html(row.username || "Player")
@@ -1290,16 +1293,16 @@
   function cloudStatusHTML() {
     const meta = getCloudMeta();
     const labels = {
-      offline: "Device only",
-      checking: "Checking cloud…",
-      syncing: "Saving…",
-      synced: "Cloud protected",
-      conflict: "Choice required",
-      error: "Sync paused"
+      offline: "Saved on this device",
+      checking: "Checking your save…",
+      syncing: "Saving your game…",
+      synced: "Safe & synced",
+      conflict: "Choose your save",
+      error: "Save paused"
     };
     const detail = state.cloudServerUpdatedAt
-      ? "Cloud updated " + new Date(state.cloudServerUpdatedAt).toLocaleString()
-      : (meta.lastSyncedAt ? "Last synced " + new Date(meta.lastSyncedAt).toLocaleString() : "Not synced yet");
+      ? "Online save updated " + new Date(state.cloudServerUpdatedAt).toLocaleString()
+      : (meta.lastSyncedAt ? "Last saved " + new Date(meta.lastSyncedAt).toLocaleString() : "Not saved online yet");
     return '<div class="cloudstate ' + html(state.cloudStatus) + '"><span></span><div><b>'
       + html(labels[state.cloudStatus] || state.cloudStatus) + "</b><small>" + html(detail) + "</small></div></div>";
   }
@@ -1307,9 +1310,9 @@
   function signedOutHTML() {
     const signup = state.authMode === "signup";
     const forgot = state.authMode === "forgot";
-    return '<section class="accountwrap"><div class="accountintro"><div><span class="eyebrow">ALL-TIME ULTIMATE ACCOUNT</span><h2>'
+    return '<section class="accountwrap"><div class="accountintro"><div><span class="eyebrow">SAVE YOUR PROGRESS</span><h2>'
       + (forgot ? "Reset password" : signup ? "Create your account" : "Welcome back")
-      + '</h2><p>Sync progress across devices, challenge friends and enter verified rankings.</p></div></div>'
+      + '</h2><p>Keep your cards, trophies and records safe—and challenge your friends.</p></div></div>'
       + '<div class="accountcard">' + statusMessageHTML()
       + '<form onsubmit="' + (forgot ? "ATUBackend.sendPasswordReset(event)" : "ATUBackend.submitEmail(event)") + '">'
       + '<label>Email<input id="atu-auth-email" type="email" inputmode="email" autocomplete="email" required maxlength="254"></label>'
@@ -1321,7 +1324,7 @@
           + '<div class="accountswitch">' + (signup ? "Already have an account? " : "New here? ")
           + '<button onclick="ATUBackend.setAuthMode(\'' + (signup ? "signin" : "signup") + '\')">' + (signup ? "Sign in" : "Create account") + "</button></div>"
           + (!signup ? '<button class="textbtn" onclick="ATUBackend.setAuthMode(\'forgot\')">Forgot password?</button>' : ""))
-      + '<p class="accountfine">Email accounts require verification. Your password is handled by Supabase Auth and is never stored in this game.</p></div></section>';
+      + '<p class="accountfine">We will send a quick verification email. Your password stays private.</p></div></section>';
   }
 
   function recoveryHTML() {
@@ -1340,18 +1343,18 @@
       + html(profile.username ? "@" + profile.username : "Finish your profile")
       + '</h2><p>' + html(user.email || "Google account") + '</p></div>' + cloudStatusHTML() + '</div>'
       + statusMessageHTML()
-      + (conflict ? '<div class="saveconflict"><h3>Two progress saves found</h3><p>Nothing has been overwritten. Download the existing cloud progress, or explicitly replace it with this device. A local backup is created first.</p><div><button class="btn primary" onclick="ATUBackend.resolveCloud(\'cloud\')" ' + (state.busy ? "disabled" : "") + '>USE CLOUD PROGRESS</button><button class="btn danger" onclick="ATUBackend.resolveCloud(\'device\')" ' + (state.busy ? "disabled" : "") + '>KEEP THIS DEVICE</button></div></div>' : "")
-      + '<div class="accountgrid"><div class="accountcard"><h3>Player profile</h3><p class="accountsub">Your username appears on challenges and rankings. Your login email stays private.</p>'
+      + (conflict ? '<div class="saveconflict"><h3>Which save do you want to keep?</h3><p>You have progress on this device and another save online. Nothing changes until you choose.</p><div><button class="btn primary" onclick="ATUBackend.resolveCloud(\'cloud\')" ' + (state.busy ? "disabled" : "") + '>USE ONLINE SAVE</button><button class="btn danger" onclick="ATUBackend.resolveCloud(\'device\')" ' + (state.busy ? "disabled" : "") + '>USE THIS DEVICE</button></div></div>' : "")
+      + '<div class="accountgrid"><div class="accountcard"><h3>Your player</h3><p class="accountsub">This is the name friends will see in Draft Duels and The 82-0 Club.</p>'
       + '<form onsubmit="ATUBackend.saveProfile(event)"><label>Username<input id="atu-profile-username" value="' + html(profile.username || "") + '" autocomplete="username" maxlength="20" pattern="[A-Za-z0-9_]{3,20}" placeholder="3–20 letters, numbers or _" required></label>'
       + '<label>Display name <small>optional</small><input id="atu-profile-display" value="' + html(profile.display_name || "") + '" maxlength="40" autocomplete="name"></label>'
       + '<label>Avatar HTTPS URL <small>optional</small><input id="atu-profile-avatar" type="url" value="' + html(profile.avatar_url || "") + '" maxlength="2048" placeholder="https://…"></label>'
       + '<button class="btn primary accountsubmit" type="submit" ' + (state.busy ? "disabled" : "") + '>SAVE PROFILE</button></form></div>'
-      + '<div class="accountcard"><h3>Account security</h3><div class="accountfacts"><div><span>Email</span><b>' + html(user.email || "Provided by Google") + '</b></div><div><span>Email verified</span><b>' + (user.email_confirmed_at ? "Yes" : "Not yet") + '</b></div><div><span>Cloud revision</span><b>' + html(state.cloudRevision || "—") + '</b></div></div><button class="btn" onclick="ATUBackend.signOut()" ' + (state.busy ? "disabled" : "") + '>Sign out on this device</button></div></div></section>';
+      + '<div class="accountcard"><h3>Your account</h3><div class="accountfacts"><div><span>Email</span><b>' + html(user.email || "Provided by Google") + '</b></div><div><span>Email ready</span><b>' + (user.email_confirmed_at ? "Yes" : "Not yet") + '</b></div><div><span>Online save</span><b>' + (state.cloudRevision ? "Ready" : "Not saved yet") + '</b></div></div><button class="btn" onclick="ATUBackend.signOut()" ' + (state.busy ? "disabled" : "") + '>Sign out on this device</button></div></div></section>';
   }
 
   function accountHTML() {
     if (!state.available) {
-      return '<section class="accountwrap"><div class="accountcard"><h2>Accounts temporarily unavailable</h2><p>The game still works locally. The secure account client could not load, so no progress was sent anywhere.</p></div></section>';
+      return '<section class="accountwrap"><div class="accountcard"><h2>Accounts are taking a timeout</h2><p>The rest of the game still works and your progress stays on this device.</p></div></section>';
     }
     if (state.recovery || state.authMode === "recovery") return recoveryHTML();
     return state.session ? signedInHTML() : signedOutHTML();

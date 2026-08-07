@@ -94,7 +94,7 @@ async function run() {
   {
     const test = makeContext({ withClient: false });
     await test.api.init();
-    assert.match(test.api.accountHTML(), /Accounts temporarily unavailable/);
+    assert.match(test.api.accountHTML(), /Accounts are taking a timeout/);
     assert.equal(test.api.isSignedIn(), false);
   }
 
@@ -133,8 +133,8 @@ async function run() {
     });
     await test.api.init();
     const html = test.api.challengeHTML();
-    assert.match(html, /@challenger challenged you/);
-    assert.match(html, /SIGN IN TO ACCEPT/);
+    assert.match(html, /@challenger is calling you out!/);
+    assert.match(html, /SIGN IN TO PLAY/);
     assert.doesNotMatch(html, new RegExp(hiddenSeed));
     assert.equal(test.calls[0].name, "get_async_challenge_invitation");
     assert.equal(test.calls[0].args.p_code, "A1B2C3D4E5F60708");
@@ -154,7 +154,7 @@ async function run() {
     await test.api.init();
     const html = test.api.accountHTML();
     assert.match(html, /@tester/);
-    assert.match(html, /Cloud protected/);
+    assert.match(html, /Safe &amp; synced/);
     const sync = test.calls.find(call => call.name === "sync_cloud_save");
     assert.equal(sync.args.p_expected_revision, 0);
     assert.equal(sync.args.p_schema_version, 1);
@@ -181,7 +181,7 @@ async function run() {
       }
     });
     await test.api.init();
-    assert.match(test.api.accountHTML(), /Two progress saves found/);
+    assert.match(test.api.accountHTML(), /Which save do you want to keep\?/);
     assert.equal(test.calls.some(call => call.name === "sync_cloud_save"), false);
     await test.api.resolveCloud("cloud");
     assert.equal(test.window.location.reloadCalled, true);
