@@ -62,29 +62,6 @@ function tierRoll(random, odds = DRAFT_ODDS) {
   return "Gold";
 }
 
-function packOptionBoard(slot, usedNames, random, premium) {
-  const cards = [];
-  const odds = premium ? PREMIUM_PACK_ODDS : PACK_ODDS;
-  for (let i = 0; i < 3; i++) {
-    const tier = tierRoll(random, odds);
-    let pool = DRAFT_POOL.filter(card => card.r === tier && eligible(card, slot));
-    if (!pool.some(card => !usedNames.has(card.n))) {
-      pool = DRAFT_POOL.filter(card => eligible(card, slot));
-    }
-    cards.push(takeCard(pool, usedNames, random));
-  }
-  if (!cards.some(card => card.r === "Bronze" || card.r === "Silver")) {
-    const lowPool = DRAFT_POOL.filter(card => eligible(card, slot) && (card.r === "Bronze" || card.r === "Silver"));
-    const replacement = weightedNamePick(lowPool, usedNames, random);
-    if (replacement) {
-      usedNames.delete(cards[2].n);
-      usedNames.add(replacement.n);
-      cards[2] = replacement;
-    }
-  }
-  return cards.map(card => card.id);
-}
-
 function eligible(card, slot) {
   return BENCH_SLOTS.includes(slot) || card.ps.includes(slot);
 }
@@ -128,10 +105,10 @@ function captainBoard(usedNames, random) {
   return cards.map(card => card.id);
 }
 
-function optionBoard(slot, usedNames, random) {
+function optionBoard(slot, usedNames, random, size = 5, odds = DRAFT_ODDS) {
   const cards = [];
-  for (let i = 0; i < 5; i++) {
-    const tier = tierRoll(random);
+  for (let i = 0; i < size; i++) {
+    const tier = tierRoll(random, odds);
     let pool = DRAFT_POOL.filter(card => card.r === tier && eligible(card, slot));
     if (!pool.some(card => !usedNames.has(card.n))) {
       pool = DRAFT_POOL.filter(card => eligible(card, slot));
@@ -142,9 +119,9 @@ function optionBoard(slot, usedNames, random) {
     const lowPool = DRAFT_POOL.filter(card => eligible(card, slot) && (card.r === "Bronze" || card.r === "Silver"));
     const replacement = weightedNamePick(lowPool, usedNames, random);
     if (replacement) {
-      usedNames.delete(cards[4].n);
+      usedNames.delete(cards[size - 1].n);
       usedNames.add(replacement.n);
-      cards[4] = replacement;
+      cards[size - 1] = replacement;
     }
   }
   return cards.map(card => card.id);
@@ -175,7 +152,7 @@ export function createPackManifest(seed) {
   const boards = BOARD_SLOTS.map((slot, index) => ({
     slot,
     pack: premiumBoards.has(index) ? "premium" : "standard",
-    cards: packOptionBoard(slot, usedNames, random, premiumBoards.has(index))
+    cards: optionBoard(slot, usedNames, random, 3, premiumBoards.has(index) ? PREMIUM_PACK_ODDS : PACK_ODDS)
   }));
   return Object.freeze({
     engineVersion: ENGINE_VERSION,

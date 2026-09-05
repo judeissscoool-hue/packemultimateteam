@@ -10,25 +10,17 @@ function makeStorage(seed = {}) {
   return {
     getItem(key) { return values.has(key) ? values.get(key) : null; },
     setItem(key, value) { values.set(key, String(value)); },
-    removeItem(key) { values.delete(key); },
-    value(key) { return values.get(key); }
+    removeItem(key) { values.delete(key); }
   };
 }
 
 function makeContext({ session = null, rpc, storageSeed = {}, withClient = true, href = "https://game.example/index.html?auth=account" } = {}) {
   const storage = makeStorage(storageSeed);
-  let authCallback = null;
   const calls = [];
   const client = {
     auth: {
-      onAuthStateChange(callback) { authCallback = callback; return { data: { subscription: { unsubscribe() {} } } }; },
-      async getSession() { return { data: { session }, error: null }; },
-      async signUp() { return { data: { session: null }, error: null }; },
-      async signInWithPassword() { return { data: { session }, error: null }; },
-      async resetPasswordForEmail() { return { data: {}, error: null }; },
-      async updateUser() { return { data: {}, error: null }; },
-      async signInWithOAuth() { return { data: {}, error: null }; },
-      async signOut() { return { error: null }; }
+      onAuthStateChange() {},
+      async getSession() { return { data: { session }, error: null }; }
     },
     async rpc(name, args) {
       calls.push({ name, args });
@@ -61,7 +53,7 @@ function makeContext({ session = null, rpc, storageSeed = {}, withClient = true,
     setTimeout,
     clearTimeout,
     confirm() { return true; },
-    history: { replaceState() {} },
+    history: { replacedUrl: null, replaceState(_state, _title, url) { this.replacedUrl = url; } },
     document: { getElementById() { return null; } },
     render() {}
   };
@@ -87,10 +79,65 @@ function makeContext({ session = null, rpc, storageSeed = {}, withClient = true,
     console
   });
   vm.runInContext(source, context, { filename: "backend.js" });
-  return { api: window.ATUBackend, window, storage, calls, client, getAuthCallback: () => authCallback };
+  return { api: window.ATUBackend, window, storage, calls };
 }
 
 async function run() {
+  {
+    const profile = { username: null, display_name: "Google Name", avatar_url: "https://example.com/photo.png" };
+    const test = makeContext({
+      session: { user: { id: "profile-test" } },
+      rpc(name, args) {
+        if (name === "get_my_profile") return { data: [profile], error: null };
+        if (name === "set_username") profile.username = args.p_username;
+        if (name === "update_profile") profile.display_name = args.p_display_name;
+        if (name === "sync_cloud_save") return { data: [{ outcome: "created", revision: 1 }], error: null };
+        return { data: [], error: null };
+      }
+    });
+    await test.api.init();
+    assert.match(test.api.accountHTML(), /atu-profile-username/);
+    assert.doesNotMatch(test.api.accountHTML(), /atu-profile-display|atu-profile-avatar/);
+    test.window.document.getElementById = id => id === "atu-profile-username" ? { value: " Player_One " } : null;
+    await test.api.saveProfile();
+    const update = test.calls.find(call => call.name === "update_profile");
+    assert.equal(profile.username, "Player_One");
+    assert.equal(update.args.p_display_name, profile.username);
+    assert.equal(update.args.p_avatar_url, "https://example.com/photo.png");
+    assert.match(test.api.accountHTML(), /Profile saved/);
+  }
+
+  {
+    const test = makeContext({
+      session: { user: { id: "error-test" } },
+      rpc() { return { data: null, error: { message: "JWT issued at future" } }; }
+    });
+    await test.api.init();
+    assert.match(test.api.accountHTML(), /Could not load your account/);
+    assert.doesNotMatch(test.api.accountHTML(), /JWT issued at future/);
+    await test.api.loadRankings();
+    assert.match(test.api.rankingsHTML(), /Could not load rankings/);
+    assert.doesNotMatch(test.api.rankingsHTML(), /JWT issued at future/);
+  }
+
+  for (const separator of ["&", "#"]) {
+    const test = makeContext({
+      href: "https://game.example/index.html?auth=account" + separator
+        + "error=server_error&error_code=unexpected_failure&error_description=private-provider-details"
+    });
+    await test.api.init();
+    assert.match(test.api.accountHTML(), /Sign-in could not finish/);
+    assert.doesNotMatch(test.api.accountHTML(), /private-provider-details/);
+    assert.equal(test.window.history.replacedUrl, "/index.html?auth=account");
+    assert.equal(test.api.isSignedIn(), false);
+  }
+
+  {
+    const test = makeContext({ href: "https://game.example/index.html?auth=account#error=access_denied" });
+    await test.api.init();
+    assert.match(test.api.accountHTML(), /Sign-in was cancelled or denied/);
+  }
+
   {
     const test = makeContext({ withClient: false });
     await test.api.init();
@@ -109,7 +156,6 @@ async function run() {
   }
 
   {
-    const hiddenSeed = "a".repeat(64);
     const test = makeContext({
       href: "https://game.example/index.html?challenge=A1B2C3D4E5F60708",
       rpc(name) {
@@ -135,7 +181,7 @@ async function run() {
     const html = test.api.challengeHTML();
     assert.match(html, /@challenger is calling you out!/);
     assert.match(html, /SIGN IN TO PLAY/);
-    assert.doesNotMatch(html, new RegExp(hiddenSeed));
+    assert.equal(test.calls.length, 1, "Opening an invitation must not accept it or request a run");
     assert.equal(test.calls[0].name, "get_async_challenge_invitation");
     assert.equal(test.calls[0].args.p_code, "A1B2C3D4E5F60708");
   }
@@ -144,6 +190,7 @@ async function run() {
     const session = { user: { id: "user-1", email: "test@example.com", email_confirmed_at: "2026-08-07T00:00:00Z" } };
     const test = makeContext({
       session,
+      href: "https://game.example/index.html?auth=account#access_token=test-access&refresh_token=test-refresh",
       rpc(name) {
         if (name === "get_my_profile") return { data: [{ public_id: "public-1", username: "tester", display_name: "Test", avatar_url: null }], error: null };
         if (name === "get_cloud_save") return { data: [], error: null };
@@ -155,6 +202,7 @@ async function run() {
     const html = test.api.accountHTML();
     assert.match(html, /@tester/);
     assert.match(html, /Safe &amp; synced/);
+    assert.equal(test.window.history.replacedUrl, null, "Leave successful callback tokens for the Auth client to consume");
     const sync = test.calls.find(call => call.name === "sync_cloud_save");
     assert.equal(sync.args.p_expected_revision, 0);
     assert.equal(sync.args.p_schema_version, 1);
@@ -185,8 +233,8 @@ async function run() {
     assert.equal(test.calls.some(call => call.name === "sync_cloud_save"), false);
     await test.api.resolveCloud("cloud");
     assert.equal(test.window.location.reloadCalled, true);
-    assert.deepEqual(JSON.parse(test.storage.value("atu-hs-v4")), { draft: { ovr: 80, wins: 40 } });
-    assert.ok(test.storage.value("atu-cloud-backup-v1"));
+    assert.deepEqual(JSON.parse(test.storage.getItem("atu-hs-v4")), { draft: { ovr: 80, wins: 40 } });
+    assert.ok(test.storage.getItem("atu-cloud-backup-v1"));
   }
 }
 
