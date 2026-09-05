@@ -4873,8 +4873,9 @@ function renderTabs(){
   else if(screen==="collection")items=[["landing","☰ Modes"],["collection","🗃 Collection"],["rafters","🎫 Rafters"]];
   else if(screen==="rafters")items=[["landing","☰ Modes"],["rafters","🎫 Rafters"],["collection","🗃 Collection"]];
   else if(screen==="updates")items=[["landing","☰ Modes"],["updates","📋 Updates"]];
-  else if(screen==="account")items=[["landing","☰ Modes"],["account","👤 Account"]];
-  else if(screen==="challenge")items=[["landing","☰ Modes"],["challenge","⚔ 1v1"],["rankings","🏆 82-0 Club"]];
+  else if(screen==="account")items=[["landing","☰ Modes"],["account","👤 Account"],["friends","Friends"]];
+  else if(screen==="friends")items=[["landing","☰ Modes"],["friends","Friends"],["challenge","⚔ 1v1"]];
+  else if(screen==="challenge")items=[["landing","☰ Modes"],["challenge","⚔ 1v1"],["friends","Friends"],["rankings","🏆 82-0 Club"]];
   else if(screen==="rankings")items=[["landing","☰ Modes"],["challenge","⚔ 1v1"],["rankings","🏆 82-0 Club"]];
   else items=[["landing","☰ Modes"],["team","My Team"],["packs","Packs"],["rare","Rare Pull"],["trophies","🏆 Trophies"]];
   bar.innerHTML=items.map(([k,l])=>`<button class="${screen===k?"on":""}" onclick="setScreen('${k}')">${l}</button>`).join("");
@@ -5479,6 +5480,7 @@ function landingHTML(){
     </div>`).join("")}
     <div class="modecard" onclick="setScreen('daily')"><h3>🗓 Daily Challenge</h3><p>A fresh seeded squad and a new constraint every day — same for everyone. Build the best team under today's rule and keep your streak alive.</p><div class="modebest">STREAK <b>${DAILY.streak||0}🔥</b></div><button class="btn gold">PLAY TODAY</button></div>
     <div class="modecard" onclick="setScreen('challenge')"><h3>⚔ Challenge a Friend</h3><p>Build your squad. Send the link. Your friend gets the same draft. Who drafted better?</p><div class="modebest">FORMAT <b>YOU VS THEM</b></div><button class="btn primary">START A 1V1</button></div>
+    <div class="modecard" onclick="setScreen('friends')"><h3>Friends</h3><p>Add your people. See who’s online. Get a Draft Duel going.</p><button class="btn primary">OPEN FRIENDS</button></div>
     <div class="modecard" onclick="setScreen('rankings')"><h3>🏆 The 82-0 Club</h3><p>Chase the best record. Own today, climb the weekly table, or become an all-time legend.</p><div class="modebest">GOAL <b>CAN YOU GO 82-0?</b></div><button class="btn">VIEW LEADERBOARD</button></div>
     <div class="modecard" onclick="setScreen('rafters')"><h3>🎫 The Rafters</h3><p>Open packs for card cosmetics — frames, auras, border light and card-face effects. Mythics are the chase.</p><div class="modebest">PACKS <b>${packsAvailable()} free</b></div><button class="btn gold">OPEN PACKS</button></div>
     <div class="modecard" onclick="setScreen('collection')"><h3>🗃 Collection</h3><p>Every card in the game — see what you've discovered and what's still out there. Pulls from any mode count.</p><div class="modebest">FOUND <b>${collectionStats().seen}/${collectionStats().total}</b></div><button class="btn">VIEW COLLECTION</button></div>
@@ -5839,6 +5841,11 @@ function showPrivacy(){
     Passwords are handled by Supabase Auth and are not stored by the game. Your username, optional
     display name and optional avatar URL may be shown publicly on challenge results and rankings.
     Your email address and internal account ID are not exposed through public game APIs.</p>
+    <p>Friend requests use usernames. Accepted friends can see whether you are online while the game
+    is open and visible. We store your latest activity timestamp, not a browsing history; your online
+    indicator expires shortly after you leave. Pending
+    requests cannot see your status. Removing a friend stops this access; deleting your account
+    removes your friendships and activity record. Request counters help limit spam.</p>
 
     <h3>4. Draft Duels and The 82-0 Club</h3>
     <p>Ranked and challenge runs may store draft actions, final rosters, calculated scores and result
@@ -5905,7 +5912,7 @@ function render(){
       </div>
     </header>
     ${screen==="landing"?landingHTML():screen==="share"?shareHTML():screen==="team"?hubHTML("main"):screen==="packs"?packsHTML()
-      :screen==="draft"?draftHTML():screen==="classic"?hubHTML("classic"):screen==="trophies"?trophyHTML():screen==="daily"?dailyHTML():screen==="updates"?updatesHTML():screen==="collection"?collectionHTML():screen==="rafters"?raftersHTML():screen==="account"?ATUBackend.accountHTML():screen==="challenge"?ATUBackend.challengeHTML():screen==="rankings"?ATUBackend.rankingsHTML():hubHTML("rare")}
+      :screen==="draft"?draftHTML():screen==="classic"?hubHTML("classic"):screen==="trophies"?trophyHTML():screen==="daily"?dailyHTML():screen==="updates"?updatesHTML():screen==="collection"?collectionHTML():screen==="rafters"?raftersHTML():screen==="account"?ATUBackend.accountHTML():screen==="friends"?ATUBackend.friendsHTML():screen==="challenge"?ATUBackend.challengeHTML():screen==="rankings"?ATUBackend.rankingsHTML():hubHTML("rare")}
     <footer class="foot">
       <button onclick="showPrivacy()">Privacy Policy</button>
       <span>·</span><span>Fan-made sandbox — not affiliated with or endorsed by the NBA, its teams, or players.</span>

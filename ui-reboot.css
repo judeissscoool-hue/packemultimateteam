@@ -127,9 +127,20 @@ html .foot{line-height:1.7;padding-top:28px;font-size:12px}
 .duel-player h3{font-size:24px;margin-top:6px;overflow-wrap:anywhere}
 .duel-player.winner>span{color:var(--green)}
 .duel-player.winner h3{color:var(--gold)}
-.duel-metrics{display:flex;gap:18px;justify-content:space-between;padding:16px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.duel-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;padding:16px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
 .duel-metrics b{display:block;font:clamp(24px,3vw,34px) var(--disp);color:var(--gold)}
 .duel-metrics span{display:block;font-size:12px;color:#aaa;line-height:1.4}
+.play-requirement,.account-journey{margin:14px 0;padding:16px;border:1px solid rgba(53,214,255,.35);border-radius:14px;background:rgba(53,214,255,.06)}
+.play-requirement p,.account-journey p{margin:0 0 12px;color:var(--ink);font-size:16px;line-height:1.5}
+.play-requirement .btn{white-space:normal;max-width:100%}
+.account-journey .textbtn{font-size:14px;line-height:1.5}
+html .auth-entry{max-width:580px}
+html .auth-entry .accountintro h2{font-size:clamp(26px,6vw,34px)}
+html .auth-entry .accountintro{margin-bottom:8px}
+html .auth-entry .googlebtn{width:100%;min-height:52px;font-size:16px}
+html .auth-entry .auth-provider-note{font-size:14px;line-height:1.4;margin:10px 0 0;text-align:center}
+html .auth-entry .accountor{font-size:14px}
+html .auth-entry .accountswitch,html .auth-entry .textbtn,html .auth-entry .accountswitch button{font-size:14px}
 html .duel-court{padding:16px 8px;overflow:hidden}
 .duel-court h3{font-size:12px;letter-spacing:.08em;line-height:1.5}
 .duel-court .fiveslots{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 4px}
@@ -173,6 +184,32 @@ html .duel-court{padding:16px 8px;overflow:hidden}
 .ranking-play h3{font-size:28px}
 .ranking-play p{font-size:16px;color:var(--dim);line-height:1.5;flex:1}
 .ranking-play .textbtn{font-size:14px;text-align:center;margin:0}
+.friends-wrap{max-width:860px;margin:12px auto 40px}
+.friends-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
+.friends-heading h2{font:38px var(--disp);margin:4px 0}
+.friends-wrap .accountcard form{grid-template-columns:minmax(0,1fr) auto;align-items:end;margin:0}
+.friends-wrap .accountcard label{font-size:14px}
+.friends-wrap .accountcard input{font-size:16px}
+html .friends-privacy{color:var(--dim);font-size:14px;line-height:1.5;margin-top:14px}
+.friends-content{margin-top:22px}
+.friends-content h3{font:24px var(--disp);margin:24px 0 12px}
+.friends-content p,.duel-friends p{font-size:16px;line-height:1.5}
+.friends-message{padding:12px 16px;border:1px solid rgba(53,214,255,.35);border-radius:12px;color:var(--cyan)}
+.friends-list{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.friends-list li{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:16px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.03)}
+.friends-list strong{font-size:16px;overflow-wrap:anywhere}
+.friends-list li>div:first-child{min-width:0}
+.friend-actions{display:flex;flex-wrap:wrap;gap:8px}
+.friend-actions .btn{font-size:14px;padding:10px 12px;min-height:44px}
+.friend-status{display:flex;align-items:center;gap:7px;margin-top:6px;font-size:14px;color:var(--dim)}
+.friend-status::before{content:"";width:8px;height:8px;flex-shrink:0;border-radius:50%;background:#777}
+.friend-status.online{color:#75eaae}
+.friend-status.online::before{background:#75eaae}
+.duel-friends{border-top:1px solid var(--line);margin-top:20px;padding-top:16px;text-align:left}
+.duel-friends h4{font:24px var(--disp)}
+.duel-friends .friends-list li{padding:10px 12px}
+.duel-friends .textbtn,.friends-content .textbtn{font-size:14px;margin-top:14px;min-height:44px}
+@media(max-width:560px){.friends-wrap .accountcard form{grid-template-columns:1fr}.friends-list li{align-items:flex-start;flex-direction:column}.friend-actions{width:100%}.friends-heading h2{font-size:32px}.friends-heading .btn{font-size:14px;padding:12px}}
 html .ctile{width:100%;padding:0;text-align:inherit;transition:border-color .2s,transform .2s}
 html .ctile.locked{cursor:pointer;justify-content:flex-end}
 html .ctile.locked .ct-q{position:absolute;top:20%;font-size:42px;color:#666674}

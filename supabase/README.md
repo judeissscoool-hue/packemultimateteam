@@ -1,6 +1,6 @@
 # Supabase backend setup
 
-This project keeps its existing static `index.html` client. Supabase supplies authentication, cloud saves, verified rankings, and asynchronous challenge storage.
+This project keeps its existing static `index.html` client. Supabase supplies authentication, cloud saves, verified rankings, asynchronous challenge storage, and friends-only online status.
 
 ## 1. Create and configure the project
 
@@ -58,7 +58,9 @@ available with device-only saves and does not attempt backend calls.
   stale device receives a conflict instead of overwriting the newer cloud revision.
 
 ## 5. Security model
-- Raw tables have explicit deny-all RLS policies and no browser grants.
+
+- Raw tables have deny-all RLS and no browser grants. The private social tables use
+  PostgreSQL's default-deny behavior when no policies exist.
 - Players read and update only their own cloud save through revision-checked RPCs.
 - Players read their own challenge state through ownership-checked RPCs.
 - A challenge code exposes limited invitation metadata through an RPC.
@@ -81,12 +83,45 @@ available with device-only saves and does not attempt backend calls.
 
 Do not trust client-submitted OVR, points, wins, card ownership, or challenge outcomes.
 
-## 7. Tests
+## 7. Friends and online status
+
+- `20260905084946_friends_online.sql` adds the `social_private` schema and four
+  authenticated RPCs: `request_friend`, `change_friendship`, `get_friends`, and
+  `touch_presence`. Keep `social_private` out of the API's exposed schemas.
+- Public wrappers are `SECURITY INVOKER`. Privileged bodies stay in the private
+  schema, use an empty search path, and require an existing signed-in profile with
+  a username. Browser roles cannot read or write the tables directly.
+- Requests require an exact, case-insensitive username. Only the recipient can
+  accept or decline; the sender can cancel. Either accepted friend can remove the
+  relationship. Actions use stable public profile IDs, not mutable usernames.
+- A pending request never reveals online status. Accepted friends receive only a
+  public profile ID, username, relationship, and online boolean. No last-seen
+  timestamp, email, internal account ID, or draft data is returned.
+- Presence heartbeats run every 30 seconds while signed in and the game is
+  visible. Only the server supplies the identity and timestamp. Status expires
+  after 90 seconds without a heartbeat; with list polling, the indicator may take
+  up to two minutes to show offline. No browsing history is stored.
+- Lists refresh only on Friends and 1v1. Refreshes replace just the Friends panel,
+  preserving draft pickers and form input. Hidden/offline tabs stop polling;
+  signing out clears the in-memory list. Friends data is not in local cloud saves.
+- Limits are 100 relationships per player (pending plus accepted) and 20 new
+  requests per hour. Cancelling/declining does not reset the hourly counter.
+- Removing a friend revokes future status reads. Account deletion cascades through
+  friendships, presence, and rate counters. Duels still use the existing invite link
+  after the creator locks in their draft; this feature does not send direct invites.
+
+## 8. Tests
 
 `supabase/tests/backend_security_regression.sql` runs entirely inside a transaction
 that ends with `ROLLBACK`. It verifies profile sanitization, conflict-safe cloud saves,
 hidden pre-acceptance seeds, delayed seed release, challenge completion, winner
 calculation, verified leaderboard writes and run-token replay rejection.
+
+`supabase/tests/friends_security_regression.sql` creates temporary players and rolls
+everything back. It tests requests, acceptance consent, pending/stranger privacy,
+anonymous denial, raw-table denial, rate limiting and recovery, presence expiry,
+removal, and deletion cleanup. Run it against a migrated database through an
+authorized SQL connection; it does not send emails or alter existing players.
 
 `node tests/backend-client.test.cjs` checks browser-client fallback behavior, signed-out
 auth rendering, public challenge invitations without seeds, initial cloud import,
@@ -94,8 +129,15 @@ revision metadata, legacy save conflict blocking, backup creation and cloud-down
 resolution without requiring a real test account. `node tests/atu-engine-v1.test.mjs`
 checks deterministic Draft and Pack manifests, tier limits, position rules, transcript
 tampering and parity with the canonical scoring logic in `index.html`.
+The client suite also exercises friend-request actions, safe error text, status
+polling with a fake clock, offline/hidden-tab behavior, no draft rerenders, form
+preservation, and late responses after sign-out. `npm test` runs all five suites.
 
 The Supabase security advisor reports the deliberately exposed RPC functions because
 they use `SECURITY DEFINER`; this is expected. Each function has an empty search path,
 an explicit role grant, input limits, and authentication/ownership checks. Raw table
 access remains denied. “Unused index” notices are expected before production traffic.
+The three private social tables produce informational
+[RLS Enabled No Policy notices](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy):
+their default-deny behavior is intentional and covered by the role-based regression
+test. Do not add browser table grants or permissive policies to silence these notices.
