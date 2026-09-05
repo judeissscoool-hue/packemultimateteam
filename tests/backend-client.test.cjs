@@ -14,10 +14,11 @@ function makeStorage(seed = {}) {
   };
 }
 
-function makeContext({ session = null, rpc, storageSeed = {}, withClient = true, href = "https://game.example/index.html?auth=account" } = {}) {
+function makeContext({ session = null, rpc, storageSeed = {}, withClient = true, href = "https://game.example/index.html?auth=account", invoke } = {}) {
   const storage = makeStorage(storageSeed);
   const calls = [];
   const client = {
+    functions: { async invoke(name, args) { return invoke(name, args); } },
     auth: {
       onAuthStateChange() {},
       async getSession() { return { data: { session }, error: null }; }
@@ -54,7 +55,9 @@ function makeContext({ session = null, rpc, storageSeed = {}, withClient = true,
     clearTimeout,
     confirm() { return true; },
     history: { replacedUrl: null, replaceState(_state, _title, url) { this.replacedUrl = url; } },
-    document: { getElementById() { return null; } },
+    document: { getElementById() { return null; }, querySelector() { return null; } },
+    cardHTML(id) { return `<div class="card">card-${id}</div>`; },
+    challengeCourtHTML(roster = {}, options = {}) { return `<div class="court">${JSON.stringify({roster, options})}</div>`; },
     render() {}
   };
   const context = vm.createContext({
@@ -78,11 +81,85 @@ function makeContext({ session = null, rpc, storageSeed = {}, withClient = true,
     encodeURIComponent,
     console
   });
-  vm.runInContext(source, context, { filename: "backend.js" });
+  vm.runInContext(source, context, { filename: require("node:path").join(__dirname, "..", "backend.js"), importModuleDynamically: vm.constants.USE_MAIN_CONTEXT_DEFAULT_LOADER });
   return { api: window.ATUBackend, window, storage, calls };
 }
 
 async function run() {
+  {
+    const engine = await import('../supabase/functions/_shared/atu-engine-v1.js');
+    const seed = '0123456789abcdef'.repeat(4), code = 'A1B2C3D4E5F60708';
+    let completed = false, finalRoster, result;
+    const test = makeContext({
+      session: {user: {id: 'duel-owner'}},
+      rpc(name) {
+        if (name === 'get_my_profile') return {data: [{username: 'Owner', public_id: 'owner-public'}]};
+        if (name === 'create_async_challenge') return {data: [{challenge_code: code, draft_seed: seed, run_id: 'run-id', run_token: 'a'.repeat(64), rules_version:'atu-v1'}]};
+        if (name === 'get_async_challenge_invitation') return {data: [{status:completed?'completed':'open', creator_public_id:'owner-public'}]};
+        if (name === 'get_async_challenge_result') return {data: [
+          {player_public_id:'owner-public', username:'Owner', roster:finalRoster, team_ovr:90, projected_wins:70},
+          {player_public_id:'opponent-public', username:'Friend', roster:finalRoster, team_ovr:91, projected_wins:71}
+        ]};
+        return {data:[]};
+      },
+      invoke(name, args) {
+        assert.equal(name, 'validate-run');
+        const validated = engine.validateTranscript(seed, args.body.transcript, 'one_v_one');
+        finalRoster = JSON.parse(JSON.stringify(validated.roster));
+        result = validated.result;
+        return {data: {ok:true, result, outcome:'creator_completed'}};
+      }
+    });
+    await test.api.init();
+    await test.api.createChallenge();
+    const manifest = engine.createDraftManifest(seed);
+    test.api.chooseChallengeCaptain(manifest.captain[0]);
+    const captain = engine.publicCard(manifest.captain[0]);
+    const counts = {[captain.tier]:1};
+    const active = () => JSON.parse(test.storage.getItem('atu-active-challenge-v1'));
+    for (const board of manifest.boards) {
+      const id = board.cards.find(id => { const c=engine.publicCard(id); return !engine.TIER_LIMITS[c.tier] || (counts[c.tier]||0)<engine.TIER_LIMITS[c.tier]; });
+      const card = engine.publicCard(id);counts[card.tier]=(counts[card.tier]||0)+1;
+      test.api.chooseChallengePick(id);
+      if (captain.positions.includes(board.slot)) {
+        test.api.selectChallengeSwap('B3');test.api.selectChallengeSwap(board.slot);
+        assert.equal(active().roster[board.slot], captain.id, 'Captain can move into an occupied eligible starter slot while drafting');
+        break;
+      }
+    }
+    const saved = active();
+    const emptySlot = manifest.boards.find(board=>!Number.isInteger(saved.roster[board.slot])).slot;
+    test.api.selectChallengeSwap(emptySlot);
+    assert.deepEqual(active().roster, saved.roster, 'Empty future slots cannot be opened by swapping');
+    for (const board of manifest.boards.slice(active().picks.length)) {
+      const id=board.cards.find(id=>{const c=engine.publicCard(id);return !engine.TIER_LIMITS[c.tier]||(counts[c.tier]||0)<engine.TIER_LIMITS[c.tier];});
+      const card=engine.publicCard(id);counts[card.tier]=(counts[card.tier]||0)+1;
+      test.api.chooseChallengePick(id);
+    }
+    assert.equal(active().stage,'arrange');
+    await test.api.submitChallenge();
+    assert.ok(result, 'Submission is accepted by the unchanged trusted scoring engine');
+    assert.deepEqual(active().roster, finalRoster, 'Submitted team remains on the left court');
+    let rendered=test.api.challengeHTML();
+    assert.match(rendered,/Your team is locked in/);
+    assert.match(rendered,/"hidden":true/);
+    assert.doesNotMatch(rendered,/opponent-public|Friend/);
+    assert.ok(!test.calls.some(c=>c.name==='get_async_challenge_result'), 'No opposing roster is requested before completion');
+    completed=true;
+    await test.api.loadChallengeInvitation(code);
+    rendered=test.api.challengeHTML();
+    assert.match(rendered,/@Friend/);
+    assert.match(rendered,/duel-reveal/);
+    assert.doesNotMatch(rendered,/"hidden":true/);
+    assert.equal(test.calls.filter(c=>c.name==='get_async_challenge_result').length,1,'Refresh must check server completion even with a submitted local save');
+    const other = makeContext({storageSeed:{'atu-active-challenge-v1':test.storage.getItem('atu-active-challenge-v1')}, href:'https://game.example/?challenge='+code,
+      rpc(){return {data:[{status:'open',creator_username:'Owner',creator_public_id:'owner-public'}]};}});
+    await other.api.init();
+    assert.match(other.api.challengeHTML(), /SIGN IN TO PLAY/, 'Another account must not inherit the saved creator draft');
+    const links=test.api.rankingsHTML();
+    for(const route of ['draft','packs','challenge']) assert.ok(links.includes("setScreen('"+route+"')"));
+  }
+
   {
     const profile = { username: null, display_name: "Google Name", avatar_url: "https://example.com/photo.png" };
     const test = makeContext({
