@@ -1115,6 +1115,8 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 @media(max-width:680px){.topright{width:100%;justify-content:space-between}.accountpill{order:-1}.accountintro{align-items:flex-start;flex-direction:column}.accountgrid{grid-template-columns:1fr}.cloudstate{width:100%}.challengehero{flex-direction:column;padding:19px}.challengehero h2{font-size:28px}.challengecards{grid-template-columns:repeat(2,minmax(0,1fr))}.captaincards{grid-template-columns:1fr}.challengeroster{grid-template-columns:repeat(2,minmax(0,1fr))}.challengeexplain{grid-template-columns:1fr}.challengeinvite{grid-template-columns:1fr}.challengeresult{grid-template-columns:1fr}.resultversus{text-align:center}.rankinghead,.rankingrow{grid-template-columns:32px minmax(95px,1fr) 48px 70px}.rankinghead span:last-child,.rankingrow strong{display:none}.challengeprogress span{display:none}}
 
 </style>
+<link rel="stylesheet" href="./ui-reboot.css">
+<script src="./ui-reboot.js"></script>
 </head>
 <body>
 <div id="neonart" aria-hidden="true"><svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" fill="none">
@@ -5937,6 +5939,7 @@ function render(){
       <div class="topright">
         <div class="hs">BEST TEAM OVR<br><b>${best}</b></div>
         ${ATUBackend.accountButtonHTML()}
+        ${ATUVisuals.switchHTML()}
       </div>
     </header>
     ${screen==="landing"?landingHTML():screen==="share"?shareHTML():screen==="team"?hubHTML("main"):screen==="packs"?packsHTML()
@@ -5945,6 +5948,7 @@ function render(){
       <button onclick="showPrivacy()">Privacy Policy</button>
       <span>·</span><span>Fan-made sandbox — not affiliated with or endorsed by the NBA, its teams, or players.</span>
     </footer>`;
+  ATUVisuals.onRender(screen);
   /* the collection grid is painted after mount so a big tier doesn't block the page */
   if(screen==="collection"&&typeof renderCollGrid==="function")
     (window.requestAnimationFrame||setTimeout)(()=>renderCollGrid());
