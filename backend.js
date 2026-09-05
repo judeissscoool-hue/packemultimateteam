@@ -68,7 +68,8 @@
 
   function newFriendsState(ownerId) {
     return { ownerId, rows: [], status: "idle", message: "", query: "", busy: false,
-      loading: false, loadVersion: 0, lastCheckedAt: 0, timer: null, ticking: false };
+      loading: false, loadVersion: 0, lastCheckedAt: 0, lastPresenceAt: 0, timer: null, ticking: false,
+      dismissedInvites: new Set(), noticeError: null };
   }
 
   function cfg() {
@@ -981,6 +982,48 @@
     if (state.friends.ownerId !== ownerId) {
       global.clearTimeout(state.friends.timer);
       state.friends = newFriendsState(ownerId);
+      renderFriendNotices();
+    }
+  }
+
+  function friendNoticeHTML() {
+    const friends = state.friends;
+    if (!socialIsActive() || playerRequirement() || state.visibleScreen === "friends"
+      || friends.ownerId !== state.session.user.id || friends.status !== "ready") return "";
+    const pending = friends.rows.filter(row => row.relationship === "incoming" && !friends.dismissedInvites.has(row.friend_public_id));
+    const friend = pending[0];
+    if (!friend) return "";
+    const id = friend.friend_public_id, disabled = friends.busy ? ' disabled' : '';
+    return '<aside class="friend-notice" aria-label="Friend request"><div class="friend-notice-heading"><span>FRIEND REQUEST</span>'
+      + '<button class="textbtn" onclick="ATUBackend.dismissFriendInvite(\'' + id + '\')"' + disabled + '>LATER</button></div>'
+      + '<p><strong>@' + html(friend.username) + '</strong> wants to add you.</p>'
+      + (friends.noticeError?.id === id ? '<p class="friend-notice-error">' + html(friends.noticeError.message) + '</p>' : '')
+      + '<div class="friend-notice-actions"><button class="btn primary" onclick="ATUBackend.changeFriendship(\'' + id + '\',\'accept\')"' + disabled + '>ACCEPT</button>'
+      + '<button class="btn" onclick="ATUBackend.changeFriendship(\'' + id + '\',\'decline\')"' + disabled + '>DECLINE</button></div>'
+      + '<small>Accept to share online status.' + (pending.length > 1 ? ' ' + (pending.length - 1) + ' more waiting.' : '') + '</small></aside>';
+  }
+
+  function renderFriendNotices() {
+    const mount = global.document.getElementById("atu-friend-notices");
+    if (mount) {
+      const content = friendNoticeHTML();
+      // Keep the same popup mounted while polling so focus and hover do not reset.
+      if (mount.innerHTML !== content) mount.innerHTML = content;
+    }
+    const friends = state.friends;
+    const count = state.session && friends.ownerId === state.session.user.id && friends.status === "ready"
+      && global.navigator.onLine !== false ? friends.rows.filter(row => row.relationship === "incoming").length : 0;
+    global.document.querySelectorAll?.("[data-friend-count]").forEach(badge => {
+      badge.textContent = String(count);
+      badge.hidden = count === 0;
+    });
+  }
+
+  function dismissFriendInvite(publicId) {
+    if (state.friends.busy) return;
+    if (state.friends.rows.some(row => row.relationship === "incoming" && row.friend_public_id === publicId)) {
+      state.friends.dismissedInvites.add(publicId);
+      renderFriendNotices();
     }
   }
 
@@ -991,6 +1034,7 @@
     });
     const submit = global.document.getElementById("atu-friend-submit");
     if (submit) submit.disabled = state.friends.busy || global.navigator.onLine === false;
+    renderFriendNotices();
   }
 
   async function loadFriends(force) {
@@ -1000,8 +1044,7 @@
       || friends.busy || (friends.loading && !force)) return;
     const version = ++friends.loadVersion;
     friends.loading = true;
-    if (friends.status === "idle") friends.status = "loading";
-    renderFriendsPanels();
+    if (friends.status === "idle") { friends.status = "loading"; renderFriendsPanels(); }
     try {
       const result = await state.client.rpc("get_friends");
       if (state.friends !== friends || version !== friends.loadVersion) return;
@@ -1009,6 +1052,9 @@
       friends.rows = (Array.isArray(result.data) ? result.data : []).filter(row =>
         row && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(row.friend_public_id || "") && typeof row.username === "string"
         && ["accepted", "incoming", "outgoing"].includes(row.relationship));
+      const incomingIds = new Set(friends.rows.filter(row => row.relationship === "incoming").map(row => row.friend_public_id));
+      for (const id of friends.dismissedInvites) if (!incomingIds.has(id)) friends.dismissedInvites.delete(id);
+      if (friends.noticeError && !incomingIds.has(friends.noticeError.id)) friends.noticeError = null;
       friends.status = "ready";
     } catch (_) {
       if (state.friends !== friends || version !== friends.loadVersion) return;
@@ -1040,15 +1086,15 @@
     if (!socialIsActive() || friends.ticking) return;
     friends.ticking = true;
     try {
-      // No user IDs or client clocks are sent. The server records this signed-in player only.
-      await state.client.rpc("touch_presence");
-      if (state.friends === friends && socialIsActive() && ["friends", "challenge"].includes(state.visibleScreen)
-        && Date.now() - friends.lastCheckedAt >= 25000) await loadFriends();
-    } catch (_) {
-      // Presence is best-effort. Never interrupt a draft or account form for it.
+      if (Date.now() - friends.lastPresenceAt >= 30000) {
+        friends.lastPresenceAt = Date.now();
+        // No user IDs or client clocks are sent. Heartbeats remain best-effort.
+        try { await state.client.rpc("touch_presence"); } catch (_) {}
+      }
+      if (state.friends === friends && socialIsActive() && Date.now() - friends.lastCheckedAt >= 12000) await loadFriends();
     } finally {
       friends.ticking = false;
-      if (state.friends === friends && socialIsActive()) friends.timer = global.setTimeout(refreshSocialActivity, 30000);
+      if (state.friends === friends && socialIsActive()) friends.timer = global.setTimeout(refreshSocialActivity, 15000);
     }
   }
 
@@ -1099,6 +1145,7 @@
     if (action === "remove" && !global.confirm("Remove @" + friend.username + " from your friends?")) return;
     friends.busy = true;
     friends.message = "";
+    friends.noticeError = null;
     renderFriendsPanels();
     try {
       const result = await state.client.rpc("change_friendship", { p_friend_public_id: publicId, p_action: action });
@@ -1106,8 +1153,13 @@
       if (result.error) throw result.error;
       friends.message = result.data === "accepted" ? "You're now friends!" : result.data === "removed"
         ? (action === "remove" ? "Friend removed." : "Request cleared.") : "That request has changed. Check the updated list.";
+      if (["accepted", "removed"].includes(result.data)) friends.dismissedInvites.add(publicId);
+      else friends.noticeError = { id: publicId, message: friends.message };
     } catch (_) {
-      if (state.friends === friends) friends.message = "That didn't work. Please try again.";
+      if (state.friends === friends) {
+        friends.message = "That didn't work. Please try again.";
+        friends.noticeError = { id: publicId, message: friends.message };
+      }
     } finally {
       if (state.friends === friends) { friends.busy = false; await loadFriends(true); renderFriendsPanels(); }
     }
@@ -1143,14 +1195,15 @@
         + '" oninput="ATUBackend.rememberFriendQuery(this.value)" placeholder="Your friend’s username" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="21" required></label><button id="atu-friend-submit" class="btn primary" type="submit" ' + (state.friends.busy || global.navigator.onLine === false ? 'disabled' : '') + '>SEND FRIEND REQUEST</button></form>'
         + '<p class="friends-privacy">Adding or accepting a friend lets you see each other’s online status. Only accepted friends can see it.</p></div>'
         + '<div class="friends-content" data-friends-panel="full">' + friendsListHTML(false) + '</div>'
-        + '<p class="friends-privacy">To play together, finish your 1v1 draft and send your friend the invite link. Status refreshes about every 30 seconds; players may appear online for up to two minutes after leaving.</p>') + '</section>';
+        + '<p class="friends-privacy">To play together, finish your 1v1 draft and send your friend the invite link. Requests and status refresh about every 15 seconds; players may appear online for up to two minutes after leaving.</p>') + '</section>';
   }
 
   function onScreen(screenName) {
     const previousScreen = state.visibleScreen;
     state.visibleScreen = screenName;
     scheduleSocialActivity();
-    if (["friends", "challenge"].includes(screenName) && (previousScreen !== screenName || state.friends.status === "idle") && socialIsActive()) loadFriends();
+    renderFriendNotices();
+    if (socialIsActive() && (state.friends.status === "idle" || (["friends", "challenge"].includes(screenName) && previousScreen !== screenName))) loadFriends();
     scheduleChallengeRefresh();
     if (screenName === "rankings" && state.rankings.status === "idle") loadRankings();
     if (screenName === "challenge" && state.challenge.phase === "idle") {
@@ -1281,7 +1334,7 @@
     if (challengeCode) await loadChallengeInvitation(challengeCode);
     const refreshSocialAvailability = function () {
       scheduleSocialActivity();
-      if (socialIsActive() && ["friends", "challenge"].includes(state.visibleScreen)) loadFriends(true);
+      if (socialIsActive()) loadFriends(true);
       else {
         state.friends.status = "idle";
         renderFriendsPanels();
@@ -1748,6 +1801,7 @@
     classicDraftFinishHTML: classicDraftFinishHTML,
     rankingsHTML: rankingsHTML,
     friendsHTML: friendsHTML,
+    dismissFriendInvite: dismissFriendInvite,
     loadFriends: loadFriends,
     sendFriendRequest: sendFriendRequest,
     changeFriendship: changeFriendship,

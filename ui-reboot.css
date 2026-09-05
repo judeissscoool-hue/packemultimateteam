@@ -11,6 +11,38 @@ html .hs b{font-size:23px;line-height:1}
 html #betabar{font-size:12px;letter-spacing:.12em;padding:12px 80px 12px 18px;border-bottom:1px solid rgba(242,169,59,.3);background:linear-gradient(100deg,rgba(242,169,59,.12),rgba(53,214,255,.07));line-height:1.6}
 html #betabar button{font-size:inherit}
 html #crpill{font-size:12px;min-height:28px;display:inline-flex;align-items:center}
+#site-chrome{position:sticky;top:0;z-index:45;background:#171b1c;box-shadow:0 6px 24px #0004}
+html #site-chrome #betabar{position:relative;z-index:auto;padding-right:18px}
+.game-nav{border-bottom:1px solid #35d6ff30;background:linear-gradient(110deg,#182329,#191919 65%)}
+.game-nav-inner{max-width:1240px;margin:auto;padding:8px 24px}
+.nav-links{display:flex;align-items:center;gap:6px}
+.nav-page,.nav-group summary,.nav-toggle{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:10px 16px;border:1px solid transparent;border-radius:11px;background:transparent;color:#d8d8e1;font:16px var(--disp);letter-spacing:.035em;white-space:nowrap;cursor:pointer;transition:background .2s,color .2s,transform .2s var(--ui-ease)}
+.nav-page.on,.nav-group summary.on{color:var(--cyan);background:#35d6ff12;border-color:#35d6ff40}
+.nav-group{position:relative}
+.nav-group summary{list-style:none}
+.nav-group summary::-webkit-details-marker{display:none}
+.nav-group summary>span{transition:transform .2s}
+.nav-group[open] summary>span{transform:rotate(180deg)}
+.nav-group[open] summary{color:var(--gold);background:#ffc53d12}
+.nav-dropdown{position:absolute;top:calc(100% + 8px);left:0;min-width:230px;max-height:60dvh;overflow:auto;padding:8px;background:#202329;border:1px solid #35d6ff50;border-radius:14px;box-shadow:0 14px 40px #0008}
+.nav-dropdown .nav-page{width:100%;justify-content:flex-start;font-family:var(--body);font-size:14px}
+.nav-toggle,.nav-current{display:none}
+.nav-friend-count{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 5px;border-radius:8px;background:var(--gold);color:#211706;font:700 14px var(--body);letter-spacing:0}
+.nav-friend-count[hidden]{display:none}
+.game-nav :is(button,summary):focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+@media(hover:hover) and (pointer:fine){.game-nav :is(button,summary):hover{color:var(--gold);background:#ffc53d14;transform:translateY(-1px)}}
+@media(max-width:860px){
+  .game-nav-inner{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;padding:6px 16px;gap:6px}
+  .nav-current{display:block;min-width:0;font:18px var(--disp);color:var(--cyan)}
+  .nav-toggle{display:flex;background:#35d6ff10;border-color:#35d6ff40}
+  .nav-links{display:none;width:100%;max-height:55dvh;overflow:auto;padding:4px 0 8px}
+  .menu-open .nav-links{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}
+  .nav-group{grid-column:1/-1}
+  .nav-group summary{justify-content:space-between}
+  .nav-links>.nav-page{justify-content:flex-start}
+  .nav-dropdown{position:static;min-width:0;max-height:none;margin-top:4px;box-shadow:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .nav-dropdown .nav-page{white-space:normal}
+}
 html .modes{max-width:none;grid-template-columns:repeat(6,minmax(0,1fr));gap:20px;margin:0 auto}
 html .modehero{text-align:left;padding:14px 0 12px;display:flex;justify-content:space-between;align-items:center;gap:24px}
 html .modehero h2{font-size:clamp(32px,5vw,56px)!important;line-height:1.05;letter-spacing:.015em}
@@ -205,6 +237,18 @@ html .friends-privacy{color:var(--dim);font-size:14px;line-height:1.5;margin-top
 .friend-status::before{content:"";width:8px;height:8px;flex-shrink:0;border-radius:50%;background:#777}
 .friend-status.online{color:#75eaae}
 .friend-status.online::before{background:#75eaae}
+#atu-friend-notices{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:calc(94px + env(safe-area-inset-bottom));z-index:75;width:min(360px,calc(100% - 32px));pointer-events:none}
+.friend-notice{pointer-events:auto;padding:18px;border:1px solid var(--cyan);border-radius:18px;background:linear-gradient(135deg,#18313a,#1c2027 65%);box-shadow:0 14px 40px #0009,0 0 24px #35d6ff16;animation:friend-notice-in .25s var(--ui-ease)}
+.friend-notice-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;color:var(--cyan);font:16px var(--disp);letter-spacing:.08em}
+.friend-notice-heading .textbtn{min-height:44px;margin:-8px -6px -8px 0;padding:8px 6px;font-size:14px}
+.friend-notice p{font-size:16px;line-height:1.5;margin:12px 0;overflow-wrap:anywhere}
+.friend-notice strong{color:#fff}
+.friend-notice-actions{display:flex;gap:10px}
+.friend-notice-actions .btn{flex:1;min-height:44px}
+.friend-notice small{display:block;margin-top:12px;color:#b9c9d0;font-size:14px;line-height:1.4}
+.friend-notice .friend-notice-error{color:#ffd394;font-size:14px}
+@keyframes friend-notice-in{from{transform:translateY(12px);opacity:0}to{transform:translateY(0);opacity:1}}
+@media(max-height:540px){#atu-friend-notices{bottom:16px;width:min(330px,calc(100% - 32px))}.friend-notice{padding:12px}.friend-notice small{display:none}}
 .duel-friends{border-top:1px solid var(--line);margin-top:20px;padding-top:16px;text-align:left}
 .duel-friends h4{font:24px var(--disp)}
 .duel-friends .friends-list li{padding:10px 12px}

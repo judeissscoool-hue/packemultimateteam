@@ -1152,8 +1152,12 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
   </g>
 </svg></div>
 <div id="arena"></div>
-<div id="betabar">BETA · in active development — <button onclick="setScreen('updates')"><span>see what's coming</span></button><span id="crpill" onclick="setScreen('rafters')"></span></div>
+<div id="site-chrome">
+  <div id="betabar">BETA · in active development — <button onclick="setScreen('updates')"><span>see what's coming</span></button><span id="crpill" onclick="setScreen('rafters')"></span></div>
+  <nav id="topnav" class="game-nav" aria-label="Main navigation"></nav>
+</div>
 <div id="app"></div>
+<div id="atu-friend-notices" aria-live="polite" aria-atomic="true"></div>
 <div id="overlay"></div>
 <div id="sheet"></div>
 <div id="draftoverlay"></div>
@@ -4859,7 +4863,51 @@ function notice(msg){const n=$("#notice");if(!n)return;n.textContent=msg;
   clearTimeout(notice.t);notice.t=setTimeout(()=>{if($("#notice"))$("#notice").textContent="";},2600);}
 
 /* ================= NAV ================= */
-function setScreen(s){screen=s;render();window.scrollTo(0,0);}
+const TOP_NAV=[
+  {screen:"landing",label:"Home"},
+  {label:"Play",items:[["draft","Classic Draft"],["classic","Pack Mode"],["daily","Daily Challenge"],["team","My Team"],["packs","Team Packs"],["rare","Rare Pull"]]},
+  {screen:"challenge",label:"1v1"},
+  {screen:"rankings",label:"82-0 Club"},
+  {label:"My Club",items:[["collection","Collection"],["rafters","The Rafters"],["trophies","Trophy Case"],["account","Account & Save"]]},
+  {screen:"friends",label:"Friends"},
+  {screen:"updates",label:"What's New"}
+];
+function renderTopNav(){
+  const bar=$("#topnav");if(!bar||bar.dataset.screen===screen)return;
+  const pages=TOP_NAV.flatMap(item=>item.items||[[item.screen,item.label]]);
+  const current=pages.find(([page])=>page===screen)?.[1]||"Your lineup";
+  const link=(page,label)=>`<button class="nav-page${page===screen?" on":""}" onclick="setScreen('${page}')"${page===screen?' aria-current="page"':""}>${esc(label)}${page==="friends"?'<span class="nav-friend-count" data-friend-count hidden></span>':""}</button>`;
+  bar.innerHTML=`<div class="game-nav-inner"><span class="nav-current">${esc(current)}</span>
+    <button class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="nav-links" onclick="toggleTopNav()">☰ Menu<span class="nav-friend-count" data-friend-count hidden></span></button>
+    <div class="nav-links" id="nav-links">${TOP_NAV.map(item=>item.items
+      ?`<details class="nav-group"><summary${item.items.some(([page])=>page===screen)?' class="on"':""}>${esc(item.label)}<span aria-hidden="true">⌄</span></summary><div class="nav-dropdown">${item.items.map(([page,label])=>link(page,label)).join("")}</div></details>`
+      :link(item.screen,item.label)).join("")}</div></div>`;
+  bar.classList.remove("menu-open");
+  bar.dataset.screen=screen;
+}
+function closeTopNav(restoreFocus){
+  const bar=$("#topnav");if(!bar)return false;
+  const groups=[...bar.querySelectorAll("details[open]")],mobileOpen=bar.classList.contains("menu-open");
+  const trigger=mobileOpen?$("#nav-toggle"):groups[0]?.querySelector("summary");
+  groups.forEach(group=>{group.open=false;});
+  bar.classList.remove("menu-open");
+  $("#nav-toggle")?.setAttribute("aria-expanded","false");
+  if(restoreFocus&&trigger)trigger.focus();
+  return mobileOpen||groups.length>0;
+}
+function toggleTopNav(){
+  const bar=$("#topnav");if(!bar)return;
+  if(bar.classList.contains("menu-open"))closeTopNav();
+  else{bar.classList.add("menu-open");$("#nav-toggle")?.setAttribute("aria-expanded","true");}
+}
+document.addEventListener("click",event=>{const bar=$("#topnav");if(bar&&!bar.contains(event.target))closeTopNav();});
+document.addEventListener("keydown",event=>{if(event.key==="Escape"&&$("#topnav")?.contains(document.activeElement)&&closeTopNav(true))event.preventDefault();});
+document.addEventListener("toggle",event=>{
+  if(event.target.matches?.(".nav-group")&&event.target.open){
+    $("#topnav")?.querySelectorAll("details[open]").forEach(group=>{if(group!==event.target)group.open=false;});
+  }
+},true);
+function setScreen(s){closeTopNav();screen=s;render();window.scrollTo(0,0);}
 function renderTabs(){
   const bar=$("#tabs");if(!bar)return;
   let items;
@@ -5892,6 +5940,7 @@ function showPrivacy(){
 }
 function closePrivacy(){const o=$("#policyoverlay");o.classList.remove("show");o.innerHTML="";}
 function render(){
+  renderTopNav();
   renderTabs();
   {const p=$("#crpill");if(p&&typeof CR!=="undefined"){creditsRollDay();p.textContent=CR.bal.toLocaleString()+" CR";}}
   renderDraftOverlay();

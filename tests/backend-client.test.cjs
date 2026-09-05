@@ -359,20 +359,29 @@ async function run() {
       {friend_public_id:'55555555-5555-4555-8555-555555555555',username:'<img src=x onerror=alert(1)>',relationship:'outgoing'},
       {friend_public_id:"bad-id');alert(1)",username:'Bad_Id',relationship:'accepted',is_online:true},null
     ]};
+    let mutationError=false;
     const test=makeContext({clock,session:{user:{id:'social-player'}},auth:{async signOut(){return {}; }},
-      rpc(name){
+      rpc(name,args){
         if(name==='get_my_profile')return {data:[{username:'Social_Player'}]};
         if(name==='sync_cloud_save')return {data:[{outcome:'created',revision:1}]};
         if(name==='get_friends')return friendsResult;
+        if(name==='change_friendship'){
+          if(mutationError)return {error:{message:'private SQL failure'}};
+          friendsResult={data:friendsResult.data.filter(row=>row?.friend_public_id!==args.p_friend_public_id)};
+          return {data:args.p_action==='accept'?'accepted':'removed'};
+        }
         return {data:[]};
       }});
     const events={},input={value:'Still_typing'},submit={disabled:false};
     const panels=['full','compact'].map(kind=>({innerHTML:'',getAttribute(){return kind;}}));
+    let noticeContent='',noticeWrites=0;
+    const notice={get innerHTML(){return noticeContent;},set innerHTML(value){noticeContent=value;noticeWrites++;}};
+    const badge={textContent:'',hidden:true};
     test.window.document.visibilityState='visible';
     test.window.document.addEventListener=(name,fn)=>{events[name]=fn;};
     test.window.addEventListener=(name,fn)=>{events[name]=fn;};
-    test.window.document.querySelectorAll=()=>panels;
-    test.window.document.getElementById=id=>id==='atu-friend-username'?input:id==='atu-friend-submit'?submit:null;
+    test.window.document.querySelectorAll=selector=>selector==='[data-friends-panel]'?panels:selector==='[data-friend-count]'?[badge]:[];
+    test.window.document.getElementById=id=>id==='atu-friend-username'?input:id==='atu-friend-submit'?submit:id==='atu-friend-notices'?notice:null;
     let fullRenders=0;
     test.window.render=()=>{fullRenders++;};
     await test.api.init();
@@ -388,10 +397,21 @@ async function run() {
     assert.doesNotMatch(panels[0].innerHTML,/<img|Bad_Id|private@example/);
     assert.match(panels[1].innerHTML,/1 online · 1 friend request/);
     assert.doesNotMatch(panels[1].innerHTML,/Incoming_Player|Outgoing_Player/);
+    assert.match(notice.innerHTML,/@Incoming_Player/);
+    assert.doesNotMatch(notice.innerHTML,/Online now|private@example|Outgoing_Player/);
+    assert.equal(badge.textContent,'1');assert.equal(badge.hidden,false);
+    const mountedWrites=noticeWrites;
+    await clock.advance(15000);
+    assert.equal(noticeWrites,mountedWrites,'Unchanged requests preserve the mounted popup, hover and keyboard focus');
+    const beforeDismiss=test.calls.length;
+    test.api.dismissFriendInvite('33333333-3333-4333-8333-333333333333');
+    assert.equal(notice.innerHTML,'');
+    assert.equal(badge.textContent,'1','Later leaves the request available in Friends');
+    assert.equal(test.calls.length,beforeDismiss,'Later does not decline or send a server mutation');
     friendsResult={data:[{friend_public_id:onlineId,username:'Online_Player',relationship:'accepted',is_online:false}]};
-    await clock.advance(30000);
+    await clock.advance(15000);
     assert.equal(count('touch_presence'),2);
-    assert.equal(count('get_friends'),2);
+    assert.equal(count('get_friends'),3);
     assert.doesNotMatch(panels[0].innerHTML,/Online now/);
     assert.equal(input.value,'Still_typing','Background refresh preserves the form input');
     assert.equal(fullRenders,initialRenders,'Presence updates do not rerender the draft or its picker');
@@ -405,27 +425,55 @@ async function run() {
     await test.api.sendFriendRequest();await test.api.loadFriends(true);
     await clock.advance(120000);
     assert.equal(count('touch_presence'),2,'Offline devices stop heartbeats');
-    assert.equal(count('get_friends'),2,'Offline devices stop list polling');
+    assert.equal(count('get_friends'),3,'Offline devices stop list polling');
     assert.equal(count('request_friend'),0);
     test.window.navigator.onLine=true;events.online();await clock.advance(0);
     assert.equal(count('touch_presence'),3);
-    assert.equal(count('get_friends'),3,'Reconnecting reloads once immediately');
+    assert.equal(count('get_friends'),4,'Reconnecting reloads once immediately');
     assert.equal(submit.disabled,false);
     test.window.document.visibilityState='hidden';events.visibilitychange();
     await clock.advance(60000);
     assert.equal(count('touch_presence'),3,'Hidden tabs do not keep players online');
     test.window.document.visibilityState='visible';events.visibilitychange();await clock.advance(0);
-    assert.equal(count('get_friends'),4);
+    assert.equal(count('get_friends'),5);
     test.api.onScreen('draft');await clock.advance(30000);
     assert.equal(count('touch_presence'),5,'Playing solo still marks the signed-in player online');
-    assert.equal(count('get_friends'),4,'No list polling on unrelated screens');
+    assert.equal(count('get_friends'),7,'Friend requests are checked while playing other modes');
+
+    const firstInvite='33333333-3333-4333-8333-333333333333',secondInvite='66666666-6666-4666-8666-666666666666';
+    friendsResult={data:[
+      {friend_public_id:firstInvite,username:'<img src=x>',relationship:'incoming',is_online:null},
+      {friend_public_id:secondInvite,username:'Second_Invite',relationship:'incoming',is_online:null}
+    ]};
+    await clock.advance(15000);
+    assert.match(notice.innerHTML,/&lt;img src=x&gt;/,'New incoming requests surface on the draft page and escape usernames');
+    assert.doesNotMatch(notice.innerHTML,/<img|@Second_Invite/);
+    assert.equal(badge.textContent,'2');
+    test.api.dismissFriendInvite(firstInvite);
+    assert.match(notice.innerHTML,/@Second_Invite/,'Multiple requests appear one at a time');
+    await test.api.changeFriendship(secondInvite,'accept');
+    assert.equal(notice.innerHTML,'');
+    assert.equal(badge.textContent,'1');
+    assert.equal(fullRenders,initialRenders,'Accepting from the popup leaves the current draft and picker mounted');
+    friendsResult={data:[]};await test.api.loadFriends();
+    friendsResult={data:[{friend_public_id:firstInvite,username:'Returned_Invite',relationship:'incoming'}]};await test.api.loadFriends();
+    assert.match(notice.innerHTML,/@Returned_Invite/,'A new request from a previously dismissed player can appear again');
+    mutationError=true;await test.api.changeFriendship(firstInvite,'decline');
+    assert.match(notice.innerHTML,/That didn&#39;t work/);
+    assert.doesNotMatch(notice.innerHTML,/private SQL/);
+    mutationError=false;await test.api.changeFriendship(firstInvite,'decline');
+    assert.equal(notice.innerHTML,'');assert.equal(badge.hidden,true);
 
     friendsResult={error:{message:'JWT private database details'}};
     await test.api.loadFriends(true);
     assert.match(panels[0].innerHTML,/Could not check friends/);
     assert.doesNotMatch(panels[0].innerHTML,/JWT|private database|Online_Player/);
+    friendsResult={data:[{friend_public_id:firstInvite,username:'Last_Invite',relationship:'incoming'}]};await test.api.loadFriends();
+    assert.match(notice.innerHTML,/@Last_Invite/);
     await test.api.signOut();
     assert.equal(timers.size,0,'Signing out cancels presence polling');
+    assert.equal(notice.innerHTML,'','Signing out immediately clears the floating request');
+    assert.equal(badge.hidden,true);
     assert.doesNotMatch(test.api.friendsHTML(),/Online_Player|SEND FRIEND REQUEST/);
   }
 

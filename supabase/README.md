@@ -101,8 +101,12 @@ Do not trust client-submitted OVR, points, wins, card ownership, or challenge ou
   visible. Only the server supplies the identity and timestamp. Status expires
   after 90 seconds without a heartbeat; with list polling, the indicator may take
   up to two minutes to show offline. No browsing history is stored.
-- Lists refresh only on Friends and 1v1. Refreshes replace just the Friends panel,
-  preserving draft pickers and form input. Hidden/offline tabs stop polling;
+- Requests and online status refresh every 15 seconds on any visible game page.
+  Incoming requests appear in a floating Accept/Decline popup and the top navigation
+  shows a pending-request count. Later dismisses a popup for this tab without declining;
+  the request remains on Friends. Popups queue one at a time and do not steal focus.
+  Refreshes replace just the Friends panels and changed notifications,
+  preserving draft pickers, open navigation, and form input. Hidden/offline tabs stop polling;
   signing out clears the in-memory list. Friends data is not in local cloud saves.
 - Limits are 100 relationships per player (pending plus accepted) and 20 new
   requests per hour. Cancelling/declining does not reset the hourly counter.
