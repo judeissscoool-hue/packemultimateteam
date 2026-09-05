@@ -50,6 +50,8 @@ function packHarness(reduced = false) {
   const h=packHarness(),pack=h.nodes.get('#rfpack');
   pack.fire('pointerdown');pack.fire('pointercancel');
   assert.equal(h.purchases(),0,'A cancelled touch must not buy a pack');
+  pack.fire('pointerdown');pack.fire('pointermove',{clientX:-70});pack.fire('pointerup');h.frames();
+  assert.equal(h.purchases(),0,'Pulling against the sealed edge must not buy an unopened pack');
   pack.fire('pointerdown');pack.fire('pointermove',{pointerId:2,clientX:150});
   assert.equal(h.purchases(),0,'A second finger must not control or buy the pack');
   pack.fire('pointermove',{clientX:65});h.frames();

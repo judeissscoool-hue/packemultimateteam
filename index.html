@@ -3600,6 +3600,7 @@ function rfBind(){
     const distance=e.clientX-startX;
     if(!moved&&Math.abs(distance)<5)return;
     moved=true;
+    if(distance<0)return;
     if(!rfArm()){RF.drag=false;return;}
     target=Math.max(RF.prog,startProg+distance/Math.max(1,view.width-28));
     rfFollow(target);
