@@ -157,7 +157,7 @@ async function run() {
     await other.api.init();
     assert.match(other.api.challengeHTML(), /SIGN IN TO PLAY/, 'Another account must not inherit the saved creator draft');
     const links=test.api.rankingsHTML();
-    for(const route of ['draft','packs','challenge']) assert.ok(links.includes("setScreen('"+route+"')"));
+    for(const route of ['draft','classic','challenge']) assert.ok(links.includes("setScreen('"+route+"')"));
   }
 
   {
