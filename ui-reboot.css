@@ -185,19 +185,3 @@ html .ctile.locked .ct-meta span{color:#9b9ba9}
 @media(max-width:1000px){.duel-board{grid-template-columns:minmax(0,1fr) 38px minmax(0,1fr);gap:6px}.duel-side{padding:12px}.duel-versus{font-size:32px}.duel-metrics{gap:8px}.duel-slot{width:90px}.duel-slot .slot{min-height:137px}}
 @media(max-width:760px){.duel-board{grid-template-columns:minmax(0,1fr)}.duel-versus{padding:8px;transform:skewY(-8deg)}.duel-side{padding:18px}.duel-slot{width:104px}.duel-slot .slot{min-height:148px}.duel-hidden .fiveslots{display:none}.duel-hidden .benchlabel,.duel-hidden .benchrow{display:none}.duel-hidden{min-height:100px;display:grid;place-items:center}.duel-heading{align-items:flex-start}.duel-heading>.btn{font-size:12px;padding:10px}.ranking-play{grid-template-columns:1fr}.duel-dialog{padding:20px}.duel-options{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 12px}.duel-picker-head{align-items:flex-start}.duel-picker-head h2{font-size:24px}}
 @media(prefers-reduced-motion:reduce){.duel-reveal .duel-slot{animation:none}}
-
-/* Foil responds to the pull; the detached wrapper falls away from the reward. */
-.rfstage{perspective:900px}
-.rfpack{touch-action:none;cursor:grab;transform-style:preserve-3d}
-.rfpack:active{cursor:grabbing}
-.rfhalf{will-change:transform,clip-path;transform-origin:50% 10%;backface-visibility:visible}
-.rfhalf::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(108deg,transparent 12%,rgba(255,255,255,.04) 30%,rgba(210,226,246,.24) var(--foil-shine,75%),transparent 86%);mix-blend-mode:screen}
-.rfpack.peeling .rfhalf::before{animation-play-state:paused}
-.rfcurl{position:absolute;z-index:8;left:14px;top:calc(10% - 7px);width:0;height:13px;opacity:0;pointer-events:none;border-radius:3px 6px 1px 3px;transform-origin:50% 100%;background:linear-gradient(180deg,#262b34 0%,#9ca6b5 16%,#fafcff 35%,#c3cad2 48%,#444b57 64%,#101219 84%,#7d8797 100%);box-shadow:0 4px 7px rgba(0,0,0,.7);will-change:transform,width}
-.rftab{left:14px;padding:0;border:0;background:transparent;will-change:transform;transform-origin:center;transform-style:preserve-3d}
-.rftab:active{transform:none}
-.rftab:focus-visible{outline:2px solid var(--cyan);outline-offset:6px}
-.rfhint{font-size:10px;letter-spacing:.08em}
-.rfpack.peeling .rfhint{opacity:0;animation:none}
-.rfreveal{perspective:900px}
-@media(prefers-reduced-motion:reduce){.rfpack,.rfhalf::before,.rfhint{animation:none!important}.rfarena{transition:none}}
