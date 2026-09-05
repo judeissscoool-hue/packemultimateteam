@@ -58,6 +58,7 @@ function makeContext({ session = null, rpc, storageSeed = {}, withClient = true,
     document: { getElementById() { return null; }, querySelector() { return null; } },
     cardHTML(id) { return `<div class="card">card-${id}</div>`; },
     challengeCourtHTML(roster = {}, options = {}) { return `<div class="court">${JSON.stringify({roster, options})}</div>`; },
+    draftHTML() { return '<div class="court">Classic Draft</div>'; },
     render() {}
   };
   const context = vm.createContext({
@@ -86,15 +87,15 @@ function makeContext({ session = null, rpc, storageSeed = {}, withClient = true,
 }
 
 async function run() {
-  {
+  for (const rulesVersion of ["atu-v1", "atu-classic-v2"]) {
     const engine = await import('../supabase/functions/_shared/atu-engine-v1.js');
     const seed = '0123456789abcdef'.repeat(4), code = 'A1B2C3D4E5F60708';
-    let completed = false, finalRoster, result;
+    let completed = false, finalRoster, result, submissions = 0;
     const test = makeContext({
       session: {user: {id: 'duel-owner'}},
       rpc(name) {
         if (name === 'get_my_profile') return {data: [{username: 'Owner', public_id: 'owner-public'}]};
-        if (name === 'create_async_challenge') return {data: [{challenge_code: code, draft_seed: seed, run_id: 'run-id', run_token: 'a'.repeat(64), rules_version:'atu-v1'}]};
+        if (name === 'create_async_challenge') return {data: [{challenge_code: code, draft_seed: seed, run_id: 'run-id', run_token: 'a'.repeat(64), rules_version:rulesVersion}]};
         if (name === 'get_async_challenge_invitation') return {data: [{status:completed?'completed':'open', creator_public_id:'owner-public'}]};
         if (name === 'get_async_challenge_result') return {data: [
           {player_public_id:'owner-public', username:'Owner', roster:finalRoster, team_ovr:90, projected_wins:70},
@@ -104,7 +105,8 @@ async function run() {
       },
       invoke(name, args) {
         assert.equal(name, 'validate-run');
-        const validated = engine.validateTranscript(seed, args.body.transcript, 'one_v_one');
+        if(!submissions++)return {error:new Error('Internal transport details')};
+        const validated = engine.validateTranscript(seed, args.body.transcript, 'one_v_one', rulesVersion);
         finalRoster = JSON.parse(JSON.stringify(validated.roster));
         result = validated.result;
         return {data: {ok:true, result, outcome:'creator_completed'}};
@@ -112,11 +114,22 @@ async function run() {
     });
     await test.api.init();
     await test.api.createChallenge();
+    const active = () => JSON.parse(test.storage.getItem('atu-active-challenge-v1'));
+    if(rulesVersion===engine.CLASSIC_RULES_VERSION){
+      let d=test.api.classicDraftState();
+      test.api.applyClassicDraftAction({type:'captain',cardId:d.captain[0].id});
+      for(const slot of [...engine.ALL_SLOTS].reverse())if(d.roster[slot]==null){
+        test.api.applyClassicDraftAction({type:'open',slot});
+        test.api.applyClassicDraftAction({type:'pick',cardId:d.opts[0].id});
+      }
+      const copy=JSON.parse(JSON.stringify(d.roster));
+      await test.api.loadChallengeInvitation(code);
+      assert.deepEqual(JSON.parse(JSON.stringify(test.api.classicDraftState().roster)),copy,'Saved Classic Draft restores through the online flow');
+    }else{
     const manifest = engine.createDraftManifest(seed);
     test.api.chooseChallengeCaptain(manifest.captain[0]);
     const captain = engine.publicCard(manifest.captain[0]);
     const counts = {[captain.tier]:1};
-    const active = () => JSON.parse(test.storage.getItem('atu-active-challenge-v1'));
     for (const board of manifest.boards) {
       const id = board.cards.find(id => { const c=engine.publicCard(id); return !engine.TIER_LIMITS[c.tier] || (counts[c.tier]||0)<engine.TIER_LIMITS[c.tier]; });
       const card = engine.publicCard(id);counts[card.tier]=(counts[card.tier]||0)+1;
@@ -136,7 +149,14 @@ async function run() {
       const card=engine.publicCard(id);counts[card.tier]=(counts[card.tier]||0)+1;
       test.api.chooseChallengePick(id);
     }
+    }
     assert.equal(active().stage,'arrange');
+    const unsent=JSON.stringify(active().roster);
+    await test.api.submitChallenge();
+    assert.equal(active().stage,'arrange','A failed request must keep the draft ready to retry');
+    assert.equal(JSON.stringify(active().roster),unsent);
+    assert.doesNotMatch(test.api.challengeHTML(),/Internal transport details/);
+    assert.match(test.api.challengeHTML(),/Could not submit this draft/);
     await test.api.submitChallenge();
     assert.ok(result, 'Submission is accepted by the unchanged trusted scoring engine');
     assert.deepEqual(active().roster, finalRoster, 'Submitted team remains on the left court');

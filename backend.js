@@ -457,6 +457,43 @@
     return state.enginePromise;
   }
 
+  let classicSession = null;
+  function restoreClassicSession(active) {
+    classicSession = state.engine.createClassicSession(active.seed, active.events || []);
+    active.roster = classicSession.draft.roster;
+    active.stage = classicSession.draft.done ? "arrange" : classicSession.draft.stage;
+  }
+
+  function classicDraftState() {
+    const active = state.challenge.active;
+    return state.challenge.phase === "draft" && active && active.rulesVersion === state.engine?.CLASSIC_RULES_VERSION
+      ? classicSession?.draft || null : null;
+  }
+
+  function applyClassicDraftAction(event) {
+    const active = state.challenge.active;
+    if (!classicDraftState() || state.busy) return false;
+    try {
+      if (active.events.length >= 256) throw new Error("Too many draft actions");
+      classicSession.apply(event);
+      active.events.push(event);
+      active.roster = classicSession.draft.roster;
+      active.stage = classicSession.draft.done ? "arrange" : classicSession.draft.stage;
+      state.challenge.error = "";
+      writeActiveChallenge(active);
+      return true;
+    } catch (error) {
+      state.challenge.error = errorText(error, "That move didn't work. Try another position.");
+      return false;
+    }
+  }
+
+  function classicDraftFinishHTML() {
+    return '<div class="duel-controls"><button class="btn gold" onclick="ATUBackend.submitChallenge()" '
+      + (state.busy ? 'disabled' : '') + '>' + (state.busy ? 'LOCKING IN…' : 'LOCK IN MY DRAFT')
+      + '</button><small>Swap your players until you’re happy, then lock it in.</small></div>';
+  }
+
   function activeChallengeValid(active) {
     return !!active
       && typeof active.seed === "string"
@@ -472,7 +509,8 @@
     const active = readActiveChallenge();
     if (!active || active.code !== code || !activeChallengeValid(active)) return false;
     const engine = await loadEngine();
-    active.manifest = engine.createRunManifest(active.seed, "one_v_one");
+    if(active.rulesVersion===engine.CLASSIC_RULES_VERSION)restoreClassicSession(active);
+    else active.manifest = engine.createRunManifest(active.seed, "one_v_one");
     if (!active.roster && active.stage !== 'captain') {
       active.roster = { B3: active.captainId };
       active.picks.forEach((id, index) => { active.roster[active.manifest.boards[index].slot] = id; });
@@ -565,6 +603,11 @@
         mode: "one_v_one",
         manifest: engine.createRunManifest(row.draft_seed, "one_v_one")
       };
+      if(active.rulesVersion===engine.CLASSIC_RULES_VERSION){
+        delete active.manifest;
+        active.events=[];
+        restoreClassicSession(active);
+      }
       state.challenge.code = active.code;
       state.challenge.phase = "draft";
       state.challenge.invitation = null;
@@ -595,7 +638,7 @@
     state.challenge.error = "";
     try {
       const result = await state.client.rpc("create_async_challenge", {
-        p_rules_version: cfg().rulesVersion || "atu-v1"
+        p_rules_version: (await loadEngine()).CLASSIC_RULES_VERSION
       });
       if (result.error) throw result.error;
       const row = firstRow(result.data);
@@ -774,6 +817,9 @@
   }
 
   function challengeTranscript(active) {
+    if(active.rulesVersion===state.engine.CLASSIC_RULES_VERSION){
+      return [...active.events,{type:"arrange",roster:{...active.roster}}];
+    }
     const events = [{ type: "captain", cardId: active.captainId }];
     active.manifest.boards.forEach(function (board, index) {
       events.push({ type: "pick", board: board.slot, cardId: active.picks[index] });
@@ -789,7 +835,7 @@
     state.challenge.error = "";
     try {
       const transcript = challengeTranscript(active);
-      state.engine.validateTranscript(active.seed, transcript, active.mode || "one_v_one");
+      state.engine.validateTranscript(active.seed, transcript, active.mode || "one_v_one", active.rulesVersion);
       const result = await state.client.functions.invoke("validate-run", {
         body: { runId: active.runId, runToken: active.runToken, transcript }
       });
@@ -1227,6 +1273,11 @@
   }
 
   function challengeDraftHTML(active) {
+    if(classicDraftState()){
+      const left='<div class="duel-player"><span>YOUR TEAM</span><h3>@'+html(state.profile?.username||'You')+'</h3></div>'+global.draftHTML();
+      const right='<div class="duel-player"><span>OPPONENT</span><h3>Your friend’s court</h3></div>'+duelInviteHTML(false)+global.challengeCourtHTML({}, {hidden:true});
+      return challengeHeaderHTML('DRAFT DUEL','Your draft. Their draft. Settle it.','Play Classic Draft. Set your lineup, then invite a friend.')+challengeMessageHTML()+duelLayoutHTML(left,right);
+    }
     if (!active || !state.engine || !active.manifest) return challengeHeaderHTML('DRAFT DUEL', 'Building your draft…', 'Get ready to make the first pick.');
     const ranked = active.role === 'ranked';
     const captain = active.stage === 'captain';
@@ -1427,6 +1478,9 @@
     accountHTML: accountHTML,
     accountButtonHTML: accountButtonHTML,
     challengeHTML: challengeHTML,
+    classicDraftState: classicDraftState,
+    applyClassicDraftAction: applyClassicDraftAction,
+    classicDraftFinishHTML: classicDraftFinishHTML,
     rankingsHTML: rankingsHTML,
     onScreen: onScreen,
     submitEmail: submitEmail,

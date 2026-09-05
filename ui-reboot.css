@@ -185,3 +185,10 @@ html .ctile.locked .ct-meta span{color:#9b9ba9}
 @media(max-width:1000px){.duel-board{grid-template-columns:minmax(0,1fr) 38px minmax(0,1fr);gap:6px}.duel-side{padding:12px}.duel-versus{font-size:32px}.duel-metrics{gap:8px}.duel-slot{width:90px}.duel-slot .slot{min-height:137px}}
 @media(max-width:760px){.duel-board{grid-template-columns:minmax(0,1fr)}.duel-versus{padding:8px;transform:skewY(-8deg)}.duel-side{padding:18px}.duel-slot{width:104px}.duel-slot .slot{min-height:148px}.duel-hidden .fiveslots{display:none}.duel-hidden .benchlabel,.duel-hidden .benchrow{display:none}.duel-hidden{min-height:100px;display:grid;place-items:center}.duel-heading{align-items:flex-start}.duel-heading>.btn{font-size:12px;padding:10px}.ranking-play{grid-template-columns:1fr}.duel-dialog{padding:20px}.duel-options{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 12px}.duel-picker-head{align-items:flex-start}.duel-picker-head h2{font-size:24px}}
 @media(prefers-reduced-motion:reduce){.duel-reveal .duel-slot{animation:none}}
+
+/* Fit the unchanged Classic Draft board inside either side of the duel. */
+.duel-side .scoreboard{grid-template-columns:auto minmax(0,1fr)}
+.duel-side .chemlegend{grid-column:1/-1;border-left:0;padding-left:0;min-width:0}
+.duel-side .projrow{flex-wrap:wrap}
+.duel-side .court:not(.duel-court){padding-inline:8px}
+html #betabar{background-color:#171b1c}
