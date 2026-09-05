@@ -14,14 +14,15 @@ function makeStorage(seed = {}) {
   };
 }
 
-function makeContext({ session = null, rpc, storageSeed = {}, withClient = true, href = "https://game.example/index.html?auth=account", invoke } = {}) {
+function makeContext({ session = null, rpc, storageSeed = {}, withClient = true, href = "https://game.example/index.html?auth=account", invoke, auth = {}, clock } = {}) {
   const storage = makeStorage(storageSeed);
   const calls = [];
   const client = {
     functions: { async invoke(name, args) { return invoke(name, args); } },
     auth: {
       onAuthStateChange() {},
-      async getSession() { return { data: { session }, error: null }; }
+      async getSession() { return { data: { session }, error: null }; },
+      ...auth
     },
     async rpc(name, args) {
       calls.push({ name, args });
@@ -51,14 +52,15 @@ function makeContext({ session = null, rpc, storageSeed = {}, withClient = true,
     TextEncoder,
     URL,
     URLSearchParams,
-    setTimeout,
-    clearTimeout,
+    setTimeout: clock?.setTimeout || setTimeout,
+    clearTimeout: clock?.clearTimeout || clearTimeout,
     confirm() { return true; },
     history: { replacedUrl: null, replaceState(_state, _title, url) { this.replacedUrl = url; } },
     document: { getElementById() { return null; }, querySelector() { return null; } },
     cardHTML(id) { return `<div class="card">card-${id}</div>`; },
     challengeCourtHTML(roster = {}, options = {}) { return `<div class="court">${JSON.stringify({roster, options})}</div>`; },
     draftHTML() { return '<div class="court">Classic Draft</div>'; },
+    setScreen(screen) { this.currentScreen = screen; },
     render() {}
   };
   const context = vm.createContext({
@@ -66,7 +68,7 @@ function makeContext({ session = null, rpc, storageSeed = {}, withClient = true,
     URL,
     URLSearchParams,
     TextEncoder,
-    Date,
+    Date: clock?.Date || Date,
     Math,
     Object,
     Array,
@@ -162,14 +164,17 @@ async function run() {
     assert.deepEqual(active().roster, finalRoster, 'Submitted team remains on the left court');
     let rendered=test.api.challengeHTML();
     assert.match(rendered,/Your team is locked in/);
+    assert.ok(rendered.includes('<b>' + result.effectiveRating.toFixed(1) + '</b><span>OVR WITH CHEM</span>'), 'Waiting screen displays the validator effective rating');
     assert.match(rendered,/"hidden":true/);
-    assert.doesNotMatch(rendered,/opponent-public|Friend/);
+    assert.doesNotMatch(rendered,/opponent-public|@Friend/);
     assert.ok(!test.calls.some(c=>c.name==='get_async_challenge_result'), 'No opposing roster is requested before completion');
     completed=true;
     await test.api.loadChallengeInvitation(code);
     rendered=test.api.challengeHTML();
     assert.match(rendered,/@Friend/);
     assert.match(rendered,/duel-reveal/);
+    assert.equal(rendered.split('<b>' + result.effectiveRating.toFixed(1) + '</b><span>OVR WITH CHEM</span>').length - 1, 2, 'Both revealed rosters display chemistry-adjusted OVR');
+    assert.match(rendered, /<b>90<\/b><span>TEAM OVR<\/span>/, 'The saved server OVR is not replaced by the display calculation');
     assert.doesNotMatch(rendered,/"hidden":true/);
     assert.equal(test.calls.filter(c=>c.name==='get_async_challenge_result').length,1,'Refresh must check server completion even with a submitted local save');
     const other = makeContext({storageSeed:{'atu-active-challenge-v1':test.storage.getItem('atu-active-challenge-v1')}, href:'https://game.example/?challenge='+code,
@@ -252,6 +257,308 @@ async function run() {
     assert.doesNotMatch(html, />"/);
   }
 
+  for (const mode of ['signin', 'signup']) {
+    let oauth;
+    const test = makeContext({auth:{async signInWithOAuth(args){oauth=args;return {data:{}};}}});
+    await test.api.init();
+    test.api.setAuthMode(mode);
+    const view=test.api.accountHTML();
+    assert.ok(view.indexOf('Continue with Google') < view.indexOf('atu-auth-email'), 'Google is before the email form in both account modes');
+    assert.equal((view.match(/signInWithGoogle\(\)/g)||[]).length,1);
+    assert.match(view,/Game password/);
+    await test.api.signInWithGoogle();
+    assert.equal(oauth.provider,'google');
+    assert.equal(oauth.options.redirectTo,'https://game.example/index.html?auth=account');
+  }
+
+  {
+    const code='A1B2C3D4E5F60708';
+    const invitation={status:'open',creator_username:'Challenger',creator_public_id:'challenger-public'};
+    let oauth;
+    const guest=makeContext({href:'https://game.example/?challenge='+code,
+      rpc(){return {data:[invitation]};},
+      auth:{async signInWithOAuth(args){oauth=args;return {data:{}};}}});
+    await guest.api.init();
+    await guest.api.acceptChallenge();
+    assert.equal(guest.window.currentScreen,'account');
+    assert.ok(!guest.calls.some(c=>c.name==='accept_async_challenge'), 'Setup never claims the invitation');
+    guest.api.setAuthMode('signup');
+    assert.match(guest.api.accountHTML(),/BACK TO MY CHALLENGE/,'Switching to signup keeps the return link');
+    await guest.api.signInWithGoogle();
+    const callback=new URL(oauth.options.redirectTo);
+    assert.equal(callback.searchParams.get('challenge'),code);
+    assert.equal(callback.searchParams.get('next'),'challenge');
+
+    const profile={username:null,public_id:'new-player-public'};
+    const signedIn=makeContext({session:{user:{id:'new-player'}},href:callback.toString(),
+      storageSeed:{'atu-account-return-v1':guest.storage.getItem('atu-account-return-v1')},
+      rpc(name,args){
+        if(name==='get_my_profile')return {data:[profile]};
+        if(name==='get_async_challenge_invitation')return {data:[invitation]};
+        if(name==='set_username')profile.username=args.p_username;
+        if(name==='sync_cloud_save')return {data:[{outcome:'created',revision:1}]};
+        return {data:[]};
+      }});
+    await signedIn.api.init();
+    assert.match(signedIn.api.challengeHTML(),/CHOOSE MY USERNAME/);
+    assert.doesNotMatch(signedIn.api.challengeHTML(),/>ACCEPT CHALLENGE</);
+    await signedIn.api.acceptChallenge();
+    assert.equal(signedIn.window.currentScreen,'account');
+    signedIn.window.document.getElementById=id=>id==='atu-profile-username'?{value:'New_Player'}:null;
+    await signedIn.api.saveProfile();
+    assert.equal(signedIn.window.currentScreen,'challenge');
+    assert.match(signedIn.api.challengeHTML(),/>ACCEPT CHALLENGE</);
+    assert.equal(signedIn.storage.getItem('atu-account-return-v1'),null);
+    assert.ok(!signedIn.calls.some(c=>c.name==='accept_async_challenge'), 'Saving the username returns to the invitation without starting a draft');
+    assert.ok(signedIn.calls.filter(c=>c.name==='get_async_challenge_invitation').every(c=>c.args.p_code===code));
+  }
+
+  for(const destination of ['challenge','rankings','friends']) {
+    const guest=makeContext();await guest.api.init();
+    if(destination==='challenge')await guest.api.createChallenge();
+    else if(destination==='rankings') await guest.api.startRankedRun('pack');
+    else await guest.api.sendFriendRequest();
+    assert.equal(guest.window.currentScreen,'account');
+    const returning=makeContext({session:{user:{id:'returning-player'}},
+      storageSeed:{'atu-account-return-v1':guest.storage.getItem('atu-account-return-v1')},
+      rpc(name){
+        if(name==='get_my_profile')return {data:[{username:'Ready_Player'}]};
+        if(name==='sync_cloud_save')return {data:[{outcome:'created',revision:1}]};
+        return {data:[]};
+      }});
+    await returning.api.init();
+    assert.match(returning.api.accountHTML(),/You're ready to play!|You&#39;re ready to play!/);
+    await returning.api.continueAfterSetup();
+    assert.equal(returning.window.currentScreen,destination,'Setup survives a reload, including drafts without invite links yet');
+    assert.ok(!returning.calls.some(c=>/^create_/.test(c.name)),'Returning from setup does not create an unwanted run');
+  }
+
+  {
+    let now=100000, nextTimer=0;
+    const timers=new Map();
+    const clock={
+      Date:class extends Date { static now(){return now;} },
+      setTimeout(fn,delay){const id=++nextTimer;timers.set(id,{fn,at:now+delay});return id;},
+      clearTimeout(id){timers.delete(id);},
+      async advance(ms){
+        const target=now+ms;
+        for(;;){
+          const next=[...timers].filter(([,task])=>task.at<=target).sort((a,b)=>a[1].at-b[1].at)[0];
+          if(!next)break;
+          now=next[1].at;timers.delete(next[0]);await next[1].fn();
+        }
+        now=target;
+      }
+    };
+    const onlineId='11111111-1111-4111-8111-111111111111';
+    let friendsResult={data:[
+      {friend_public_id:onlineId,username:'Online_Player',relationship:'accepted',is_online:true,email:'private@example.invalid'},
+      {friend_public_id:'22222222-2222-4222-8222-222222222222',username:'Offline_Player',relationship:'accepted',is_online:false},
+      {friend_public_id:'33333333-3333-4333-8333-333333333333',username:'Incoming_Player',relationship:'incoming',is_online:true},
+      {friend_public_id:'44444444-4444-4444-8444-444444444444',username:'Outgoing_Player',relationship:'outgoing',is_online:true},
+      {friend_public_id:'55555555-5555-4555-8555-555555555555',username:'<img src=x onerror=alert(1)>',relationship:'outgoing'},
+      {friend_public_id:"bad-id');alert(1)",username:'Bad_Id',relationship:'accepted',is_online:true},null
+    ]};
+    let mutationError=false;
+    const test=makeContext({clock,session:{user:{id:'social-player'}},auth:{async signOut(){return {}; }},
+      rpc(name,args){
+        if(name==='get_my_profile')return {data:[{username:'Social_Player'}]};
+        if(name==='sync_cloud_save')return {data:[{outcome:'created',revision:1}]};
+        if(name==='get_friends')return friendsResult;
+        if(name==='change_friendship'){
+          if(mutationError)return {error:{message:'private SQL failure'}};
+          friendsResult={data:friendsResult.data.filter(row=>row?.friend_public_id!==args.p_friend_public_id)};
+          return {data:args.p_action==='accept'?'accepted':'removed'};
+        }
+        return {data:[]};
+      }});
+    const events={},input={value:'Still_typing'},submit={disabled:false};
+    const panels=['full','compact'].map(kind=>({innerHTML:'',getAttribute(){return kind;}}));
+    let noticeContent='',noticeWrites=0;
+    const notice={get innerHTML(){return noticeContent;},set innerHTML(value){noticeContent=value;noticeWrites++;}};
+    const badge={textContent:'',hidden:true};
+    test.window.document.visibilityState='visible';
+    test.window.document.addEventListener=(name,fn)=>{events[name]=fn;};
+    test.window.addEventListener=(name,fn)=>{events[name]=fn;};
+    test.window.document.querySelectorAll=selector=>selector==='[data-friends-panel]'?panels:selector==='[data-friend-count]'?[badge]:[];
+    test.window.document.getElementById=id=>id==='atu-friend-username'?input:id==='atu-friend-submit'?submit:id==='atu-friend-notices'?notice:null;
+    let fullRenders=0;
+    test.window.render=()=>{fullRenders++;};
+    await test.api.init();
+    const initialRenders=fullRenders;
+    test.api.onScreen('challenge');
+    await clock.advance(0);
+    const count=name=>test.calls.filter(c=>c.name===name).length;
+    assert.equal(count('touch_presence'),1);
+    assert.equal(count('get_friends'),1,'Entering 1v1 does not fetch the list twice');
+    assert.equal((panels[0].innerHTML.match(/Online now/g)||[]).length,1,'Pending requests never get an online badge, even with unexpected server data');
+    assert.match(panels[0].innerHTML,/Offline_Player/);
+    assert.match(panels[0].innerHTML,/&lt;img/);
+    assert.doesNotMatch(panels[0].innerHTML,/<img|Bad_Id|private@example/);
+    assert.match(panels[1].innerHTML,/1 online · 1 friend request/);
+    assert.doesNotMatch(panels[1].innerHTML,/Incoming_Player|Outgoing_Player/);
+    assert.match(notice.innerHTML,/@Incoming_Player/);
+    assert.doesNotMatch(notice.innerHTML,/Online now|private@example|Outgoing_Player/);
+    assert.equal(badge.textContent,'1');assert.equal(badge.hidden,false);
+    const mountedWrites=noticeWrites;
+    await clock.advance(15000);
+    assert.equal(noticeWrites,mountedWrites,'Unchanged requests preserve the mounted popup, hover and keyboard focus');
+    const beforeDismiss=test.calls.length;
+    test.api.dismissFriendInvite('33333333-3333-4333-8333-333333333333');
+    assert.equal(notice.innerHTML,'');
+    assert.equal(badge.textContent,'1','Later leaves the request available in Friends');
+    assert.equal(test.calls.length,beforeDismiss,'Later does not decline or send a server mutation');
+    friendsResult={data:[{friend_public_id:onlineId,username:'Online_Player',relationship:'accepted',is_online:false}]};
+    await clock.advance(15000);
+    assert.equal(count('touch_presence'),2);
+    assert.equal(count('get_friends'),3);
+    assert.doesNotMatch(panels[0].innerHTML,/Online now/);
+    assert.equal(input.value,'Still_typing','Background refresh preserves the form input');
+    assert.equal(fullRenders,initialRenders,'Presence updates do not rerender the draft or its picker');
+    assert.ok(test.calls.filter(c=>c.name==='touch_presence').every(c=>c.args===undefined),'Presence sends neither an identity nor a client clock');
+
+    test.window.navigator.onLine=false;events.offline();
+    assert.equal(timers.size,0);
+    assert.match(panels[0].innerHTML,/offline.*Reconnect/);
+    assert.doesNotMatch(panels[0].innerHTML,/Online now/);
+    assert.equal(submit.disabled,true);
+    await test.api.sendFriendRequest();await test.api.loadFriends(true);
+    await clock.advance(120000);
+    assert.equal(count('touch_presence'),2,'Offline devices stop heartbeats');
+    assert.equal(count('get_friends'),3,'Offline devices stop list polling');
+    assert.equal(count('request_friend'),0);
+    test.window.navigator.onLine=true;events.online();await clock.advance(0);
+    assert.equal(count('touch_presence'),3);
+    assert.equal(count('get_friends'),4,'Reconnecting reloads once immediately');
+    assert.equal(submit.disabled,false);
+    test.window.document.visibilityState='hidden';events.visibilitychange();
+    await clock.advance(60000);
+    assert.equal(count('touch_presence'),3,'Hidden tabs do not keep players online');
+    test.window.document.visibilityState='visible';events.visibilitychange();await clock.advance(0);
+    assert.equal(count('get_friends'),5);
+    test.api.onScreen('draft');await clock.advance(30000);
+    assert.equal(count('touch_presence'),5,'Playing solo still marks the signed-in player online');
+    assert.equal(count('get_friends'),7,'Friend requests are checked while playing other modes');
+
+    const firstInvite='33333333-3333-4333-8333-333333333333',secondInvite='66666666-6666-4666-8666-666666666666';
+    friendsResult={data:[
+      {friend_public_id:firstInvite,username:'<img src=x>',relationship:'incoming',is_online:null},
+      {friend_public_id:secondInvite,username:'Second_Invite',relationship:'incoming',is_online:null}
+    ]};
+    await clock.advance(15000);
+    assert.match(notice.innerHTML,/&lt;img src=x&gt;/,'New incoming requests surface on the draft page and escape usernames');
+    assert.doesNotMatch(notice.innerHTML,/<img|@Second_Invite/);
+    assert.equal(badge.textContent,'2');
+    test.api.dismissFriendInvite(firstInvite);
+    assert.match(notice.innerHTML,/@Second_Invite/,'Multiple requests appear one at a time');
+    await test.api.changeFriendship(secondInvite,'accept');
+    assert.equal(notice.innerHTML,'');
+    assert.equal(badge.textContent,'1');
+    assert.equal(fullRenders,initialRenders,'Accepting from the popup leaves the current draft and picker mounted');
+    friendsResult={data:[]};await test.api.loadFriends();
+    friendsResult={data:[{friend_public_id:firstInvite,username:'Returned_Invite',relationship:'incoming'}]};await test.api.loadFriends();
+    assert.match(notice.innerHTML,/@Returned_Invite/,'A new request from a previously dismissed player can appear again');
+    mutationError=true;await test.api.changeFriendship(firstInvite,'decline');
+    assert.match(notice.innerHTML,/That didn&#39;t work/);
+    assert.doesNotMatch(notice.innerHTML,/private SQL/);
+    mutationError=false;await test.api.changeFriendship(firstInvite,'decline');
+    assert.equal(notice.innerHTML,'');assert.equal(badge.hidden,true);
+
+    friendsResult={error:{message:'JWT private database details'}};
+    await test.api.loadFriends(true);
+    assert.match(panels[0].innerHTML,/Could not check friends/);
+    assert.doesNotMatch(panels[0].innerHTML,/JWT|private database|Online_Player/);
+    friendsResult={data:[{friend_public_id:firstInvite,username:'Last_Invite',relationship:'incoming'}]};await test.api.loadFriends();
+    assert.match(notice.innerHTML,/@Last_Invite/);
+    await test.api.signOut();
+    assert.equal(timers.size,0,'Signing out cancels presence polling');
+    assert.equal(notice.innerHTML,'','Signing out immediately clears the floating request');
+    assert.equal(badge.hidden,true);
+    assert.doesNotMatch(test.api.friendsHTML(),/Online_Player|SEND FRIEND REQUEST/);
+  }
+
+  {
+    const friendId='11111111-1111-4111-8111-111111111111';
+    let rows=[],requestResult={data:'sent'},changeResult={data:'accepted'};
+    const test=makeContext({session:{user:{id:'request-player'}},rpc(name){
+      if(name==='get_my_profile')return {data:[{username:'Request_Player'}]};
+      if(name==='sync_cloud_save')return {data:[{outcome:'created',revision:1}]};
+      if(name==='get_friends')return {data:rows};
+      if(name==='request_friend')return requestResult;
+      if(name==='change_friendship')return changeResult;
+      return {data:[]};
+    }});
+    const input={value:'ab'};
+    test.window.document.getElementById=id=>id==='atu-friend-username'?input:null;
+    await test.api.init();await test.api.loadFriends();
+    await test.api.sendFriendRequest();
+    assert.ok(!test.calls.some(c=>c.name==='request_friend'),'Invalid usernames stay client-side');
+    input.value=' @My_Brother ';
+    await test.api.sendFriendRequest();
+    assert.equal(test.calls.find(c=>c.name==='request_friend').args.p_username,'My_Brother');
+    assert.equal(input.value,'');
+    assert.match(test.api.friendsHTML(),/Friend request sent!/);
+    for(const [result,message] of [
+      [{data:'not_found'},/No player with that username/],
+      [{error:{message:'internal SQL details'}},/Could not send that request/],
+      [{error:{message:'Friend request rate limit'}},/Try again in an hour/]
+    ]){
+      input.value='Keep_My_Input';requestResult=result;
+      await test.api.sendFriendRequest();
+      assert.equal(input.value,'Keep_My_Input');
+      assert.match(test.api.friendsHTML(),message);
+      assert.doesNotMatch(test.api.friendsHTML(),/internal SQL details|Friend request rate limit/);
+    }
+    rows=[{friend_public_id:friendId,username:'Renamed_Brother',relationship:'incoming',is_online:null}];
+    await test.api.loadFriends();
+    await test.api.changeFriendship(friendId,'accept');
+    let mutation=test.calls.filter(c=>c.name==='change_friendship').at(-1);
+    assert.deepEqual({...mutation.args},{p_friend_public_id:friendId,p_action:'accept'},'Mutations use stable public IDs, not mutable usernames');
+    assert.match(test.api.friendsHTML(),/now friends/);
+    for(const action of ['decline','cancel','remove']){
+      rows=[{friend_public_id:friendId,username:'Renamed_Brother',relationship:action==='decline'?'incoming':action==='cancel'?'outgoing':'accepted'}];
+      await test.api.loadFriends();
+      changeResult={data:'removed'};
+      if(action==='remove'){
+        const before=test.calls.length;
+        test.window.confirm=()=>false;await test.api.changeFriendship(friendId,action);
+        assert.equal(test.calls.length,before,'Cancelling removal leaves the friendship untouched');
+        test.window.confirm=()=>true;
+      }
+      await test.api.changeFriendship(friendId,action);
+      mutation=test.calls.filter(c=>c.name==='change_friendship').at(-1);
+      assert.equal(mutation.args.p_action,action);
+    }
+    changeResult={error:{message:'private function failure'}};
+    await test.api.changeFriendship(friendId,'remove');
+    assert.match(test.api.friendsHTML(),/That didn&#39;t work/);
+    assert.doesNotMatch(test.api.friendsHTML(),/private function failure/);
+  }
+
+  {
+    let finishLoad;
+    const test=makeContext({session:{user:{id:'leaving-player'}},auth:{async signOut(){return {}; }},rpc(name){
+      if(name==='get_my_profile')return {data:[{username:'Leaving_Player'}]};
+      if(name==='sync_cloud_save')return {data:[{outcome:'created',revision:1}]};
+      if(name==='get_friends')return new Promise(resolve=>{finishLoad=resolve;});
+      return {data:[]};
+    }});
+    await test.api.init();
+    const pending=test.api.loadFriends();
+    await test.api.signOut();
+    finishLoad({data:[{friend_public_id:'11111111-1111-4111-8111-111111111111',username:'Previous_Account_Friend',relationship:'accepted',is_online:true}]});
+    await pending;
+    assert.doesNotMatch(test.api.friendsHTML(),/Previous_Account_Friend/,'A late response cannot restore a signed-out account’s friends');
+  }
+
+  {
+    const test=makeContext({href:'https://game.example/?auth=account&next=https://evil.example',
+      storageSeed:{'atu-account-return-v1':JSON.stringify({screen:'https://evil.example',createdAt:Date.now()})}});
+    await test.api.init();await test.api.continueAfterSetup();
+    assert.equal(test.window.currentScreen,undefined,'Only known in-game destinations may be restored');
+    assert.equal(test.storage.getItem('atu-account-return-v1'),null);
+  }
+
   {
     const test = makeContext({
       href: "https://game.example/index.html?challenge=A1B2C3D4E5F60708",
@@ -327,6 +634,10 @@ async function run() {
     });
     await test.api.init();
     assert.match(test.api.accountHTML(), /Which save do you want to keep\?/);
+    assert.match(test.api.challengeHTML(),/CHOOSE MY SAVE/);
+    await test.api.createChallenge();
+    assert.equal(test.window.currentScreen,'account');
+    assert.ok(!test.calls.some(c=>c.name==='create_async_challenge'));
     assert.equal(test.calls.some(call => call.name === "sync_cloud_save"), false);
     await test.api.resolveCloud("cloud");
     assert.equal(test.window.location.reloadCalled, true);

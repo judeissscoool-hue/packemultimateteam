@@ -7,6 +7,7 @@
   const CLOUD_META_KEY = "atu-cloud-meta-v1";
   const CLOUD_BACKUP_KEY = "atu-cloud-backup-v1";
   const ACTIVE_CHALLENGE_KEY = "atu-active-challenge-v1";
+  const ACCOUNT_RETURN_KEY = "atu-account-return-v1";
   const PROGRESS_KEYS = Object.freeze([
     "atu-save-v4",
     "atu-hs-v4",
@@ -33,6 +34,7 @@
     session: null,
     profile: null,
     authMode: "signin",
+    accountReturn: null,
     recovery: false,
     busy: false,
     message: "",
@@ -44,6 +46,7 @@
     syncTimer: null,
     engine: null,
     enginePromise: null,
+    friends: newFriendsState(null),
     challenge: {
       phase: "idle",
       code: "",
@@ -62,6 +65,12 @@
       error: ""
     }
   };
+
+  function newFriendsState(ownerId) {
+    return { ownerId, rows: [], status: "idle", message: "", query: "", busy: false,
+      loading: false, loadVersion: 0, lastCheckedAt: 0, lastPresenceAt: 0, timer: null, ticking: false,
+      dismissedInvites: new Set(), noticeError: null };
+  }
 
   function cfg() {
     return global.ATU_BACKEND_CONFIG || {};
@@ -111,10 +120,60 @@
     const target = new URL(override || global.location.href, global.location.href);
     target.hash = "";
     target.search = "";
-    const challengeCode = !forceAccount && state.challenge.code;
+    const challengeCode = !forceAccount && (state.challenge.code || state.accountReturn && state.accountReturn.code);
     if (challengeCode) target.searchParams.set("challenge", challengeCode);
     else target.searchParams.set("auth", "account");
+    if (!forceAccount && state.accountReturn) target.searchParams.set("next", state.accountReturn.screen);
     return target.toString();
+  }
+
+  function playerRequirement() {
+    if (!state.available) return { message: "Online play is taking a timeout. Classic Draft still works.", label: "PLAY CLASSIC DRAFT", screen: "draft" };
+    if (!state.session) return { message: "Sign in with Google or email to play online.", label: "SIGN IN TO PLAY" };
+    if (state.recovery) return { message: "Choose your new password before continuing.", label: "SET MY PASSWORD" };
+    if (!state.profile || !state.profile.username) return { message: "Choose a username so friends can find you.", label: "CHOOSE MY USERNAME" };
+    if (state.cloudStatus === "conflict") return { message: "Choose which save to keep before continuing. Your draft link is safe.", label: "CHOOSE MY SAVE" };
+    return null;
+  }
+
+  function openPlayerSetup(destination) {
+    const requirement = playerRequirement();
+    if (requirement && requirement.screen) {
+      if (typeof global.setScreen === "function") global.setScreen(requirement.screen);
+      return;
+    }
+    state.accountReturn = { screen: ["rankings", "friends"].includes(destination) ? destination : "challenge", code: state.challenge.code || "", createdAt: Date.now() };
+    try { writeJSON(ACCOUNT_RETURN_KEY, state.accountReturn); } catch (_) {}
+    if (typeof global.setScreen === "function") global.setScreen("account");
+  }
+
+  function playerRequirementHTML(destination) {
+    const requirement = playerRequirement();
+    if (!requirement) return "";
+    return '<aside class="play-requirement" role="status"><p>' + html(requirement.message) + '</p>'
+      + '<button class="btn primary" onclick="ATUBackend.openPlayerSetup(\'' + destination + '\')">' + requirement.label + '</button></aside>';
+  }
+
+  function accountJourneyHTML() {
+    const destination = state.accountReturn;
+    if (!destination) return "";
+    const requirement = playerRequirement();
+    return '<aside class="account-journey" role="status"><p>'
+      + html(requirement ? requirement.message : "You're ready to play!") + '</p>'
+      + '<button class="textbtn" onclick="ATUBackend.continueAfterSetup()">'
+      + (destination.screen === "friends" ? 'BACK TO MY FRIENDS' : destination.screen === "rankings" ? 'BACK TO THE LEADERBOARD' : requirement ? 'BACK TO MY CHALLENGE' : 'CONTINUE TO MY CHALLENGE') + '</button></aside>';
+  }
+
+  async function continueAfterSetup() {
+    const destination = state.accountReturn;
+    if (!destination) return;
+    const code = destination.code || state.challenge.code;
+    if (destination.screen === "challenge" && code) await loadChallengeInvitation(code);
+    if (typeof global.setScreen === "function") global.setScreen(destination.screen);
+    if (!playerRequirement()) {
+      state.accountReturn = null;
+      removeLocal(ACCOUNT_RETURN_KEY);
+    }
   }
 
   function readJSON(key, fallback) {
@@ -267,7 +326,9 @@
       state.profile = null;
       return null;
     }
+    const ownerId = state.session.user.id;
     const result = await state.client.rpc("get_my_profile");
+    if (state.session?.user.id !== ownerId) return null;
     if (result.error) throw result.error;
     state.profile = firstRow(result.data);
     return state.profile;
@@ -391,6 +452,7 @@
         updateCloudMeta({ revision: Number(remote.revision), userId: state.session.user.id, dirty: true });
         await pushSnapshot({ expectedRevision: Number(remote.revision) });
         setMessage("This device is now the current cloud save.", "ok");
+        await returnToPendingChallenge();
       }
     } catch (error) {
       state.cloudStatus = "error";
@@ -489,7 +551,7 @@
   }
 
   function classicDraftFinishHTML() {
-    return '<div class="duel-controls"><button class="btn gold" onclick="ATUBackend.submitChallenge()" '
+    return playerRequirementHTML("challenge") || '<div class="duel-controls"><button class="btn gold" onclick="ATUBackend.submitChallenge()" '
       + (state.busy ? 'disabled' : '') + '>' + (state.busy ? 'LOCKING IN…' : 'LOCK IN MY DRAFT')
       + '</button><small>Swap your players until you’re happy, then lock it in.</small></div>';
   }
@@ -527,6 +589,15 @@
     if (result.error) throw result.error;
     if (code !== state.challenge.code) return [];
     state.challenge.resultRows = Array.isArray(result.data) ? result.data : [];
+    if (state.challenge.resultRows.length) {
+      // Calculate display-only chemistry from the revealed, server-validated roster.
+      // The saved winner, OVR and win record remain authoritative.
+      const engine = await loadEngine();
+      if (code !== state.challenge.code) return [];
+      state.challenge.resultRows.forEach(function (row) {
+        try { row.displayResult = engine.calculateResult(row.roster); } catch (_) {}
+      });
+    }
     return state.challenge.resultRows;
   }
 
@@ -621,16 +692,8 @@
   }
 
   async function createChallenge() {
-    if (!state.session) {
-      setMessage("Sign in before creating a challenge.", "warn");
-      if (typeof global.setScreen === "function") global.setScreen("account");
-      return;
-    }
-    if (!state.profile || !state.profile.username) {
-      setMessage("Choose a username before creating a challenge.", "warn");
-      if (typeof global.setScreen === "function") global.setScreen("account");
-      return;
-    }
+    if (state.busy) return;
+    if (playerRequirement()) { openPlayerSetup("challenge"); return; }
     const existing = readActiveChallenge();
     if (existing && activeChallengeValid(existing)
       && !global.confirm("Start a new challenge and replace the unfinished challenge saved on this device?")) return;
@@ -653,17 +716,8 @@
   }
 
   async function startRankedRun(mode) {
-    if (!state.session) {
-      setMessage("Sign in before starting a ranked run.", "warn");
-      if (typeof global.setScreen === "function") global.setScreen("account");
-      return;
-    }
-    if (!state.profile || !state.profile.username) {
-      setMessage("Choose a username before starting a ranked run.", "warn");
-      if (typeof global.setScreen === "function") global.setScreen("account");
-      return;
-    }
     if (!['draft', 'pack'].includes(mode) || state.busy) return;
+    if (playerRequirement()) { openPlayerSetup("rankings"); return; }
     setBusy(true);
     state.challenge.error = "";
     try {
@@ -711,16 +765,8 @@
   async function acceptChallenge() {
     const invitation = state.challenge.invitation;
     if (!invitation || !state.challenge.code) return;
-    if (!state.session) {
-      setMessage("Sign in, then return to this challenge link to accept.", "warn");
-      if (typeof global.setScreen === "function") global.setScreen("account");
-      return;
-    }
-    if (!state.profile || !state.profile.username) {
-      setMessage("Choose a username before accepting a challenge.", "warn");
-      if (typeof global.setScreen === "function") global.setScreen("account");
-      return;
-    }
+    if (state.busy) return;
+    if (playerRequirement()) { openPlayerSetup("challenge"); return; }
     setBusy(true);
     try {
       const result = await state.client.rpc("accept_async_challenge", { p_code: state.challenge.code });
@@ -830,7 +876,8 @@
 
   async function submitChallenge() {
     const active = state.challenge.active;
-    if (!active || active.stage !== "arrange" || !state.session || state.busy) return;
+    if (!active || active.stage !== "arrange" || state.busy) return;
+    if (playerRequirement()) { openPlayerSetup("challenge"); return; }
     setBusy(true);
     state.challenge.error = "";
     try {
@@ -925,8 +972,238 @@
     }
   }
 
+  function socialIsActive() {
+    return !!(state.client && state.session && state.profile?.username && !state.recovery && state.visibleScreen
+      && global.document.visibilityState !== "hidden" && global.navigator.onLine !== false);
+  }
+
+  function syncFriendsIdentity() {
+    const ownerId = state.session?.user.id || null;
+    if (state.friends.ownerId !== ownerId) {
+      global.clearTimeout(state.friends.timer);
+      state.friends = newFriendsState(ownerId);
+      renderFriendNotices();
+    }
+  }
+
+  function friendNoticeHTML() {
+    const friends = state.friends;
+    if (!socialIsActive() || playerRequirement() || state.visibleScreen === "friends"
+      || friends.ownerId !== state.session.user.id || friends.status !== "ready") return "";
+    const pending = friends.rows.filter(row => row.relationship === "incoming" && !friends.dismissedInvites.has(row.friend_public_id));
+    const friend = pending[0];
+    if (!friend) return "";
+    const id = friend.friend_public_id, disabled = friends.busy ? ' disabled' : '';
+    return '<aside class="friend-notice" aria-label="Friend request"><div class="friend-notice-heading"><span>FRIEND REQUEST</span>'
+      + '<button class="textbtn" onclick="ATUBackend.dismissFriendInvite(\'' + id + '\')"' + disabled + '>LATER</button></div>'
+      + '<p><strong>@' + html(friend.username) + '</strong> wants to add you.</p>'
+      + (friends.noticeError?.id === id ? '<p class="friend-notice-error">' + html(friends.noticeError.message) + '</p>' : '')
+      + '<div class="friend-notice-actions"><button class="btn primary" onclick="ATUBackend.changeFriendship(\'' + id + '\',\'accept\')"' + disabled + '>ACCEPT</button>'
+      + '<button class="btn" onclick="ATUBackend.changeFriendship(\'' + id + '\',\'decline\')"' + disabled + '>DECLINE</button></div>'
+      + '<small>Accept to share online status.' + (pending.length > 1 ? ' ' + (pending.length - 1) + ' more waiting.' : '') + '</small></aside>';
+  }
+
+  function renderFriendNotices() {
+    const mount = global.document.getElementById("atu-friend-notices");
+    if (mount) {
+      const content = friendNoticeHTML();
+      // Keep the same popup mounted while polling so focus and hover do not reset.
+      if (mount.innerHTML !== content) mount.innerHTML = content;
+    }
+    const friends = state.friends;
+    const count = state.session && friends.ownerId === state.session.user.id && friends.status === "ready"
+      && global.navigator.onLine !== false ? friends.rows.filter(row => row.relationship === "incoming").length : 0;
+    global.document.querySelectorAll?.("[data-friend-count]").forEach(badge => {
+      badge.textContent = String(count);
+      badge.hidden = count === 0;
+    });
+  }
+
+  function dismissFriendInvite(publicId) {
+    if (state.friends.busy) return;
+    if (state.friends.rows.some(row => row.relationship === "incoming" && row.friend_public_id === publicId)) {
+      state.friends.dismissedInvites.add(publicId);
+      renderFriendNotices();
+    }
+  }
+
+  function renderFriendsPanels() {
+    // Refresh only these small panels: never reopen a draft picker or reset its animations.
+    global.document.querySelectorAll?.("[data-friends-panel]").forEach(function (panel) {
+      panel.innerHTML = friendsListHTML(panel.getAttribute("data-friends-panel") === "compact");
+    });
+    const submit = global.document.getElementById("atu-friend-submit");
+    if (submit) submit.disabled = state.friends.busy || global.navigator.onLine === false;
+    renderFriendNotices();
+  }
+
+  async function loadFriends(force) {
+    syncFriendsIdentity();
+    const friends = state.friends;
+    if (!state.client || !state.session || !state.profile?.username || global.navigator.onLine === false
+      || friends.busy || (friends.loading && !force)) return;
+    const version = ++friends.loadVersion;
+    friends.loading = true;
+    if (friends.status === "idle") { friends.status = "loading"; renderFriendsPanels(); }
+    try {
+      const result = await state.client.rpc("get_friends");
+      if (state.friends !== friends || version !== friends.loadVersion) return;
+      if (result.error) throw result.error;
+      friends.rows = (Array.isArray(result.data) ? result.data : []).filter(row =>
+        row && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(row.friend_public_id || "") && typeof row.username === "string"
+        && ["accepted", "incoming", "outgoing"].includes(row.relationship));
+      const incomingIds = new Set(friends.rows.filter(row => row.relationship === "incoming").map(row => row.friend_public_id));
+      for (const id of friends.dismissedInvites) if (!incomingIds.has(id)) friends.dismissedInvites.delete(id);
+      if (friends.noticeError && !incomingIds.has(friends.noticeError.id)) friends.noticeError = null;
+      friends.status = "ready";
+    } catch (_) {
+      if (state.friends !== friends || version !== friends.loadVersion) return;
+      friends.rows = [];
+      friends.status = "error";
+    } finally {
+      if (state.friends === friends && version === friends.loadVersion) {
+        friends.loading = false;
+        friends.lastCheckedAt = Date.now();
+        renderFriendsPanels();
+      }
+    }
+  }
+
+  function scheduleSocialActivity() {
+    syncFriendsIdentity();
+    const friends = state.friends;
+    if (!socialIsActive()) {
+      global.clearTimeout(friends.timer);
+      friends.timer = null;
+      return;
+    }
+    if (!friends.ticking && friends.timer === null) friends.timer = global.setTimeout(refreshSocialActivity, 0);
+  }
+
+  async function refreshSocialActivity() {
+    const friends = state.friends;
+    friends.timer = null;
+    if (!socialIsActive() || friends.ticking) return;
+    friends.ticking = true;
+    try {
+      if (Date.now() - friends.lastPresenceAt >= 30000) {
+        friends.lastPresenceAt = Date.now();
+        // No user IDs or client clocks are sent. Heartbeats remain best-effort.
+        try { await state.client.rpc("touch_presence"); } catch (_) {}
+      }
+      if (state.friends === friends && socialIsActive() && Date.now() - friends.lastCheckedAt >= 12000) await loadFriends();
+    } finally {
+      friends.ticking = false;
+      if (state.friends === friends && socialIsActive()) friends.timer = global.setTimeout(refreshSocialActivity, 15000);
+    }
+  }
+
+  async function sendFriendRequest(event) {
+    if (event) event.preventDefault();
+    if (playerRequirement()) { openPlayerSetup("friends"); return; }
+    syncFriendsIdentity();
+    const friends = state.friends;
+    if (friends.busy || global.navigator.onLine === false) return;
+    const input = global.document.getElementById("atu-friend-username");
+    const username = String(input?.value || "").trim().replace(/^@/, "");
+    friends.query = input?.value || "";
+    if (!/^[A-Za-z0-9_]{3,20}$/.test(username)) {
+      friends.message = "Enter their username: 3–20 letters, numbers or underscores.";
+      renderFriendsPanels();
+      return;
+    }
+    friends.busy = true;
+    friends.message = "";
+    renderFriendsPanels();
+    try {
+      const result = await state.client.rpc("request_friend", { p_username: username });
+      if (state.friends !== friends) return;
+      if (result.error) throw result.error;
+      const messages = { sent: "Friend request sent!", pending: "Your request is already waiting for them.",
+        incoming: "They sent you a request too. Accept it below.", already_friends: "You're already friends.",
+        not_found: "No player with that username. Check the spelling.", self: "That's your username. Add a friend instead.",
+        full: "This friends list is full. Remove an old request or friend first." };
+      friends.message = messages[result.data] || "Could not send that request. Try again.";
+      if (["sent", "pending", "incoming", "already_friends"].includes(result.data)) {
+        friends.query = "";
+        if (input) input.value = "";
+      }
+    } catch (error) {
+      if (state.friends === friends) friends.message = /rate limit/i.test(error?.message || "")
+        ? "You've sent lots of requests. Try again in an hour." : "Could not send that request. Try again.";
+    } finally {
+      if (state.friends === friends) { friends.busy = false; await loadFriends(true); renderFriendsPanels(); }
+    }
+  }
+
+  async function changeFriendship(publicId, action) {
+    if (playerRequirement()) { openPlayerSetup("friends"); return; }
+    syncFriendsIdentity();
+    const friends = state.friends;
+    const friend = friends.rows.find(row => row.friend_public_id === publicId);
+    if (!friend || friends.busy || global.navigator.onLine === false || !["accept", "decline", "cancel", "remove"].includes(action)) return;
+    if (action === "remove" && !global.confirm("Remove @" + friend.username + " from your friends?")) return;
+    friends.busy = true;
+    friends.message = "";
+    friends.noticeError = null;
+    renderFriendsPanels();
+    try {
+      const result = await state.client.rpc("change_friendship", { p_friend_public_id: publicId, p_action: action });
+      if (state.friends !== friends) return;
+      if (result.error) throw result.error;
+      friends.message = result.data === "accepted" ? "You're now friends!" : result.data === "removed"
+        ? (action === "remove" ? "Friend removed." : "Request cleared.") : "That request has changed. Check the updated list.";
+      if (["accepted", "removed"].includes(result.data)) friends.dismissedInvites.add(publicId);
+      else friends.noticeError = { id: publicId, message: friends.message };
+    } catch (_) {
+      if (state.friends === friends) {
+        friends.message = "That didn't work. Please try again.";
+        friends.noticeError = { id: publicId, message: friends.message };
+      }
+    } finally {
+      if (state.friends === friends) { friends.busy = false; await loadFriends(true); renderFriendsPanels(); }
+    }
+  }
+
+  function friendsListHTML(compact) {
+    if (!state.session || !state.profile?.username) return '<p>Sign in and choose a username to find your friends.</p><button class="btn" onclick="ATUBackend.openPlayerSetup(\'friends\')">FIND MY FRIENDS</button>';
+    if (global.navigator.onLine === false) return '<p role="status">You’re offline. Reconnect to check your friends.</p>';
+    const friends = state.friends;
+    if (friends.ownerId !== state.session.user.id || ["idle", "loading"].includes(friends.status)) return '<p role="status">Checking your friends…</p>';
+    const message = !compact && friends.message ? '<p class="friends-message" role="status">' + html(friends.message) + '</p>' : '';
+    if (friends.status === "error") return message + '<p role="status">Could not check friends right now.</p><button class="textbtn" onclick="ATUBackend.loadFriends(true)">TRY AGAIN</button>';
+    const accepted = friends.rows.filter(row => row.relationship === "accepted").sort((a,b) => Number(b.is_online === true) - Number(a.is_online === true) || a.username.localeCompare(b.username));
+    const incoming = friends.rows.filter(row => row.relationship === "incoming");
+    const outgoing = friends.rows.filter(row => row.relationship === "outgoing");
+    const actionButton = (row, action, label) => '<button class="btn" onclick="ATUBackend.changeFriendship(\'' + row.friend_public_id + "','" + action + '\')" ' + (friends.busy ? 'disabled' : '') + '>' + label + '</button>';
+    const rowsHTML = (rows, group) => '<ul class="friends-list">' + rows.map(row => '<li><div><strong>@' + html(row.username) + '</strong>'
+      + (group === "accepted" ? '<span class="friend-status' + (row.is_online === true ? ' online' : '') + '">' + (row.is_online === true ? 'Online now' : 'Offline') + '</span>' : '') + '</div>'
+      + (compact ? '' : '<div class="friend-actions">' + (group === "incoming" ? actionButton(row,"accept","ACCEPT") + actionButton(row,"decline","DECLINE")
+        : group === "outgoing" ? actionButton(row,"cancel","CANCEL REQUEST") : actionButton(row,"remove","REMOVE")) + '</div>') + '</li>').join('') + '</ul>';
+    if (compact) return '<p class="friends-count">' + accepted.filter(row=>row.is_online === true).length + ' online' + (incoming.length ? ' · ' + incoming.length + ' friend request' + (incoming.length === 1 ? '' : 's') : '') + '</p>'
+      + (accepted.length ? rowsHTML(accepted.slice(0,5),"accepted") : '<p>Add your friends to see who’s around.</p>')
+      + '<button class="textbtn" onclick="setScreen(\'friends\')">OPEN FRIENDS</button>';
+    return message + (incoming.length ? '<h3>Friend requests</h3>' + rowsHTML(incoming,"incoming") : '')
+      + '<h3>Your friends · ' + accepted.length + '</h3>' + (accepted.length ? rowsHTML(accepted,"accepted") : '<p>No friends yet. Add someone by their username above.</p>')
+      + (outgoing.length ? '<h3>Requests you sent</h3>' + rowsHTML(outgoing,"outgoing") : '');
+  }
+
+  function friendsHTML() {
+    const requirement = playerRequirementHTML("friends");
+    return '<section class="friends-wrap"><div class="friends-heading"><div><span class="eyebrow">YOUR PEOPLE</span><h2>Friends</h2></div><button class="btn gold" onclick="setScreen(\'challenge\')">GO TO 1V1</button></div>'
+      + (requirement || '<div class="accountcard"><form onsubmit="ATUBackend.sendFriendRequest(event)"><label>Add by username<input id="atu-friend-username" value="' + html(state.friends.query)
+        + '" oninput="ATUBackend.rememberFriendQuery(this.value)" placeholder="Your friend’s username" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="21" required></label><button id="atu-friend-submit" class="btn primary" type="submit" ' + (state.friends.busy || global.navigator.onLine === false ? 'disabled' : '') + '>SEND FRIEND REQUEST</button></form>'
+        + '<p class="friends-privacy">Adding or accepting a friend lets you see each other’s online status. Only accepted friends can see it.</p></div>'
+        + '<div class="friends-content" data-friends-panel="full">' + friendsListHTML(false) + '</div>'
+        + '<p class="friends-privacy">To play together, finish your 1v1 draft and send your friend the invite link. Requests and status refresh about every 15 seconds; players may appear online for up to two minutes after leaving.</p>') + '</section>';
+  }
+
   function onScreen(screenName) {
+    const previousScreen = state.visibleScreen;
     state.visibleScreen = screenName;
+    scheduleSocialActivity();
+    renderFriendNotices();
+    if (socialIsActive() && (state.friends.status === "idle" || (["friends", "challenge"].includes(screenName) && previousScreen !== screenName))) loadFriends();
     scheduleChallengeRefresh();
     if (screenName === "rankings" && state.rankings.status === "idle") loadRankings();
     if (screenName === "challenge" && state.challenge.phase === "idle") {
@@ -948,6 +1225,8 @@
     state.challenge.resultRows = [];
     state.challenge.error = "";
     state.challenge.swapSlot = null;
+    state.accountReturn = null;
+    removeLocal(ACCOUNT_RETURN_KEY);
     if (global.history && challengeCodeFromUrl()) {
       global.history.replaceState(null, "", global.location.pathname);
     }
@@ -969,9 +1248,13 @@
   }
 
   async function returnToPendingChallenge() {
+    if (playerRequirement()) return false;
+    if (state.accountReturn) {
+      await continueAfterSetup();
+      return true;
+    }
     const code = state.challenge.code || challengeCodeFromUrl();
-    if (!code || !state.session || state.cloudStatus === "conflict") return false;
-    if (!state.profile || !state.profile.username) return false;
+    if (!code) return false;
     await loadChallengeInvitation(code);
     if (typeof global.setScreen === "function") global.setScreen("challenge");
     return true;
@@ -988,6 +1271,16 @@
     }
     state.available = true;
     const callbackUrl = new URL(global.location.href);
+    const savedReturn = readJSON(ACCOUNT_RETURN_KEY, null);
+    if (savedReturn && ["challenge", "rankings", "friends"].includes(savedReturn.screen)
+      && Number.isFinite(savedReturn.createdAt) && Date.now() - savedReturn.createdAt >= 0
+      && Date.now() - savedReturn.createdAt < 86400000) {
+      state.accountReturn = { screen: savedReturn.screen, code: /^[A-F0-9]{16}$/.test(savedReturn.code || "") ? savedReturn.code : "", createdAt: savedReturn.createdAt };
+    } else removeLocal(ACCOUNT_RETURN_KEY);
+    const next = callbackUrl.searchParams.get("next");
+    if (["challenge", "rankings", "friends"].includes(next)) {
+      state.accountReturn = { screen: next, code: challengeCodeFromUrl(), createdAt: Date.now() };
+    }
     const callbackHash = new URLSearchParams(callbackUrl.hash.slice(1));
     const callbackError = callbackHash.get("error") || callbackHash.get("error_code")
       || callbackUrl.searchParams.get("error") || callbackUrl.searchParams.get("error_code");
@@ -1014,7 +1307,10 @@
       }
     });
     state.client.auth.onAuthStateChange(function (event, session) {
+      if (state.session?.user.id !== session?.user.id) state.profile = null;
       state.session = session;
+      syncFriendsIdentity();
+      scheduleSocialActivity();
       if (event === "PASSWORD_RECOVERY") {
         state.recovery = true;
         state.authMode = "recovery";
@@ -1032,9 +1328,21 @@
     const result = await state.client.auth.getSession();
     if (result.error && !callbackError) setMessage(errorText(result.error, "Could not restore your session."), "error");
     state.session = result.data && result.data.session || null;
+    syncFriendsIdentity();
     if (state.session) await refreshSignedInState();
     const challengeCode = challengeCodeFromUrl();
     if (challengeCode) await loadChallengeInvitation(challengeCode);
+    const refreshSocialAvailability = function () {
+      scheduleSocialActivity();
+      if (socialIsActive()) loadFriends(true);
+      else {
+        state.friends.status = "idle";
+        renderFriendsPanels();
+      }
+    };
+    global.document.addEventListener?.("visibilitychange", refreshSocialAvailability);
+    global.addEventListener?.("online", refreshSocialAvailability);
+    global.addEventListener?.("offline", refreshSocialAvailability);
     rerender();
   }
 
@@ -1161,9 +1469,12 @@
       const result = await state.client.auth.signOut({ scope: "local" });
       if (result.error) throw result.error;
       state.session = null;
+      syncFriendsIdentity();
       state.profile = null;
       state.cloudStatus = "offline";
       setMessage("Signed out. Your device progress is still available.", "ok");
+      state.accountReturn = null;
+      removeLocal(ACCOUNT_RETURN_KEY);
     } catch (error) {
       setMessage(errorText(error, "Could not sign out."), "error");
     } finally {
@@ -1255,16 +1566,19 @@
   }
 
   function duelMetricsHTML(result, count) {
+    const effective = result && Number.isFinite(result.effectiveRating) ? result.effectiveRating.toFixed(1) : "—";
     return '<div class="duel-metrics"><div><b>' + html(result ? result.teamOvr : '—') + '</b><span>TEAM OVR</span></div>'
+      + '<div><b>' + effective + '</b><span>OVR WITH CHEM</span></div>'
       + '<div><b>' + html(result ? result.projectedWins + '–' + (82 - result.projectedWins) : count + ' / 8') + '</b><span>' + (result ? 'PROJECTED RECORD' : 'PLAYERS DRAFTED') + '</span></div>'
-      + '<div><b>' + html(result ? '+' + result.chemistry : '—') + '</b><span>CHEMISTRY</span></div></div>';
+      + '<div><b>' + html(result && Number.isFinite(result.chemistry) ? '+' + result.chemistry.toFixed(1) : '—') + '</b><span>CHEMISTRY</span></div></div>';
   }
 
   function duelInviteHTML(ready) {
     return '<div class="duel-invite"><span class="eyebrow">CHALLENGE A FRIEND</span><h3>Who’s taking you on?</h3><p>'
       + (ready ? 'Send the link. Your friend drafts from the same choices, then both teams are revealed.' : 'Lock in your eight to get an invite link. Your friend then takes the same draft.') + '</p>'
       + (ready ? '<button class="btn primary" onclick="ATUBackend.copyChallengeLink()">COPY INVITE LINK</button><span class="duel-code">' + html(state.challenge.code) + '</span>'
-        : '<span class="duel-locked-link">INVITE UNLOCKS WHEN YOU FINISH</span>') + '</div>';
+        : '<span class="duel-locked-link">INVITE UNLOCKS WHEN YOU FINISH</span>')
+      + '<div class="duel-friends"><h4>Friends</h4><div data-friends-panel="compact">' + friendsListHTML(true) + '</div></div></div>';
   }
 
   function duelLayoutHTML(left, right, reveal) {
@@ -1325,8 +1639,8 @@
     const winnerId = rows[0].winner_public_id;
     const sides = rows.map(row => '<div class="duel-player' + (winnerId === row.player_public_id ? ' winner' : '') + '"><span>'
       + (winnerId === row.player_public_id ? 'WINNER' : winnerId ? 'FINAL TEAM' : 'DRAW') + '</span><h3>@' + html(row.username || 'Player') + '</h3></div>'
-      + '<div class="duel-metrics"><div><b>' + html(row.team_ovr) + '</b><span>TEAM OVR</span></div><div><b>' + html(row.projected_wins) + '–' + html(82 - row.projected_wins)
-      + '</b><span>PROJECTED RECORD</span></div></div>' + global.challengeCourtHTML(row.roster || {}));
+      + duelMetricsHTML(Object.assign({}, row.displayResult, { teamOvr: row.team_ovr, projectedWins: row.projected_wins }), 8)
+      + global.challengeCourtHTML(row.roster || {}));
     return challengeHeaderHTML('DRAFT DUEL · FINAL', winnerId ? 'The final buzzer.' : 'Dead even!', 'Both teams are locked. Here’s how your drafts stack up.')
       + duelLayoutHTML(sides[0], sides[1], true)
       + '<div class="challengeactions"><button class="btn gold" onclick="ATUBackend.resetChallenge()">RUN IT BACK</button></div>';
@@ -1345,7 +1659,7 @@
       const isCreator = state.profile && state.profile.public_id === invite.creator_public_id;
       const available = invite.status === 'open' && !isCreator;
       const left = '<div class="duel-player"><span>YOUR TEAM</span><h3>Answer the challenge</h3></div>'
-        + (available ? '<button class="btn gold" onclick="ATUBackend.acceptChallenge()" ' + (state.busy ? 'disabled' : '') + '>' + (state.session ? 'ACCEPT CHALLENGE' : 'SIGN IN TO PLAY') + '</button>'
+        + (available ? (playerRequirementHTML("challenge") || '<button class="btn gold" onclick="ATUBackend.acceptChallenge()" ' + (state.busy ? 'disabled' : '') + '>ACCEPT CHALLENGE</button>')
           : isCreator ? duelInviteHTML(true) : '<p class="duel-note">' + (invite.status === 'accepted' ? 'The draft is underway. Both teams appear here when it’s finished.' : 'This challenge is no longer open.') + '</p>')
         + global.challengeCourtHTML({});
       const right = '<div class="duel-player"><span>CHALLENGER</span><h3>@' + html(creator) + '</h3></div><p class="duel-note">Same choices. Their picks stay hidden until you lock in your team.</p>'
@@ -1356,7 +1670,7 @@
     if (['not_found', 'error'].includes(state.challenge.phase)) return challengeHeaderHTML('DRAFT DUEL', 'The challenge could not load', 'The link may have expired. Try again or start a new duel.')
       + challengeMessageHTML() + '<button class="btn" onclick="ATUBackend.resetChallenge()">BACK TO 1V1</button>';
     const left = '<div class="duel-player"><span>YOUR TEAM</span><h3>Classic Draft</h3></div><p class="duel-note">Pick your captain. Build your eight. Set your lineup.</p>'
-      + '<button class="btn gold" onclick="ATUBackend.createChallenge()" ' + (state.busy ? 'disabled' : '') + '>START MY DRAFT</button>' + global.challengeCourtHTML({});
+      + (playerRequirementHTML("challenge") || '<button class="btn gold" onclick="ATUBackend.createChallenge()" ' + (state.busy ? 'disabled' : '') + '>START MY DRAFT</button>') + global.challengeCourtHTML({});
     const right = '<div class="duel-player"><span>OPPONENT</span><h3>Your friend’s court</h3></div>' + duelInviteHTML(false) + global.challengeCourtHTML({}, {hidden:true});
     return challengeHeaderHTML('CHALLENGE A FRIEND', 'Draft Duel', 'Classic Draft on your side. A friend on the other. Compare your teams at the final buzzer.')
       + statusMessageHTML() + duelLayoutHTML(left, right);
@@ -1378,6 +1692,7 @@
       + '<div class="ranking-play"><article><span class="eyebrow">DRAFT</span><h3>Classic Draft</h3><p>Choose your captain and draft your eight.</p><button class="btn gold" onclick="setScreen(\'draft\')">PLAY CLASSIC DRAFT</button><button class="textbtn" onclick="ATUBackend.startRankedRun(\'draft\')">Play for the leaderboard</button></article>'
       + '<article><span class="eyebrow">PACKS</span><h3>Pack Mode</h3><p>Open packs and build your ultimate lineup.</p><button class="btn primary" onclick="setScreen(\'classic\')">PLAY PACK MODE</button><button class="textbtn" onclick="ATUBackend.startRankedRun(\'pack\')">Play for the leaderboard</button></article>'
       + '<article><span class="eyebrow">1V1</span><h3>Draft Duel</h3><p>Same picks. Two courts. Challenge a friend.</p><button class="btn primary" onclick="setScreen(\'challenge\')">CHALLENGE A FRIEND</button></article></div>'
+      + playerRequirementHTML("rankings")
       + rankingFilterHTML("modes", Object.keys(modes), modes, state.rankings.mode)
       + rankingFilterHTML("periods", Object.keys(periods), periods, state.rankings.period)
       + (state.rankings.status === "loading" ? '<div class="rankingempty">Loading the leaderboard…</div>'
@@ -1418,26 +1733,28 @@
   function signedOutHTML() {
     const signup = state.authMode === "signup";
     const forgot = state.authMode === "forgot";
-    return '<section class="accountwrap"><div class="accountintro"><div><span class="eyebrow">SAVE YOUR PROGRESS</span><h2>'
+    return '<section class="accountwrap auth-entry"><div class="accountintro"><div><span class="eyebrow">SAVE YOUR PROGRESS</span><h2>'
       + (forgot ? "Reset password" : signup ? "Create your account" : "Welcome back")
-      + '</h2><p>Keep your cards, trophies and records safe—and challenge your friends.</p></div></div>'
-      + '<div class="accountcard">' + statusMessageHTML()
+      + '</h2></div></div><div class="accountcard">'
+      + (forgot ? "" : '<button class="googlebtn" type="button" onclick="ATUBackend.signInWithGoogle()" ' + (state.busy ? "disabled" : "") + '><b aria-hidden="true">G</b> Continue with Google</button>'
+        + '<p class="auth-provider-note">New or returning? Use Google. No game password needed.</p>')
+      + statusMessageHTML() + accountJourneyHTML()
+      + (forgot ? "" : '<div class="accountor"><span>or use email</span></div>')
       + '<form onsubmit="' + (forgot ? "ATUBackend.sendPasswordReset(event)" : "ATUBackend.submitEmail(event)") + '">'
       + '<label>Email<input id="atu-auth-email" type="email" inputmode="email" autocomplete="email" required maxlength="254"></label>'
-      + (forgot ? "" : '<label>Password<input id="atu-auth-password" type="password" autocomplete="' + (signup ? "new-password" : "current-password") + '" required minlength="8" maxlength="128"></label>')
+      + (forgot ? "" : '<label>Game password<input id="atu-auth-password" type="password" autocomplete="' + (signup ? "new-password" : "current-password") + '" required minlength="8" maxlength="128"></label>')
       + '<button class="btn primary accountsubmit" type="submit" ' + (state.busy ? "disabled" : "") + ">"
-      + (state.busy ? "PLEASE WAIT…" : forgot ? "SEND RESET EMAIL" : signup ? "CREATE ACCOUNT" : "SIGN IN") + "</button></form>"
+      + (state.busy ? "PLEASE WAIT…" : forgot ? "SEND RESET EMAIL" : signup ? "CREATE ACCOUNT WITH EMAIL" : "SIGN IN WITH EMAIL") + "</button></form>"
       + (forgot ? '<button class="textbtn" onclick="ATUBackend.setAuthMode(\'signin\')">Back to sign in</button>'
-        : '<div class="accountor"><span>or</span></div><button class="googlebtn" onclick="ATUBackend.signInWithGoogle()" ' + (state.busy ? "disabled" : "") + '><b>G</b> Continue with Google</button>'
-          + '<div class="accountswitch">' + (signup ? "Already have an account? " : "New here? ")
+        : '<div class="accountswitch">' + (signup ? "Already have an account? " : "New here? ")
           + '<button onclick="ATUBackend.setAuthMode(\'' + (signup ? "signin" : "signup") + '\')">' + (signup ? "Sign in" : "Create account") + "</button></div>"
           + (!signup ? '<button class="textbtn" onclick="ATUBackend.setAuthMode(\'forgot\')">Forgot password?</button>' : ""))
-      + '<p class="accountfine">We will send a quick verification email. Your password stays private.</p></div></section>';
+      + (signup ? '<p class="accountfine">Signing up with email? Check your inbox to verify it.</p>' : "") + '</div></section>';
   }
 
   function recoveryHTML() {
     return '<section class="accountwrap"><div class="accountcard"><span class="eyebrow">PASSWORD RECOVERY</span><h2>Choose a new password</h2>'
-      + statusMessageHTML() + '<form onsubmit="ATUBackend.updatePassword(event)">'
+      + statusMessageHTML() + accountJourneyHTML() + '<form onsubmit="ATUBackend.updatePassword(event)">'
       + '<label>New password<input id="atu-new-password" type="password" autocomplete="new-password" minlength="8" maxlength="128" required></label>'
       + '<label>Confirm password<input id="atu-confirm-password" type="password" autocomplete="new-password" minlength="8" maxlength="128" required></label>'
       + '<button class="btn primary accountsubmit" type="submit" ' + (state.busy ? "disabled" : "") + '>UPDATE PASSWORD</button></form></div></section>';
@@ -1451,6 +1768,7 @@
       + html(profile.username ? "@" + profile.username : "Finish your profile")
       + '</h2><p>' + html(user.email || "Google account") + '</p></div>' + cloudStatusHTML() + '</div>'
       + statusMessageHTML()
+      + accountJourneyHTML()
       + (conflict ? '<div class="saveconflict"><h3>Which save do you want to keep?</h3><p>You have progress on this device and another save online. Nothing changes until you choose.</p><div><button class="btn primary" onclick="ATUBackend.resolveCloud(\'cloud\')" ' + (state.busy ? "disabled" : "") + '>USE ONLINE SAVE</button><button class="btn danger" onclick="ATUBackend.resolveCloud(\'device\')" ' + (state.busy ? "disabled" : "") + '>USE THIS DEVICE</button></div></div>' : "")
       + '<div class="accountgrid"><div class="accountcard"><h3>Your player</h3><p class="accountsub">This is the name friends will see in Draft Duels and The 82-0 Club.</p>'
       + '<form onsubmit="ATUBackend.saveProfile(event)"><label>Username<input id="atu-profile-username" value="' + html(profile.username || "") + '" autocomplete="username" maxlength="20" pattern="[A-Za-z0-9_]{3,20}" placeholder="3–20 letters, numbers or _" required></label>'
@@ -1482,6 +1800,12 @@
     applyClassicDraftAction: applyClassicDraftAction,
     classicDraftFinishHTML: classicDraftFinishHTML,
     rankingsHTML: rankingsHTML,
+    friendsHTML: friendsHTML,
+    dismissFriendInvite: dismissFriendInvite,
+    loadFriends: loadFriends,
+    sendFriendRequest: sendFriendRequest,
+    changeFriendship: changeFriendship,
+    rememberFriendQuery: function (value) { state.friends.query = String(value).slice(0,21); },
     onScreen: onScreen,
     submitEmail: submitEmail,
     sendPasswordReset: sendPasswordReset,
@@ -1490,6 +1814,8 @@
     signOut: signOut,
     saveProfile: saveProfile,
     setAuthMode: setAuthMode,
+    openPlayerSetup: openPlayerSetup,
+    continueAfterSetup: continueAfterSetup,
     resolveCloud: resolveCloud,
     noteLocalWrite: noteLocalWrite,
     loadChallengeInvitation: loadChallengeInvitation,
