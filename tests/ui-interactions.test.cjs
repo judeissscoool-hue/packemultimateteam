@@ -19,39 +19,40 @@ for (const match of source.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)) {
 }
 
 {
-  const handlers={},classes=new Set(),groups=[];
   let renders=0,scrolls=0,focusTarget=null;
-  const toggle={insideNav:true,attributes:{},setAttribute(key,value){this.attributes[key]=value;},focus(){focusTarget=this;}};
-  const bar={dataset:{},innerHTML:'',classList:{add:name=>classes.add(name),remove:name=>classes.delete(name),contains:name=>classes.has(name)},
-    querySelectorAll:()=>groups.filter(group=>group.open),contains:node=>node?.insideNav===true};
-  const document={activeElement:toggle,addEventListener(name,fn){handlers[name]=fn;}};
+  const selected={offsetLeft:560,offsetWidth:110,focus(options){focusTarget=options;}};
+  const rail={scrollLeft:0,clientWidth:330,querySelector:()=>selected};
+  const bar={dataset:{},innerHTML:'',querySelector:()=>selected,querySelectorAll:()=>[rail],contains:node=>node?.insideNav===true};
+  const document={activeElement:null};
   const draft={roster:{PG:42},activeSlot:'C'};
   const context=vm.createContext({document,screen:'landing',D:draft,esc:s=>s.replace(/&/g,'&amp;'),
-    $:selector=>selector==='#topnav'?bar:selector==='#nav-toggle'?toggle:null,
+    $:selector=>selector==='#topnav'?bar:null,
     window:{scrollTo(){scrolls++;}},render(){renders++;}});
   vm.runInContext(source.slice(source.indexOf('const TOP_NAV='),source.indexOf('/* ================= HUB')),context);
   context.renderTopNav();
-  const routes=[...bar.innerHTML.matchAll(/setScreen\('([^']+)'\)/g)].map(match=>match[1]);
-  for(const page of ['landing','draft','classic','daily','team','packs','rare','challenge','rankings','collection','rafters','trophies','account','friends','updates'])assert.ok(routes.includes(page),`${page} is reachable from the top bar`);
-  context.toggleTopNav();assert.ok(classes.has('menu-open'));assert.equal(toggle.attributes['aria-expanded'],'true');
-  context.renderTopNav();assert.ok(classes.has('menu-open'),'Routine renders keep an open menu usable');
-  handlers.click({target:{}});assert.ok(!classes.has('menu-open'));
-  context.toggleTopNav();
-  let prevented=false;
-  handlers.keydown({key:'Escape',preventDefault(){prevented=true;}});
-  assert.ok(prevented);assert.equal(focusTarget,toggle);assert.equal(toggle.attributes['aria-expanded'],'false');
-  const summary={insideNav:true,focus(){focusTarget=this;}};
-  const play={open:true,insideNav:true,matches:()=>true,querySelector:()=>summary};
-  const club={...play};groups.push(play,club);
-  handlers.toggle({target:club});assert.equal(play.open,false);assert.equal(club.open,true,'Only one dropdown stays open');
-  document.activeElement=summary;
-  handlers.keydown({key:'Escape',preventDefault(){}});assert.equal(club.open,false);assert.equal(focusTarget,summary);
+  assert.equal(rail.scrollLeft,340,'A selected tab outside the phone viewport is revealed');
+  assert.equal(focusTarget,null,'Rendering navigation must not steal focus from the game');
+  rail.scrollLeft=100;
+  context.renderTopNav();assert.equal(rail.scrollLeft,100,'Routine game renders preserve manual horizontal scrolling');
+  const getRoutes=()=>[...bar.innerHTML.matchAll(/setScreen\('([^']+)'\)/g)].map(match=>match[1]);
+  const primary=getRoutes(),routes=new Set(primary);
+  for(const page of primary){
+    context.setScreen(page);context.renderTopNav();
+    getRoutes().forEach(route=>routes.add(route));
+  }
+  for(const page of ['landing','draft','classic','daily','team','packs','rare','challenge','rankings','collection','rafters','trophies','account','friends','updates'])assert.ok(routes.has(page),`${page} is reachable through the top bar`);
+  document.activeElement={insideNav:true};
   for(const page of routes){
     context.setScreen(page);context.renderTopNav();
     assert.equal(context.screen,page);
     assert.ok(bar.innerHTML.includes(`onclick="setScreen('${page}')" aria-current="page"`));
   }
-  assert.equal(renders,routes.length);assert.equal(scrolls,routes.length);
+  assert.equal(focusTarget.preventScroll,true,'Keyboard navigation restores focus without scrolling the page');
+  assert.equal(renders,primary.length+routes.size);assert.equal(scrolls,renders);
+  selected.offsetLeft=0;context.setScreen('draft');context.renderTopNav();
+  assert.equal(rail.scrollLeft,0,'Navigation can reveal an earlier tab after swiping right');
+  assert.match(bar.innerHTML,/aria-current="location">Play/);
+  assert.match(bar.innerHTML,/aria-current="page">Classic Draft/);
   assert.deepEqual(draft,{roster:{PG:42},activeSlot:'C'},'Navigation never resets the draft or its open board');
 }
 console.log('UI interaction tests passed');

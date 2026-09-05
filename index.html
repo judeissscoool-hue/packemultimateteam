@@ -4870,44 +4870,29 @@ const TOP_NAV=[
   {screen:"rankings",label:"82-0 Club"},
   {label:"My Club",items:[["collection","Collection"],["rafters","The Rafters"],["trophies","Trophy Case"],["account","Account & Save"]]},
   {screen:"friends",label:"Friends"},
-  {screen:"updates",label:"What's New"}
+  {screen:"updates",label:"Info"}
 ];
 function renderTopNav(){
   const bar=$("#topnav");if(!bar||bar.dataset.screen===screen)return;
-  const pages=TOP_NAV.flatMap(item=>item.items||[[item.screen,item.label]]);
-  const current=pages.find(([page])=>page===screen)?.[1]||"Your lineup";
-  const link=(page,label)=>`<button class="nav-page${page===screen?" on":""}" onclick="setScreen('${page}')"${page===screen?' aria-current="page"':""}>${esc(label)}${page==="friends"?'<span class="nav-friend-count" data-friend-count hidden></span>':""}</button>`;
-  bar.innerHTML=`<div class="game-nav-inner"><span class="nav-current">${esc(current)}</span>
-    <button class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="nav-links" onclick="toggleTopNav()">☰ Menu<span class="nav-friend-count" data-friend-count hidden></span></button>
-    <div class="nav-links" id="nav-links">${TOP_NAV.map(item=>item.items
-      ?`<details class="nav-group"><summary${item.items.some(([page])=>page===screen)?' class="on"':""}>${esc(item.label)}<span aria-hidden="true">⌄</span></summary><div class="nav-dropdown">${item.items.map(([page,label])=>link(page,label)).join("")}</div></details>`
-      :link(item.screen,item.label)).join("")}</div></div>`;
-  bar.classList.remove("menu-open");
+  const restoreFocus=bar.contains(document.activeElement);
+  const active=TOP_NAV.find(item=>item.screen===screen||item.items?.some(([page])=>page===screen));
+  bar.innerHTML=`<div class="game-nav-inner"><div class="nav-rail">${TOP_NAV.map(item=>{
+    const selected=item===active,page=selected?screen:item.screen||item.items[0][0];
+    return `<button class="nav-tab${selected?" on":""}" data-nav-page="${page}" onclick="setScreen('${page}')"${selected?` aria-current="${item.items?"location":"page"}"`:""}>${esc(item.label)}${page==="friends"?'<span class="nav-friend-count" data-friend-count hidden></span>':""}</button>`;
+  }).join("")}</div>${active?.items?`<div class="nav-subpages" role="group" aria-label="${esc(active.label)} pages">${active.items.map(([page,label])=>
+    `<button class="nav-subpage${page===screen?" on":""}" data-nav-page="${page}" onclick="setScreen('${page}')"${page===screen?' aria-current="page"':""}>${esc(label)}</button>`
+  ).join("")}</div>`:""}</div>`;
   bar.dataset.screen=screen;
+  if(restoreFocus)bar.querySelector('[aria-current="page"]')?.focus({preventScroll:true});
+  // Reveal the current tab horizontally without moving the game page or taking focus.
+  bar.querySelectorAll(".nav-rail,.nav-subpages").forEach(rail=>{
+    const tab=rail.querySelector(".on");if(!tab)return;
+    const end=tab.offsetLeft+tab.offsetWidth;
+    if(tab.offsetLeft<rail.scrollLeft)rail.scrollLeft=tab.offsetLeft;
+    else if(end>rail.scrollLeft+rail.clientWidth)rail.scrollLeft=end-rail.clientWidth;
+  });
 }
-function closeTopNav(restoreFocus){
-  const bar=$("#topnav");if(!bar)return false;
-  const groups=[...bar.querySelectorAll("details[open]")],mobileOpen=bar.classList.contains("menu-open");
-  const trigger=mobileOpen?$("#nav-toggle"):groups[0]?.querySelector("summary");
-  groups.forEach(group=>{group.open=false;});
-  bar.classList.remove("menu-open");
-  $("#nav-toggle")?.setAttribute("aria-expanded","false");
-  if(restoreFocus&&trigger)trigger.focus();
-  return mobileOpen||groups.length>0;
-}
-function toggleTopNav(){
-  const bar=$("#topnav");if(!bar)return;
-  if(bar.classList.contains("menu-open"))closeTopNav();
-  else{bar.classList.add("menu-open");$("#nav-toggle")?.setAttribute("aria-expanded","true");}
-}
-document.addEventListener("click",event=>{const bar=$("#topnav");if(bar&&!bar.contains(event.target))closeTopNav();});
-document.addEventListener("keydown",event=>{if(event.key==="Escape"&&$("#topnav")?.contains(document.activeElement)&&closeTopNav(true))event.preventDefault();});
-document.addEventListener("toggle",event=>{
-  if(event.target.matches?.(".nav-group")&&event.target.open){
-    $("#topnav")?.querySelectorAll("details[open]").forEach(group=>{if(group!==event.target)group.open=false;});
-  }
-},true);
-function setScreen(s){closeTopNav();screen=s;render();window.scrollTo(0,0);}
+function setScreen(s){screen=s;render();window.scrollTo(0,0);}
 function renderTabs(){
   const bar=$("#tabs");if(!bar)return;
   let items;
