@@ -3106,17 +3106,13 @@ function collMatches(p){
   return p.name.toLowerCase().includes(COLL_Q)||p.team.toLowerCase().includes(COLL_Q)||String(p.ovr).includes(COLL_Q);
 }
 function collTile(p){
-  const got=!!T.seenCards[p.id];
-  if(!got){
-    return `<div class="ctile locked" title="Undiscovered">
-      <div class="ct-q">?</div>
-      <div class="ct-meta"><b>\u2014\u2014\u2014</b><span>${esc(p.tier.toUpperCase())}</span></div></div>`;
-  }
-  const art=cardArtURL(p);
-  return `<div class="ctile t-${p.tier}" onclick="${efxEligible(p)?`openEquip(${p.id})`:`openCardZoom(event,${p.id})`}">
-    ${art?`<img class="ct-art" src="${art}" ${cardArtFallbackAttr(p)} alt="">`:""}
-    <div class="ct-ovr">${p.ovr}</div>
-    <div class="ct-meta"><b>${esc(p.name)}</b><span>${esc(p.team)} \u00b7 ${esc(p.era)}</span></div></div>`;
+  const got=!!T.seenCards[p.id],art=got&&cardArtURL(p);
+  const action=efxEligible(p)?`openEquip(${p.id})`:`openCardZoom(event,${p.id})`;
+  return `<button type="button" class="ctile t-${p.tier}${got?"":" locked"}" onclick="${action}"
+    title="${esc(p.name)}${got?"":" · Undiscovered — preview card"}">
+    ${got?(art?`<img class="ct-art" src="${art}" ${cardArtFallbackAttr(p)} alt="">`:"")+`<div class="ct-ovr">${p.ovr}</div>`:`<div class="ct-q" aria-hidden="true">?</div>`}
+    <div class="ct-meta"><b>${esc(p.name)}</b><span>${esc(p.team)} · ${esc(p.era)}</span>
+      ${got?"":`<small>UNDISCOVERED</small>`}</div></button>`;
 }
 function collPool(){
   /* item filter spans every tier \u2014 an item you own may sit on a Gold and an Icon */
@@ -3784,6 +3780,7 @@ function equipHTML(){
     <div class="eqpreview">
       ${cardHTML(p)}
       <div style="flex:1;min-width:200px">
+        ${!T.seenCards[p.id]?`<p class="eqpreview-note">Undiscovered · Try your unlocked items here. Finding this player in a run adds them to your collection.</p>`:""}
         ${!efxEligible(p)?`<div class="eqempty">Effects only apply to Gold, Elite and Icon cards.</div>`:
           owned.length?`<div class="eqslots">
             ${slots.map(s=>{
@@ -4827,6 +4824,7 @@ function artStatus(filter){
 
 function hasArt(p){return CARD_ART.has(cardSlugFor(p));}
 function cardHTML(p,attrs,badge){
+  if(Number.isInteger(p))p=DB[p];
   /* front face: completely clean — no chemistry text */
   const art=cardArtURL(p);
   const variants=art?cardArtVariants(p):null;
@@ -4924,7 +4922,7 @@ function notice(msg){const n=$("#notice");if(!n)return;n.textContent=msg;
   clearTimeout(notice.t);notice.t=setTimeout(()=>{if($("#notice"))$("#notice").textContent="";},2600);}
 
 /* ================= NAV ================= */
-function setScreen(s){screen=s;render();ATUBackend.onScreen(s);window.scrollTo(0,0);}
+function setScreen(s){screen=s;render();window.scrollTo(0,0);}
 function renderTabs(){
   const bar=$("#tabs");if(!bar)return;
   let items;
@@ -5437,6 +5435,25 @@ function draftSlotHTML(slot){
   const tappable=D.stage==="picking"; /* picked cards can be swapped throughout the draft */
   return `<div class="slot-${slot}" style="position:relative${tappable?";cursor:pointer":""}" ${tappable?`onclick="draftSlotTap('${slot}')"`:""}><div class="${D.lastSlot===slot?"snapin":""}">${cardHTML(DB[pid])}</div>${tappable?`<div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:8px;letter-spacing:.15em;color:var(--cyan);pointer-events:none">TAP TO MOVE</div>`:""}</div>`;
 }
+/* Shared Classic Draft court for online drafts and completed duels. */
+function challengeCourtHTML(roster={},options={}){
+  const hidden=!!options.hidden;
+  const slotHTML=s=>{
+    const id=roster[s],filled=!hidden&&Number.isInteger(id)&&!!DB[id];
+    const next=!hidden&&options.nextSlot===s;
+    const action=filled&&options.interactive?`ATUBackend.selectChallengeSwap('${s}')`:next?"ATUBackend.openChallengePick()":"";
+    return `<div class="slot-${s} duel-slot${options.selectedSlot===s?" selected":""}" data-card-id="${filled?id:""}">
+      ${filled?cardHTML(id):`<div class="slot${next?" eligible":""}"><div class="postag">${s.startsWith("B")?"BN":s}</div><b>${hidden?"?":next?"YOUR PICK":"+"}</b><small>${hidden?"HIDDEN":next?"TAP TO DRAFT":""}</small></div>`}
+      ${action?`<button class="duel-slot-action${next?" duel-next":""}" onclick="${action}" aria-label="${filled?"Move "+esc(DB[id].name):"Draft "+s}">${filled?"TAP TO MOVE":""}</button>`:""}</div>`;
+  };
+  return `<div class="court duel-court${hidden?" duel-hidden":""}">
+    <svg class="squadweb" aria-hidden="true"></svg>
+    <h3>${hidden?"REVEALED WHEN BOTH TEAMS ARE LOCKED":options.title||"YOUR STARTING FIVE"}</h3>
+    <div class="fiveslots">${["C","PF","SF","SG","PG"].map(slotHTML).join("")}</div>
+    <div class="benchlabel">BENCH · ANY POSITION</div>
+    <div class="benchrow">${BENCH_SLOTS.map(slotHTML).join("")}</div>
+  </div>`;
+}
 function draftHTML(){
   reconcileDraftState();
   if(D.stage==="captain"){
@@ -5948,6 +5965,9 @@ function render(){
       <span>·</span><span>Fan-made sandbox — not affiliated with or endorsed by the NBA, its teams, or players.</span>
     </footer>`;
   ATUVisuals.onRender(screen);
+  ATUBackend.onScreen(screen);
+  const duelDialog=$("#duel-pick-dialog");
+  if(duelDialog&&!duelDialog.open)duelDialog.showModal();
   /* the collection grid is painted after mount so a big tier doesn't block the page */
   if(screen==="collection"&&typeof renderCollGrid==="function")
     (window.requestAnimationFrame||setTimeout)(()=>renderCollGrid());
@@ -5979,16 +5999,18 @@ function pairLinkKind(a,b){ /* strongest shared chemistry between two starters *
   return era?"era":style?"style":null;
 }
 function drawSquadWeb(){
-  const svg=$(".squadweb");if(!svg)return;
+  document.querySelectorAll(".squadweb").forEach((svg,index)=>{
   const court=svg.closest(".court"),cr=court.getBoundingClientRect();
   if(cr.width)svg.setAttribute("viewBox",`0 0 ${cr.width} ${cr.height}`);
-  const roster=screen==="draft"?D.roster:screen==="daily"?(DD?DD.roster:emptyRoster()):screen==="share"&&SHARED?SHARED.roster:S[sideFor(screen)].roster;
+  const roster=court.classList.contains("duel-court")?Object.fromEntries(ALL_SLOTS.map(s=>{
+    const id=court.querySelector(".slot-"+s)?.dataset.cardId;return [s,id?Number(id):null];
+  })):screen==="draft"?D.roster:screen==="daily"?(DD?DD.roster:emptyRoster()):screen==="share"&&SHARED?SHARED.roster:S[sideFor(screen)].roster;
   const pts={};
   STARTER_SLOTS.forEach(s=>{const el=court.querySelector(".slot-"+s);if(!el)return;
     const r=el.getBoundingClientRect();
     pts[s]={x:r.left-cr.left+r.width/2,y:r.top-cr.top+r.height/2};});
   const fw=(cr.width||600),fh=(cr.height||400);
-  const defs=`<defs><filter id="webneon" filterUnits="userSpaceOnUse" x="-60" y="-60" width="${(fw+120).toFixed(0)}" height="${(fh+120).toFixed(0)}">
+  const defs=`<defs><filter id="webneon${index}" filterUnits="userSpaceOnUse" x="-60" y="-60" width="${(fw+120).toFixed(0)}" height="${(fh+120).toFixed(0)}">
     <feGaussianBlur in="SourceGraphic" stdDeviation="4.5" result="b"/>
     <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
   </filter></defs>`;
@@ -6001,10 +6023,11 @@ function drawSquadWeb(){
     if(roster[A]!=null&&roster[B]!=null){
       const k=pairLinkKind(DB[roster[A]],DB[roster[B]]);
       if(k){const c=WEB_COLORS[k];
-        blue+=seg("core-"+k,`class="core-${k}" stroke="${c}" stroke-width="3" opacity="0.9" stroke-linecap="round" filter="url(#webneon)"`);}
+        blue+=seg("core-"+k,`class="core-${k}" stroke="${c}" stroke-width="3" opacity="0.9" stroke-linecap="round" filter="url(#webneon${index})"`);}
     }
   }
   svg.innerHTML=defs+grey+blue;
+  });
 }
 window.addEventListener("resize",()=>drawSquadWeb());
 function initArena(){
