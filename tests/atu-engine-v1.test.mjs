@@ -54,7 +54,7 @@ function validTranscript(seed, mode = "draft") {
 }
 
 const seed = "0123456789abcdef".repeat(4);
-assert.equal(ENGINE_VERSION, "atu-challenge-v2");
+assert.equal(ENGINE_VERSION, "atu-challenge-v3");
 const first = createDraftManifest(seed);
 const second = createDraftManifest(seed);
 assert.deepEqual(first, second);

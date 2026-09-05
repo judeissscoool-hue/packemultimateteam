@@ -16,6 +16,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.2/dist/umd/supabase.js"
   integrity="sha384-OUpie84zd1LdwNlK9uJJQRwab0BLqo3eKYKFh7hSVL58FSk7wPp2l0kfUMIIoaQd"
   crossorigin="anonymous"></script>
+<script src="./supabase/functions/_shared/classic-draft.js"></script>
 <script src="./backend.js"></script>
 <style>
 /* ============ TOKENS: arena at night ============ */
@@ -2189,12 +2190,6 @@ function nearMissHTML(o){
 /* draft option weights (kept generous so drafts feel good) */
 const DRAFT_ODDS={Bronze:.14,Silver:.40,Gold:.40,Elite:.04,Icon:.02};
 const DRAFT_LIMITS={Icon:2,Elite:4}; /* per draft, captain included */
-function draftDowngrade(t,counts){
-  const order=["Icon","Elite","Gold"];
-  let i=order.indexOf(t);
-  while(i>-1&&i<2&&DRAFT_LIMITS[order[i]]&&(counts[order[i]]||0)>=DRAFT_LIMITS[order[i]])i++;
-  return i===-1?t:order[i]||t;
-}
 /* CLASSIC MODE: balanced drop curve with hard high-tier ceilings per session */
 const CLASSIC_ODDS={Bronze:.37,Silver:.425,Gold:.16,Elite:.037,Icon:.008};
 const CLASSIC_PREMIUM_ODDS={Silver:.525,Gold:.35,Elite:.10,Icon:.025};
@@ -2250,12 +2245,6 @@ function beginDraftFairSession(){
   }
   persistDraftFair();
 }
-function draftRecencyWeight(name){
-  const last=DRAFT_NAME_LAST[name];
-  if(last===undefined)return 1;
-  const age=DRAFT_FAIR_SESSION-last;
-  return age<=0?0.001:age===1?0.012:age===2?0.05:age===3?0.12:age===4?0.24:age===5?0.40:age===6?0.58:age===7?0.76:age===8?0.90:1;
-}
 function weightedIndex(weights,rng){
   const R=rng||Math.random,total=weights.reduce((a,b)=>a+b,0);
   if(!(total>0))return Math.floor(R()*weights.length);
@@ -2263,59 +2252,7 @@ function weightedIndex(weights,rng){
   for(let i=0;i<weights.length;i++){r-=weights[i];if(r<0)return i;}
   return weights.length-1;
 }
-function draftFairPick(pool,hardBlocked,softBlocked,rng){
-  if(!pool.length)return null;
-  const R=rng||Math.random,byName={};
-  pool.forEach(p=>(byName[p.name]=byName[p.name]||[]).push(p));
-  const hard=hardBlocked||new Set(),soft=softBlocked||new Set();
-  let names=Object.keys(byName).filter(n=>!hard.has(n)&&!soft.has(n));
-  if(!names.length)names=Object.keys(byName).filter(n=>!hard.has(n)); /* only repeat if the tier/slot forces it */
-  if(!names.length)return null;
-  const minShown=Math.min(...names.map(n=>DRAFT_NAME_SHOWN[n]||0));
-  const weights=names.map(n=>{
-    const gap=(DRAFT_NAME_SHOWN[n]||0)-minShown;
-    return Math.pow(0.32,gap)*draftRecencyWeight(n)*Math.sqrt(SPOTLIGHT[n]??1);
-  });
-  const name=names[weightedIndex(weights,R)],versions=byName[name];
-  const minCard=Math.min(...versions.map(p=>DRAFT_CARD_SHOWN[p.id]||0));
-  const fairest=versions.filter(p=>(DRAFT_CARD_SHOWN[p.id]||0)<=minCard);
-  const card=fairest[Math.floor(R()*fairest.length)];
-  DRAFT_NAME_SHOWN[name]=(DRAFT_NAME_SHOWN[name]||0)+1;
-  DRAFT_NAME_LAST[name]=DRAFT_FAIR_SESSION;
-  DRAFT_CARD_SHOWN[card.id]=(DRAFT_CARD_SHOWN[card.id]||0)+1;
-  return card;
-}
-/* players flagged as collection-depth (very low spotlight) are kept OUT of draft boards
-   and pack pulls so the ~150 modern deep-bench names don't dilute what you're offered.
-   They remain in DB for roster completeness, discovery credits and franchise dailies. */
 function isDepthOnly(p){return (SPOTLIGHT[p.name]??1)<=0.15;}
-function draftableEra(t){return eraPool(t).filter(p=>!isDepthOnly(p));}
-function draftOptionsFor(slot,takenIds,counts,seenNames,rng){
-  const opts=[],hard=new Set((takenIds||[]).map(id=>DB[id].name));
-  const soft=new Set(seenNames||[]);let guard=0;
-  while(opts.length<5&&guard++<500){
-    const t=draftDowngrade(rollTier(DRAFT_ODDS,rng),counts||{});
-    const pool=draftableEra(t).filter(p=>eligible(p,slot));
-    const boardHard=new Set([...hard,...opts.map(o=>o.name)]);
-    const p=draftFairPick(pool,boardHard,soft,rng);
-    if(p){opts.push(p);soft.add(p.name);}
-  }
-  persistDraftFair();
-  return opts;
-}
-function draftCaptainOptions(rng){
-  const R=rng||Math.random,out=[],hard=new Set(),soft=new Set();let guard=0;
-  /* era-aware anchor tiers: prefer Icon/Elite, but fall back to the best tiers the era HAS */
-  let anchorTiers=["Icon","Elite"].filter(t=>eraPool(t).length>0);
-  if(!anchorTiers.length)anchorTiers=TIER_ORDER.slice().reverse().filter(t=>eraPool(t).length>0).slice(0,2);
-  while(out.length<3&&guard++<400){
-    const t=anchorTiers[Math.floor(R()*anchorTiers.length)]||anchorTiers[0];
-    const p=draftFairPick(eraPool(t),hard,soft,R);
-    if(p){out.push(p);hard.add(p.name);soft.add(p.name);}
-  }
-  persistDraftFair();
-  return out;
-}
 /* shared Captain Pack helper for Pack Mode: retains pack pull-memory behaviour. */
 function classicCaptainOptions(owned,rng){
   PACK_NO++;
@@ -5286,7 +5223,17 @@ function confetti(n,palette){
 /* v35 state invariant: older/touch-interrupted sessions could retain selected IDs
    in D.taken while losing their slot assignment. Rebuild those orphan selections
    into legal empty slots before rendering, then derive completion from the court. */
+function activeDraft(){return screen==="challenge"&&ATUBackend.classicDraftState()||D;}
+function localDraftRules(){return ATUDraftRules.create({cards:DB,weights:SPOTLIGHT,pool:eraPool,
+  fair:{shown:DRAFT_NAME_SHOWN,last:DRAFT_NAME_LAST,cards:DRAFT_CARD_SHOWN,session:DRAFT_FAIR_SESSION}});}
+function applyDraftAction(event){
+  if(screen==="challenge"&&ATUBackend.classicDraftState())return ATUBackend.applyClassicDraftAction(event);
+  try{localDraftRules().apply(D,event);persistDraftFair();return true;}
+  catch(error){notice(error.message);return false;}
+}
+function closeDraftPick(){const D=activeDraft();D.activeSlot=null;D.opts=null;render();}
 function reconcileDraftState(){
+  const D=activeDraft();
   D.roster=D.roster||emptyRoster();
   ALL_SLOTS.forEach(s=>{if(!(s in D.roster))D.roster[s]=null;});
   D.taken=Array.isArray(D.taken)?D.taken.filter(id=>DB[id]):[];
@@ -5322,14 +5269,11 @@ function doDraftReset(){closeSheet();startDraft(DRAFT_ERA);}
 function startDraft(era){
   DRAFT_ERA=era||null;
   beginDraftFairSession();
-  const captain=draftCaptainOptions();
-  D={stage:"captain",captain,roster:emptyRoster(),taken:[],opts:null,slotOpts:{},activeSlot:null,lastSlot:null,done:false,tierCounts:{},offeredNames:captain.map(p=>p.name)};
+  D=localDraftRules().start();persistDraftFair();
   render();
 }
 function pickCaptain(pid){
-  const p=DB[pid];
-  D.tierCounts[p.tier]=(D.tierCounts[p.tier]||0)+1; /* Icon captain spends an Icon slot */
-  D.roster[p.pos]=pid;D.taken.push(pid);D.lastSlot=p.pos;D.stage="picking";
+  if(!applyDraftAction({type:"captain",cardId:pid}))return;
   reconcileDraftState();render();
 }
 /* A slot whose five options have been revealed but not yet spent. Only one may exist
@@ -5337,36 +5281,32 @@ function pickCaptain(pid){
    every empty slot to reveal all forty cards (options are cached, so Cancel never
    re-rolls), then cherry-pick the best whole roster — which trivialised the draft. */
 function draftPendingSlot(){
+  const D=activeDraft();
   if(!D||!D.slotOpts)return null;
   return ALL_SLOTS.find(s=>D.slotOpts[s]&&D.roster[s]==null)||null;
 }
 function draftSlotTap(slot){
+  const D=activeDraft();
   if(D.stage!=="picking")return;
   if(D.roster[slot]!=null){openDraftSwap(slot);return;} /* rearrange legal occupied slots at any point */
   const pend=draftPendingSlot();
   if(pend&&pend!==slot){
     notice("Finish the "+(SLOT_LABEL[pend]||pend)+" pick first — one slot at a time.");return;}
-  D.activeSlot=slot;
-  if(!D.slotOpts[slot]){
-    D.slotOpts[slot]=draftOptionsFor(slot,D.taken,D.tierCounts,D.offeredNames); /* cached: no re-roll via Cancel */
-    D.offeredNames=[...new Set([...(D.offeredNames||[]),...D.slotOpts[slot].map(p=>p.name)])];
-  }
-  D.opts=D.slotOpts[slot];
+  if(!applyDraftAction({type:"open",slot}))return;
   render();
 }
-function draftCapHit(tier){return DRAFT_LIMITS[tier]&&(D.tierCounts[tier]||0)>=DRAFT_LIMITS[tier];}
+function draftCapHit(tier){
+  const D=activeDraft();return DRAFT_LIMITS[tier]&&(D.tierCounts[tier]||0)>=DRAFT_LIMITS[tier];}
 function draftPickInto(pid){
-  const slot=D.activeSlot;if(!slot||D.roster[slot]!=null)return;
-  const p=DB[pid];
-  if(D.taken.some(id=>DB[id].name===p.name)){notice(p.name+" is already on your board.");return;}
-  if(draftCapHit(p.tier)){notice(p.tier+" cap reached ("+DRAFT_LIMITS[p.tier]+" per draft).");return;}
-  if(DRAFT_LIMITS[p.tier])D.tierCounts[p.tier]=(D.tierCounts[p.tier]||0)+1;
-  D.roster[slot]=pid;D.taken.push(pid);D.lastSlot=slot;D.activeSlot=null;D.opts=null;
-  if(reconcileDraftState()){
+  const D=activeDraft();
+  if(!applyDraftAction({type:"pick",cardId:pid}))return;
+  const completed=reconcileDraftState();
+  if(completed)confetti(80);
+  if(completed&&screen==="draft"){
     D.done=true; /* stay on the court \u2014 no summary screen */
     const o=teamOVR(D.roster),pr=projection(o.eff);
     if(!DRAFT_ERA&&o.total>HS.draft.ovr){HS.draft.ovr=o.total;HS.draft.wins=pr.wins;saveHS();} /* era runs don't set the all-time best */
-    T.stats.drafts++;trophyRoster("draft",D.roster,{eraLocked:!!DRAFT_ERA});confetti(80);
+    T.stats.drafts++;trophyRoster("draft",D.roster,{eraLocked:!!DRAFT_ERA});
     if(typeof creditsForRun==="function"){creditsForRun("draft");if(!DRAFT_ERA)creditsForRecord(pr.wins);}
   }
   render(); /* re-render snaps the card in + relights the chemistry web */
@@ -5376,6 +5316,7 @@ function draftPickInto(pid){
    excluded: moving into them would reopen cached position boards and reintroduce
    the reveal/cherry-pick exploit. The same rules remain available after pick eight. */
 function openDraftSwap(slot){
+  const D=activeDraft();
   const cur=DB[D.roster[slot]];
   const fromBench=BENCH_SLOTS.includes(slot);
   /* A starter destination is only offered when the swap is legal BOTH ways:
@@ -5411,13 +5352,14 @@ function openDraftSwap(slot){
   $("#sheet").onclick=e=>{if(e.target.id==="sheet")closeSheet();};
 }
 function doDraftSwap(a,b){
+  const D=activeDraft();
   const pa=DB[D.roster[a]],pb=DB[D.roster[b]];
   /* legal if the moving player fits the destination and the displaced player fits
      the vacated slot (bench always fits, so moving up from bench is fine) */
   if(!eligible(pa,b)||!eligible(pb,a)){notice("Those positions don't fit.");return;}
-  [D.roster[a],D.roster[b]]=[D.roster[b],D.roster[a]];
-  D.lastSlot=b;closeSheet();
-  if(D.done){
+  if(!applyDraftAction({type:"swap",from:a,to:b}))return;
+  closeSheet();
+  if(D.done&&screen==="draft"){
     const o=teamOVR(D.roster),pr=projection(o.eff);
     if(!DRAFT_ERA&&o.total>HS.draft.ovr){HS.draft.ovr=o.total;HS.draft.wins=pr.wins;saveHS();}
     trophyRoster("draft",D.roster,{eraLocked:!!DRAFT_ERA});
@@ -5426,6 +5368,7 @@ function doDraftSwap(a,b){
   notice(esc(pa.name)+" \u2192 "+SLOT_LABEL[b]+".");
 }
 function draftSlotHTML(slot){
+  const D=activeDraft();
   const pid=D.roster[slot],p=slotPos(slot);
   if(pid==null){
     const pend=draftPendingSlot(),locked=pend&&pend!==slot;
@@ -5455,6 +5398,8 @@ function challengeCourtHTML(roster={},options={}){
   </div>`;
 }
 function draftHTML(){
+  const D=activeDraft();
+  const online=screen==="challenge",draftEra=online?null:DRAFT_ERA;
   reconcileDraftState();
   if(D.stage==="captain"){
     return `<div class="result"><h2 class="disp" style="font-size:22px;color:var(--dim)">Choosing your captain…</h2></div>`;
@@ -5476,7 +5421,7 @@ function draftHTML(){
   const ovr=teamOVR(D.roster),pr=projection(ovr.eff);
   const filled=ALL_SLOTS.filter(s=>D.roster[s]!=null).length;
   return `
-  ${DRAFT_ERA?`<div class="erabadge">◷ ${eraLabel(DRAFT_ERA)} ERA DRAFT · practice mode — doesn\u2019t count toward records</div>`:""}
+  ${draftEra?`<div class="erabadge">◷ ${eraLabel(draftEra)} ERA DRAFT · practice mode — doesn\u2019t count toward records</div>`:""}
   <div class="panel" style="margin-bottom:12px"><div class="scoreboard">
     <div class="ovrbig">${ovr.total}<small>TEAM OVR</small><small class="exact">${ovr.eff.toFixed(1)+(ovr.full?" Ovr w Chem":" Ovr w Chem · so far")}</small></div>
     <div><div class="projrow">
@@ -5502,17 +5447,17 @@ function draftHTML(){
     <div class="benchrow">${BENCH_SLOTS.map(s=>draftSlotHTML(s)).join("")}</div>
   </div>
   ${(!D.done&&D.stage==="picking")?`<div class="draftctl">
-    <button class="btn danger" onclick="confirmDraftReset()">\u21ba Restart draft</button>
+    <button class="btn danger" onclick="${online?"ATUBackend.resetChallenge()":"confirmDraftReset()"}">\u21ba Restart draft</button>
     <button class="btn" onclick="setScreen('landing')">Exit to modes</button>
-    <span class="draftctl-note">${filled} of 8 locked in${DRAFT_ERA?` \u00b7 ${eraLabel(DRAFT_ERA)} era`:""}</span>
+    <span class="draftctl-note">${filled} of 8 locked in${draftEra?` \u00b7 ${eraLabel(draftEra)} era`:""}</span>
   </div>`:""}
-  ${D.done?`<div style="display:flex;gap:10px;justify-content:center;margin-top:12px">
+  ${D.done?(online?ATUBackend.classicDraftFinishHTML():`<div style="display:flex;gap:10px;justify-content:center;margin-top:12px">
     <button class="btn gold" onclick="shareDraftImage()">Share as image</button>
       <button class="btn" onclick="shareRoster('draft')">Share roster</button>
-      <button class="btn primary" onclick="startDraft(DRAFT_ERA)">${DRAFT_ERA?eraLabel(DRAFT_ERA)+" draft again":"Draft again"}</button>
-    ${DRAFT_ERA?`<button class="btn" onclick="startDraft()">All-Time draft</button>`:""}
+      <button class="btn primary" onclick="startDraft(DRAFT_ERA)">${draftEra?eraLabel(draftEra)+" draft again":"Draft again"}</button>
+    ${draftEra?`<button class="btn" onclick="startDraft()">All-Time draft</button>`:""}
     <button class="btn" onclick="setScreen('landing')">Exit to modes</button></div>
-  <div class="sub" style="text-align:center;color:var(--cyan);font-size:11px;margin-top:8px">Final board — tap any player (starter or bench) to move them into any slot they fit.</div>`:""}
+  <div class="sub" style="text-align:center;color:var(--cyan);font-size:11px;margin-top:8px">Final board — tap any player (starter or bench) to move them into any slot they fit.</div>`):""}
   <div class="notice" id="notice" style="margin-top:10px"></div>
   `;
 }
@@ -5839,22 +5784,23 @@ function classicPickCaptain(pid){
   notice(p.name+" anchors the run — build around them.");
 }
 function renderDraftOverlay(){
+  const D=activeDraft();
   reconcileDraftState();
   const o=$("#draftoverlay");if(!o)return;
   const classicCaptain=screen==="classic"&&CC;
   const dailyActive=screen==="daily"&&DD&&DD.activeSlot;
-  const active=(screen==="draft"&&(D.stage==="captain"||(D.stage==="picking"&&D.activeSlot)))||classicCaptain||dailyActive;
+  const active=((screen==="draft"||(screen==="challenge"&&ATUBackend.classicDraftState()))&&(D.stage==="captain"||(D.stage==="picking"&&D.activeSlot)))||classicCaptain||dailyActive;
   if(!active){o.classList.remove("show");o.innerHTML="";return;}
   if(dailyActive){
     o.innerHTML=`<h2 style="color:var(--cyan)">Drafting ${SLOT_LABEL[DD.activeSlot]}</h2>
       <div class="sub2">${DD.opts.length?"Five eligible players — tap one to snap them in.":"No eligible players left for this slot."}</div>
       <div class="captainwrap">${DD.opts.map((p,i)=>DD.taken.includes(p.id)
-        ?`<div class="${p.tier==="Icon"?"spindrop":"dropin"}" style="animation-delay:${(i*0.22).toFixed(2)}s;opacity:.35;pointer-events:none">${cardHTML(p)}</div>`
+        ?`<div class="${p.tier==="Icon"?"spindrop":"dropin"}" style="animation-delay:${(i*0.22).toFixed(2)}s;opacity:.35;pointer-events:none">${cardHTML(DB[p.id])}</div>`
         :`<div class="${p.tier==="Icon"?"spindrop":"dropin"}" style="animation-delay:${(i*0.22).toFixed(2)}s">${cardHTML(p,`onclick="dailyPickInto(${p.id})"`)}</div>`).join("")}</div>
       <button class="btn" style="margin:6px 0 18px" onclick="dailyClearActive()">Cancel</button>`;
     o.classList.add("show");return;
   }
-  const stagger=(p,i,click)=>`<div class="${p.tier==="Icon"?"spindrop":"dropin"}" style="animation-delay:${(i*0.22).toFixed(2)}s">${cardHTML(p,click)}</div>`;
+  const stagger=(p,i,click)=>`<div class="${p.tier==="Icon"?"spindrop":"dropin"}" style="animation-delay:${(i*0.22).toFixed(2)}s">${cardHTML(DB[p.id],click)}</div>`;
   if(classicCaptain){
     o.innerHTML=`<h2 style="color:#ffc4e6">Captain Pack</h2>
       <div class="sub2">Three anchors, one choice. Free head-start — but an Icon captain uses one of your two Icon slots.</div>
@@ -5867,9 +5813,9 @@ function renderDraftOverlay(){
     o.innerHTML=`<h2 style="color:var(--cyan)">Drafting ${SLOT_LABEL[D.activeSlot]}</h2>
       <div class="sub2">Five eligible players — tap one to snap them into the slot.</div>
       <div class="captainwrap">${D.opts.map((p,i)=>(D.taken.includes(p.id)||draftCapHit(p.tier))
-        ?`<div class="${p.tier==="Icon"?"spindrop":"dropin"}" style="animation-delay:${(i*0.22).toFixed(2)}s;opacity:.35;pointer-events:none">${cardHTML(p)}</div>`
+        ?`<div class="${p.tier==="Icon"?"spindrop":"dropin"}" style="animation-delay:${(i*0.22).toFixed(2)}s;opacity:.35;pointer-events:none">${cardHTML(DB[p.id])}</div>`
         :stagger(p,i,`onclick="draftPickInto(${p.id})"`)).join("")}</div>
-      <button class="btn" style="margin:6px 0 18px" onclick="D.activeSlot=null;D.opts=null;render()">Back to board (slot stays open)</button>`;
+      <button class="btn" style="margin:6px 0 18px" onclick="closeDraftPick()">Back to board (slot stays open)</button>`;
   }
   o.classList.add("show");
 }
@@ -6004,7 +5950,7 @@ function drawSquadWeb(){
   if(cr.width)svg.setAttribute("viewBox",`0 0 ${cr.width} ${cr.height}`);
   const roster=court.classList.contains("duel-court")?Object.fromEntries(ALL_SLOTS.map(s=>{
     const id=court.querySelector(".slot-"+s)?.dataset.cardId;return [s,id?Number(id):null];
-  })):screen==="draft"?D.roster:screen==="daily"?(DD?DD.roster:emptyRoster()):screen==="share"&&SHARED?SHARED.roster:S[sideFor(screen)].roster;
+  })):(screen==="draft"||(screen==="challenge"&&ATUBackend.classicDraftState()))?activeDraft().roster:screen==="daily"?(DD?DD.roster:emptyRoster()):screen==="share"&&SHARED?SHARED.roster:S[sideFor(screen)].roster;
   const pts={};
   STARTER_SLOTS.forEach(s=>{const el=court.querySelector(".slot-"+s);if(!el)return;
     const r=el.getBoundingClientRect();

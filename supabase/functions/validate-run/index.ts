@@ -1,7 +1,9 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.2";
+import { corsHeaders } from "npm:@supabase/supabase-js@2.112.2/cors";
 import {
   ENGINE_VERSION,
   RULES_VERSION,
+  CLASSIC_RULES_VERSION,
   validateTranscript
 } from "../_shared/atu-engine-v1.js";
 
@@ -40,7 +42,8 @@ function allowedOrigins(): Set<string> {
 
 function requestOrigin(req: Request): string | null {
   const origin = req.headers.get("origin");
-  return origin && allowedOrigins().has(origin) ? origin : null;
+  const preview = origin && /^https:\/\/packemultiamteteam-[a-z0-9-]+-judeissscoool-5284s-projects\.vercel\.app$/.test(origin);
+  return origin && (allowedOrigins().has(origin) || preview) ? origin : null;
 }
 
 function responseHeaders(origin: string | null): HeadersInit {
@@ -51,7 +54,7 @@ function responseHeaders(origin: string | null): HeadersInit {
     "Vary": "Origin",
     ...(origin ? {
       "Access-Control-Allow-Origin": origin,
-      "Access-Control-Allow-Headers": "authorization, apikey, content-type",
+      "Access-Control-Allow-Headers": corsHeaders["Access-Control-Allow-Headers"],
       "Access-Control-Allow-Methods": "POST, OPTIONS"
     } : {})
   };
@@ -143,13 +146,13 @@ Deno.serve(async (req: Request) => {
       || new Date(run.expires_at).getTime() <= Date.now()) {
       return json(origin, 404, { error: "Active run not found" });
     }
-    if (run.rules_version !== RULES_VERSION || !["draft", "pack", "one_v_one"].includes(run.mode)) {
+    if (![RULES_VERSION, CLASSIC_RULES_VERSION].includes(run.rules_version) || !["draft", "pack", "one_v_one"].includes(run.mode)) {
       return json(origin, 409, { error: "This run uses an unsupported ruleset" });
     }
 
     let validated;
     try {
-      validated = validateTranscript(run.draft_seed, transcript, run.mode);
+      validated = validateTranscript(run.draft_seed, transcript, run.mode, run.rules_version);
     } catch (error) {
       return json(origin, 422, { error: validationMessage(error) });
     }

@@ -4,6 +4,6 @@
   "type": "module",
   "scripts": {
     "build:engine-data": "node scripts/build-engine-data.cjs",
-    "test": "node tests/backend-client.test.cjs && node tests/atu-engine-v1.test.mjs && node tests/ui-interactions.test.cjs"
+    "test": "node tests/backend-client.test.cjs && node tests/atu-engine-v1.test.mjs && node tests/ui-interactions.test.cjs && node tests/classic-draft.test.mjs && node tests/validate-run.test.mjs"
   }
 }

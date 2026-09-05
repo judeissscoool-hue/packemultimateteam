@@ -1,7 +1,9 @@
+import "./classic-draft.js";
 import { CARDS, DUOS } from "./atu-data-v1.js";
 
-export const ENGINE_VERSION = "atu-challenge-v2";
+export const ENGINE_VERSION = "atu-challenge-v3";
 export const RULES_VERSION = "atu-v1";
+export const CLASSIC_RULES_VERSION = "atu-classic-v2";
 export const STARTER_SLOTS = Object.freeze(["PG", "SG", "SF", "PF", "C"]);
 export const BENCH_SLOTS = Object.freeze(["B1", "B2", "B3"]);
 export const ALL_SLOTS = Object.freeze([...STARTER_SLOTS, ...BENCH_SLOTS]);
@@ -168,6 +170,28 @@ export function createRunManifest(seed, mode = "draft") {
   return mode === "pack" ? createPackManifest(seed) : createDraftManifest(seed);
 }
 
+// A duel runs the same rules as Classic Draft with shared, seeded pull history.
+const CLASSIC_CARDS=[];
+for(const c of CARDS)CLASSIC_CARDS[c.id]={id:c.id,name:c.n,pos:c.p,positions:c.ps,ovr:c.o,team:c.t,tier:c.r,tags:c.g};
+const CLASSIC_WEIGHTS=Object.fromEntries(CARDS.map(c=>[c.n,c.w]));
+export function createClassicSession(seed,events=[]) {
+  assert(Array.isArray(events)&&events.length<=256,"Too many draft actions");
+  const rules=globalThis.ATUDraftRules.create({cards:CLASSIC_CARDS,weights:CLASSIC_WEIGHTS,random:seededRandom(seed)});
+  const draft=rules.start();
+  for(const event of events)rules.apply(draft,event);
+  return {draft,apply:event=>rules.apply(draft,event)};
+}
+
+function validateClassicTranscript(seed,transcript) {
+  assert(Array.isArray(transcript)&&transcript.length>=16&&transcript.length<=257,"Invalid draft transcript");
+  const final=transcript[transcript.length-1];
+  assert(final&&final.type==="arrange","Missing final arrangement");
+  const {draft}=createClassicSession(seed,transcript.slice(0,-1));
+  assert(draft.done,"Draft must fill all eight positions");
+  assert(final.roster&&Object.keys(final.roster).length===8&&ALL_SLOTS.every(s=>final.roster[s]===draft.roster[s]),"Final roster does not match drafted cards and swaps");
+  return {roster:{...draft.roster},result:calculateResult(draft.roster)};
+}
+
 function duoBonus(starters) {
   const names = new Set(starters.map(card => card.n));
   const groups = DUOS.map(group => ({
@@ -277,7 +301,12 @@ function selectedTierCounts(cards) {
   return counts;
 }
 
-export function validateTranscript(seed, transcript, mode = "draft") {
+export function validateTranscript(seed, transcript, mode = "draft", rulesVersion = RULES_VERSION) {
+  if(rulesVersion===CLASSIC_RULES_VERSION){
+    assert(mode==="one_v_one","Unsupported Classic Draft run mode");
+    return validateClassicTranscript(seed,transcript);
+  }
+  assert(rulesVersion===RULES_VERSION,"Unsupported ruleset");
   assert(Array.isArray(transcript) && transcript.length === 9, "Transcript must contain exactly nine events");
   const manifest = createRunManifest(seed, mode);
   const captainEvent = transcript[0];
