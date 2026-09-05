@@ -24,6 +24,9 @@
   const PROGRESS_KEY_SET = new Set(PROGRESS_KEYS);
 
   const state = {
+    visibleScreen: "",
+    challengeTimer: null,
+    refreshingChallenge: false,
     client: null,
     initialized: false,
     available: false,
@@ -48,6 +51,7 @@
       active: null,
       resultRows: [],
       error: "",
+      showPicker: false,
       swapSlot: null
     },
     rankings: {
@@ -425,6 +429,7 @@
   function readActiveChallenge() {
     const value = readJSON(ACTIVE_CHALLENGE_KEY, null);
     if (!value || typeof value !== "object" || value.version !== 1) return null;
+    if (!state.session || (value.userId && value.userId !== state.session.user.id)) return null;
     if (!/^[A-F0-9]{16}$/.test(value.code || "")) return null;
     return value;
   }
@@ -432,7 +437,7 @@
   function writeActiveChallenge(active) {
     state.challenge.active = active;
     if (active && active.role === "ranked") return;
-    if (active) writeJSON(ACTIVE_CHALLENGE_KEY, active);
+    if (active) { active.userId = state.session && state.session.user.id; writeJSON(ACTIVE_CHALLENGE_KEY, active); }
     else removeLocal(ACTIVE_CHALLENGE_KEY);
   }
 
@@ -468,6 +473,10 @@
     if (!active || active.code !== code || !activeChallengeValid(active)) return false;
     const engine = await loadEngine();
     active.manifest = engine.createRunManifest(active.seed, "one_v_one");
+    if (!active.roster && active.stage !== 'captain') {
+      active.roster = { B3: active.captainId };
+      active.picks.forEach((id, index) => { active.roster[active.manifest.boards[index].slot] = id; });
+    }
     state.challenge.active = active;
     state.challenge.phase = "draft";
     state.challenge.code = code;
@@ -478,40 +487,62 @@
   async function loadChallengeResult(code) {
     const result = await state.client.rpc("get_async_challenge_result", { p_code: code });
     if (result.error) throw result.error;
+    if (code !== state.challenge.code) return [];
     state.challenge.resultRows = Array.isArray(result.data) ? result.data : [];
     return state.challenge.resultRows;
   }
 
-  async function loadChallengeInvitation(code) {
+  async function loadChallengeInvitation(code, quiet) {
     const normalized = String(code || "").trim().toUpperCase();
-    if (!/^[A-F0-9]{16}$/.test(normalized) || !state.client) return;
+    if (!/^[A-F0-9]{16}$/.test(normalized) || !state.client || state.refreshingChallenge) return;
     state.challenge.code = normalized;
-    state.challenge.phase = "loading";
+    state.refreshingChallenge = true;
+    if (!quiet) { state.challenge.phase = "loading"; rerender(); }
     state.challenge.error = "";
-    rerender();
     try {
-      const stored = readActiveChallenge();
-      if (stored && stored.code === normalized && stored.stage === "submitted" && stored.role === "creator") {
-        state.challenge.active = stored;
-        state.challenge.phase = "share";
-        return;
-      }
-      if (await restoreActiveChallenge(normalized)) return;
       const result = await state.client.rpc("get_async_challenge_invitation", { p_code: normalized });
+      if (normalized !== state.challenge.code) return;
       if (result.error) throw result.error;
       const invitation = firstRow(result.data);
       state.challenge.invitation = invitation;
-      state.challenge.phase = invitation ? "invitation" : "not_found";
       if (invitation && invitation.status === "completed") {
         await loadChallengeResult(normalized);
+        if (normalized !== state.challenge.code) return;
         state.challenge.phase = "result";
+      } else if (invitation && invitation.status === 'expired') {
+        state.challenge.active = null;
+        state.challenge.phase = 'invitation';
+      } else {
+        const stored = readActiveChallenge();
+        if (stored && stored.code === normalized && stored.stage === "submitted") {
+          state.challenge.active = stored;
+          state.challenge.phase = "share";
+        } else if (!await restoreActiveChallenge(normalized)) {
+          state.challenge.active = null;
+          state.challenge.phase = invitation ? "invitation" : "not_found";
+        }
       }
     } catch (error) {
-      state.challenge.phase = "error";
-      state.challenge.error = errorText(error, "Could not load this challenge.");
+      if (normalized !== state.challenge.code) return;
+      if (!quiet) state.challenge.phase = "error";
+      state.challenge.error = errorText(error, "Could not refresh the duel. Try again.");
     } finally {
-      rerender();
+      state.refreshingChallenge = false;
+      if (normalized === state.challenge.code && !quiet) rerender();
+      else if (normalized === state.challenge.code && state.challenge.phase === "result") rerender();
+      scheduleChallengeRefresh();
     }
+  }
+
+  function scheduleChallengeRefresh() {
+    global.clearTimeout(state.challengeTimer);
+    state.challengeTimer = null;
+    const waiting = state.challenge.phase === 'share' || (state.challenge.phase === 'invitation' && state.challenge.invitation && state.challenge.invitation.status === 'accepted');
+    if (state.visibleScreen !== 'challenge' || !waiting) return;
+    state.challengeTimer = global.setTimeout(() => {
+      if (global.document.hidden) { scheduleChallengeRefresh(); return; }
+      loadChallengeInvitation(state.challenge.code, true);
+    }, 12000);
   }
 
   function initializeChallengeRun(row, role) {
@@ -537,6 +568,8 @@
       state.challenge.code = active.code;
       state.challenge.phase = "draft";
       state.challenge.invitation = null;
+      state.challenge.resultRows = [];
+      state.challenge.showPicker = true;
       state.challenge.swapSlot = null;
       writeActiveChallenge(active);
       rerender();
@@ -619,6 +652,8 @@
       state.challenge.code = "";
       state.challenge.phase = "draft";
       state.challenge.invitation = null;
+      state.challenge.resultRows = [];
+      state.challenge.showPicker = true;
       state.challenge.swapSlot = null;
       writeActiveChallenge(active);
       if (typeof global.setScreen === "function") global.setScreen("challenge");
@@ -683,6 +718,8 @@
     const active = state.challenge.active;
     if (!active || active.stage !== "captain" || !active.manifest.captain.includes(cardId)) return;
     active.captainId = cardId;
+    active.roster = { B3: cardId };
+    state.challenge.showPicker = false;
     active.stage = "picking";
     writeActiveChallenge(active);
     rerender();
@@ -695,12 +732,9 @@
     const board = active.manifest.boards[index];
     if (!board || !board.cards.includes(cardId) || challengeTierBlocked(active, cardId)) return;
     active.picks.push(cardId);
+    active.roster[board.slot] = cardId;
+    state.challenge.showPicker = false;
     if (active.picks.length === active.manifest.boards.length) {
-      active.roster = {
-        PG: active.picks[0], SG: active.picks[1], SF: active.picks[2],
-        PF: active.picks[3], C: active.picks[4], B1: active.picks[5],
-        B2: active.picks[6], B3: active.captainId
-      };
       active.localResult = state.engine.calculateResult(active.roster);
       active.stage = "arrange";
     }
@@ -714,7 +748,7 @@
 
   function selectChallengeSwap(slot) {
     const active = state.challenge.active;
-    if (!active || active.stage !== "arrange" || !active.roster || !state.engine.ALL_SLOTS.includes(slot)) return;
+    if (!active || !["picking", "arrange"].includes(active.stage) || !active.roster || !state.engine.ALL_SLOTS.includes(slot) || !Number.isInteger(active.roster[slot])) return;
     if (!state.challenge.swapSlot) {
       state.challenge.swapSlot = slot;
       rerender();
@@ -733,7 +767,7 @@
     const temporary = active.roster[from];
     active.roster[from] = active.roster[slot];
     active.roster[slot] = temporary;
-    active.localResult = state.engine.calculateResult(active.roster);
+    if (active.stage === "arrange") active.localResult = state.engine.calculateResult(active.roster);
     state.challenge.error = "";
     writeActiveChallenge(active);
     rerender();
@@ -768,6 +802,7 @@
         code: active.code,
         stage: "submitted",
         submittedAt: new Date().toISOString(),
+        roster: Object.assign({}, active.roster),
         serverResult: result.data.result,
         outcome: result.data.outcome
       };
@@ -793,6 +828,7 @@
   }
 
   function finishRankedRun() {
+    if (state.challenge.active) state.rankings.mode = state.challenge.active.mode;
     state.challenge.active = null;
     state.challenge.phase = "idle";
     state.challenge.error = "";
@@ -844,9 +880,12 @@
   }
 
   function onScreen(screenName) {
+    state.visibleScreen = screenName;
+    scheduleChallengeRefresh();
     if (screenName === "rankings" && state.rankings.status === "idle") loadRankings();
     if (screenName === "challenge" && state.challenge.phase === "idle") {
-      const code = challengeCodeFromUrl();
+      const stored = readActiveChallenge();
+      const code = challengeCodeFromUrl() || (stored && stored.code);
       if (code) loadChallengeInvitation(code);
     }
   }
@@ -855,6 +894,8 @@
     const unfinished = state.challenge.active && activeChallengeValid(state.challenge.active);
     if (unfinished && !global.confirm("Discard the unfinished challenge saved on this device?")) return;
     writeActiveChallenge(null);
+    global.clearTimeout(state.challengeTimer);
+    state.challenge.showPicker = false;
     state.challenge.phase = "idle";
     state.challenge.code = "";
     state.challenge.invitation = null;
@@ -1120,156 +1161,154 @@
     rerender();
   }
 
-  function challengeCardHTML(cardId, action, disabled, selected) {
+  function challengeCardHTML(cardId, action, disabled) {
     const card = state.engine && state.engine.publicCard(cardId);
     if (!card) return "";
-    return '<button class="challengecard tier-' + html(String(card.tier).toLowerCase())
-      + (selected ? " selected" : "") + '" onclick="' + html(action || "") + '"'
-      + (disabled ? " disabled" : "") + '><span class="challengetier">' + html(card.tier)
-      + '</span><b>' + html(card.name) + '</b><strong>' + html(card.ovr)
-      + '</strong><small>' + html(card.position) + " · " + html(card.team) + "</small></button>";
+    return '<div class="duel-choice' + (disabled ? ' unavailable' : '') + '">'
+      + global.cardHTML(cardId)
+      + '<button class="btn ' + (disabled ? '' : 'primary') + '" onclick="' + html(action) + '"'
+      + (disabled ? ' disabled' : '') + '>' + (disabled ? 'TIER LIMIT REACHED' : 'DRAFT ' + html(card.name)) + '</button></div>';
   }
 
   function challengeMessageHTML() {
-    if (!state.challenge.error) return "";
-    return '<div class="accountmsg error">' + html(state.challenge.error) + "</div>";
+    return state.challenge.error ? '<div class="accountmsg error">' + html(state.challenge.error) + '</div>' : '';
   }
 
   function challengeHeaderHTML(kicker, title, copy) {
-    return '<div class="challengehero"><div><div class="challengekicker"><span class="eyebrow">' + html(kicker)
-      + '</span><span class="fairbadge">✓ FAIR PLAY</span></div><h2>' + html(title) + '</h2><p>' + html(copy) + "</p></div>"
-      + '<button class="btn" onclick="setScreen(\'rankings\')">82-0 CLUB</button></div>';
+    return '<div class="duel-heading"><div><span class="eyebrow">' + html(kicker)
+      + '</span><h2>' + html(title) + '</h2><p>' + html(copy) + '</p></div>'
+      + '<button class="btn" onclick="setScreen(\'rankings\')">82–0 CLUB</button></div>';
+  }
+
+  function openChallengePick() {
+    const active = state.challenge.active;
+    if (!active || !['captain', 'picking'].includes(active.stage)) return;
+    state.challenge.showPicker = true;
+    rerender();
+  }
+
+  function closeChallengePick() {
+    state.challenge.showPicker = false;
+    rerender();
+    const next = global.document.querySelector('.duel-next');
+    if (next) next.focus();
+  }
+
+  function challengePickerHTML(active) {
+    if (!state.challenge.showPicker || !active || !['captain', 'picking'].includes(active.stage)) return '';
+    const captain = active.stage === 'captain';
+    const board = captain ? null : active.manifest.boards[active.picks.length];
+    const cards = captain ? active.manifest.captain : board.cards;
+    const title = captain ? 'Choose your Franchise Player' : (active.mode === 'pack' ? 'Open pack · ' : 'Draft · ') + board.slot;
+    return '<dialog id="duel-pick-dialog" class="duel-dialog" oncancel="event.preventDefault();ATUBackend.closeChallengePick()" aria-labelledby="duel-pick-title">'
+      + '<div class="duel-picker-head"><div><span class="eyebrow">' + (captain ? 'FIRST PICK' : (active.picks.length + 2) + ' OF 8')
+      + '</span><h2 id="duel-pick-title">' + html(title) + '</h2></div><button class="btn" onclick="ATUBackend.closeChallengePick()">BACK TO COURT</button></div>'
+      + '<p class="duel-picker-note">' + (captain ? 'Your captain starts on the bench. Swap them into the starting five as you draft.' : 'Pick one. Your other choices stay the same if you return to the court.') + '</p>'
+      + '<div class="duel-options">' + cards.map(id => challengeCardHTML(id,
+        'ATUBackend.' + (captain ? 'chooseChallengeCaptain' : 'chooseChallengePick') + '(' + id + ')', !captain && challengeTierBlocked(active, id))).join('') + '</div></dialog>';
+  }
+
+  function duelMetricsHTML(result, count) {
+    return '<div class="duel-metrics"><div><b>' + html(result ? result.teamOvr : '—') + '</b><span>TEAM OVR</span></div>'
+      + '<div><b>' + html(result ? result.projectedWins + '–' + (82 - result.projectedWins) : count + ' / 8') + '</b><span>' + (result ? 'PROJECTED RECORD' : 'PLAYERS DRAFTED') + '</span></div>'
+      + '<div><b>' + html(result ? '+' + result.chemistry : '—') + '</b><span>CHEMISTRY</span></div></div>';
+  }
+
+  function duelInviteHTML(ready) {
+    return '<div class="duel-invite"><span class="eyebrow">CHALLENGE A FRIEND</span><h3>Who’s taking you on?</h3><p>'
+      + (ready ? 'Send the link. Your friend drafts from the same choices, then both teams are revealed.' : 'Lock in your eight to get an invite link. Your friend then takes the same draft.') + '</p>'
+      + (ready ? '<button class="btn primary" onclick="ATUBackend.copyChallengeLink()">COPY INVITE LINK</button><span class="duel-code">' + html(state.challenge.code) + '</span>'
+        : '<span class="duel-locked-link">INVITE UNLOCKS WHEN YOU FINISH</span>') + '</div>';
+  }
+
+  function duelLayoutHTML(left, right, reveal) {
+    return '<div class="duel-board' + (reveal ? ' duel-reveal' : '') + '"><section class="duel-side">' + left
+      + '</section><div class="duel-versus" aria-label="versus">VS</div><section class="duel-side duel-opponent">' + right + '</section></div>';
   }
 
   function challengeDraftHTML(active) {
-    if (!active || !state.engine || !active.manifest) {
-      return challengeHeaderHTML("DRAFT DUEL", "Building your draft…", "Get ready to make the first pick.");
-    }
-    const ranked = active.role === "ranked";
-    const pack = active.mode === "pack";
-    const modeLabel = ranked ? (pack ? "RANKED PACKS" : "RANKED DRAFT") : "DRAFT DUEL";
-    if (active.stage === "captain") {
-      return challengeHeaderHTML(modeLabel + " · FIRST PICK", "Choose your Franchise Player", ranked
-        ? "Start strong. Every pick can move you closer to the top."
-        : "Choose wisely—your friend gets the same draft after accepting.")
-        + challengeMessageHTML()
-        + '<div class="challengeprogress"><b>1</b><span>Franchise Player</span><i></i><b>2</b><span>Build Your Team</span><i></i><b>3</b><span>Set Your Lineup</span></div>'
-        + '<div class="challengecards captaincards">'
-        + active.manifest.captain.map(function (id) {
-          return challengeCardHTML(id, "ATUBackend.chooseChallengeCaptain(" + id + ")", false, false);
-        }).join("") + "</div>";
-    }
-    if (active.stage === "picking") {
-      const pickIndex = active.picks.length;
-      const board = active.manifest.boards[pickIndex];
-      const counts = challengeTierCounts(active);
-      return challengeHeaderHTML(modeLabel + " · PICK " + (pickIndex + 1) + "/7", "Fill " + board.slot, ranked
-        ? "Every choice counts. Build the strongest lineup you can."
-        : "Choose wisely—your friend gets these same options when they play.")
-        + challengeMessageHTML()
-        + '<div class="tiercaps"><span>ICON <b>' + html(counts.Icon || 0) + "/2</b></span><span>ELITE <b>"
-        + html(counts.Elite || 0) + "/4</b></span></div>"
-        + '<div class="challengecards">' + board.cards.map(function (id) {
-          const blocked = challengeTierBlocked(active, id);
-          return challengeCardHTML(id, "ATUBackend.chooseChallengePick(" + id + ")", blocked, false);
-        }).join("") + "</div>";
-    }
-    const result = active.localResult || state.engine.calculateResult(active.roster);
-    return challengeHeaderHTML(modeLabel + " · FINAL LINEUP", "Set your lineup", "Tap two players to swap them. Put everyone in their best position before you lock it in.")
-      + challengeMessageHTML()
-      + '<div class="challengemetrics"><div><span>TEAM OVR</span><b>' + html(result.teamOvr)
-      + '</b></div><div><span>PROJECTED</span><b>' + html(result.projectedWins) + "–" + html(82 - result.projectedWins)
-      + '</b></div><div><span>CHEMISTRY</span><b>' + html(result.chemistry) + "/10</b></div></div>"
-      + '<div class="challengeroster">' + state.engine.ALL_SLOTS.map(function (slot) {
-        const id = active.roster[slot];
-        const selected = state.challenge.swapSlot === slot;
-        return '<div class="challengerosterslot"><span>' + html(slot) + "</span>"
-          + challengeCardHTML(id, "ATUBackend.selectChallengeSwap('" + slot + "')", false, selected) + "</div>";
-      }).join("") + "</div>"
-      + '<div class="challengeactions"><button class="btn primary" onclick="ATUBackend.submitChallenge()" '
-      + (state.busy ? "disabled" : "") + ">" + (state.busy ? "LOCKING IN…" : "LOCK IN MY TEAM") + "</button>"
-      + '<small>Fair Play checks the result and keeps every run honest.</small></div>';
+    if (!active || !state.engine || !active.manifest) return challengeHeaderHTML('DRAFT DUEL', 'Building your draft…', 'Get ready to make the first pick.');
+    const ranked = active.role === 'ranked';
+    const captain = active.stage === 'captain';
+    const picking = active.stage === 'picking';
+    const count = selectedChallengeCards(active).length;
+    const next = picking ? active.manifest.boards[active.picks.length].slot : null;
+    const mode = ranked ? (active.mode === 'pack' ? 'PACK MODE · RANKED' : 'CLASSIC DRAFT · RANKED') : 'DRAFT DUEL';
+    const left = '<div class="duel-player"><span>YOUR TEAM</span><h3>@' + html(state.profile && state.profile.username || 'You') + '</h3></div>'
+      + duelMetricsHTML(active.localResult, count)
+      + global.challengeCourtHTML(active.roster || {}, {interactive:!captain, nextSlot:next, selectedSlot:state.challenge.swapSlot})
+      + '<div class="duel-controls">' + (captain ? '<button class="btn gold duel-next" onclick="ATUBackend.openChallengePick()">CHOOSE YOUR FRANCHISE PLAYER</button>'
+        : picking ? '<button class="btn primary duel-next" onclick="ATUBackend.openChallengePick()">DRAFT ' + html(next) + '</button><small>Tap picked players to swap positions.</small>'
+          : '<button class="btn gold" onclick="ATUBackend.submitChallenge()" ' + (state.busy ? 'disabled' : '') + '>' + (state.busy ? 'LOCKING IN…' : 'LOCK IN MY TEAM') + '</button><small>Happy with your lineup? Lock it in.</small>') + '</div>';
+    const right = '<div class="duel-player"><span>OPPONENT</span><h3>Your friend’s court</h3></div>'
+      + duelInviteHTML(false) + global.challengeCourtHTML({}, {hidden:true});
+    return challengeHeaderHTML(mode, ranked ? 'Chase the perfect season.' : 'Your draft. Their draft. Settle it.', 'Pick your squad on the court. Tap two drafted players to swap them.')
+      + challengeMessageHTML() + (ranked ? '<div class="ranked-court">' + left + '</div>' : duelLayoutHTML(left, right)) + challengePickerHTML(active);
   }
 
   function rankedResultHTML() {
     const active = state.challenge.active || {};
-    const result = active.serverResult || {};
-    const label = active.mode === "pack" ? "RANKED PACKS" : "RANKED DRAFT";
-    return challengeHeaderHTML(label + " · COMPLETE", "You made the leaderboard!", "Your team is locked in and your score is live.")
-      + statusMessageHTML()
-      + '<div class="challengemetrics"><div><span>TEAM OVR</span><b>' + html(result.teamOvr || "—")
-      + '</b></div><div><span>PROJECTED</span><b>' + html(result.projectedWins == null ? "—" : result.projectedWins + "–" + (82 - result.projectedWins))
-      + '</b></div><div><span>CHEMISTRY</span><b>' + html(result.chemistry == null ? "—" : result.chemistry + "/10") + "</b></div></div>"
+    return challengeHeaderHTML('82–0 CLUB', 'You made the leaderboard!', 'Your team is locked in and your score is live.')
+      + statusMessageHTML() + '<div class="ranked-court">' + duelMetricsHTML(active.serverResult, 8)
+      + global.challengeCourtHTML(active.roster || {}) + '</div>'
       + '<div class="challengeactions"><button class="btn gold" onclick="ATUBackend.finishRankedRun()">SEE MY RANK</button></div>';
   }
 
+  function challengeWaitingHTML() {
+    const active = state.challenge.active || {};
+    const left = '<div class="duel-player"><span>TEAM LOCKED</span><h3>Your final draft</h3></div>'
+      + duelMetricsHTML(active.serverResult, 8) + global.challengeCourtHTML(active.roster || {});
+    const right = '<div class="duel-player"><span>OPPONENT</span><h3>Waiting for the final buzzer</h3></div>'
+      + duelInviteHTML(true) + global.challengeCourtHTML({}, {hidden:true})
+      + '<button class="btn" onclick="ATUBackend.loadChallengeInvitation(\'' + html(state.challenge.code) + '\')">CHECK THEIR DRAFT</button>';
+    return challengeHeaderHTML('DRAFT DUEL', 'Your team is locked in.', 'Your friend’s lineup appears here once they finish. This screen checks automatically.')
+      + statusMessageHTML() + challengeMessageHTML() + duelLayoutHTML(left, right)
+      + '<div class="challengeactions"><button class="btn" onclick="ATUBackend.resetChallenge()">START ANOTHER DUEL</button></div>';
+  }
+
   function challengeResultHTML() {
-    const rows = state.challenge.resultRows || [];
-    if (rows.length !== 2) {
-      return challengeHeaderHTML("DRAFT DUEL", "Waiting on your opponent", "Share the link and come back after they finish their team.")
-        + '<button class="btn" onclick="ATUBackend.loadChallengeInvitation(\'' + html(state.challenge.code) + "\')\">CHECK AGAIN</button>";
-    }
+    const rows = [...state.challenge.resultRows];
+    if (rows.length !== 2) return challengeWaitingHTML();
+    const mine = rows.findIndex(row => state.profile && row.player_public_id === state.profile.public_id);
+    if (mine === 1) rows.reverse();
     const winnerId = rows[0].winner_public_id;
-    return challengeHeaderHTML("DRAFT DUEL · FINAL", winnerId ? "The final buzzer" : "Dead even!", winnerId
-      ? "Two teams entered. One draft came out on top."
-      : "Neither team could be separated.")
-      + '<div class="challengeresult">' + rows.map(function (row) {
-        const winner = winnerId && row.player_public_id === winnerId;
-        return '<div class="resultplayer ' + (winner ? "winner" : "") + '"><span>' + (winner ? "WINNER" : "FINAL")
-          + '</span><h3>@' + html(row.username || "Player") + '</h3><div class="resultscore">' + html(row.projected_wins)
-          + '<small>WINS</small></div><dl><div><dt>Team OVR</dt><dd>' + html(row.team_ovr)
-          + '</dd></div><div><dt>Final score</dt><dd>' + html(row.score) + "</dd></div></dl></div>";
-      }).join('<div class="resultversus">VS</div>') + "</div>"
+    const sides = rows.map(row => '<div class="duel-player' + (winnerId === row.player_public_id ? ' winner' : '') + '"><span>'
+      + (winnerId === row.player_public_id ? 'WINNER' : winnerId ? 'FINAL TEAM' : 'DRAW') + '</span><h3>@' + html(row.username || 'Player') + '</h3></div>'
+      + '<div class="duel-metrics"><div><b>' + html(row.team_ovr) + '</b><span>TEAM OVR</span></div><div><b>' + html(row.projected_wins) + '–' + html(82 - row.projected_wins)
+      + '</b><span>PROJECTED RECORD</span></div></div>' + global.challengeCourtHTML(row.roster || {}));
+    return challengeHeaderHTML('DRAFT DUEL · FINAL', winnerId ? 'The final buzzer.' : 'Dead even!', 'Both teams are locked. Here’s how your drafts stack up.')
+      + duelLayoutHTML(sides[0], sides[1], true)
       + '<div class="challengeactions"><button class="btn gold" onclick="ATUBackend.resetChallenge()">RUN IT BACK</button></div>';
   }
 
   function challengeHTML() {
-    if (!state.available) {
-      return challengeHeaderHTML("DRAFT DUEL", "1v1 is taking a timeout", "Try again soon. Your other game modes still work.");
-    }
-    if (state.challenge.phase === "loading") {
-      return challengeHeaderHTML("DRAFT DUEL", "Opening the challenge…", "Get ready to answer the call.");
-    }
-    if (state.challenge.phase === "draft") return challengeDraftHTML(state.challenge.active);
-    if (state.challenge.phase === "ranked_result") return rankedResultHTML();
-    if (state.challenge.phase === "result") return challengeResultHTML();
-    if (state.challenge.phase === "share") {
-      const serverResult = state.challenge.active && state.challenge.active.serverResult || {};
-      return challengeHeaderHTML("DRAFT DUEL · READY", "Your challenge is live!", "Send the link to a friend. Your lineup stays secret until they accept.")
-        + statusMessageHTML() + challengeMessageHTML()
-        + '<div class="sharechallenge"><span>CHALLENGE CODE</span><b>' + html(state.challenge.code)
-        + '</b><p>' + html(serverResult.projectedWins || "—") + " projected wins · " + html(serverResult.teamOvr || "—") + " team OVR</p>"
-        + '<button class="btn primary" onclick="ATUBackend.copyChallengeLink()">COPY CHALLENGE LINK</button></div>'
-        + '<div class="challengeactions"><button class="btn" onclick="ATUBackend.loadChallengeInvitation(\'' + html(state.challenge.code) + "\')\">SEE IF THEY PLAYED</button>"
-        + '<button class="btn" onclick="ATUBackend.resetChallenge()">START ANOTHER</button></div>';
-    }
-    if (state.challenge.phase === "invitation") {
+    if (!state.available) return challengeHeaderHTML('DRAFT DUEL', '1v1 is taking a timeout', 'Try again soon. Your other game modes still work.');
+    if (state.challenge.phase === 'loading') return challengeHeaderHTML('DRAFT DUEL', 'Opening the challenge…', 'Get ready to answer the call.');
+    if (state.challenge.phase === 'draft') return challengeDraftHTML(state.challenge.active);
+    if (state.challenge.phase === 'ranked_result') return rankedResultHTML();
+    if (state.challenge.phase === 'result') return challengeResultHTML();
+    if (state.challenge.phase === 'share') return challengeWaitingHTML();
+    if (state.challenge.phase === 'invitation') {
       const invite = state.challenge.invitation || {};
-      const creator = invite.creator_username || invite.creator_display_name || "Player";
+      const creator = invite.creator_username || invite.creator_display_name || 'Player';
       const isCreator = state.profile && state.profile.public_id === invite.creator_public_id;
-      const available = invite.status === "open" && !isCreator;
-      return challengeHeaderHTML("DRAFT DUEL · CALL OUT", "@" + creator + " is calling you out!", "Think you can build a better squad from the same draft?")
-        + statusMessageHTML() + challengeMessageHTML()
-        + '<div class="challengeinvite"><div><span>CHALLENGE</span><b>' + html(available ? "READY" : String(invite.status || "unknown").toUpperCase())
-        + '</b></div><div><span>DRAFT</span><b>SAME PICKS'
-        + '</b></div><div><span>EXPIRES</span><b>' + html(invite.expires_at ? new Date(invite.expires_at).toLocaleString() : "—") + "</b></div></div>"
-        + (isCreator ? '<div class="accountmsg warn">This is your challenge link. Share it with another player.</div><button class="btn primary" onclick="ATUBackend.copyChallengeLink()">COPY LINK</button>'
-          : available ? '<button class="btn primary challengeaccept" onclick="ATUBackend.acceptChallenge()" ' + (state.busy ? "disabled" : "") + ">" + (state.session ? "ACCEPT CHALLENGE" : "SIGN IN TO PLAY") + "</button>"
-            : '<div class="accountmsg warn">This challenge is no longer open for a new opponent.</div>');
+      const available = invite.status === 'open' && !isCreator;
+      const left = '<div class="duel-player"><span>YOUR TEAM</span><h3>Answer the challenge</h3></div>'
+        + (available ? '<button class="btn gold" onclick="ATUBackend.acceptChallenge()" ' + (state.busy ? 'disabled' : '') + '>' + (state.session ? 'ACCEPT CHALLENGE' : 'SIGN IN TO PLAY') + '</button>'
+          : isCreator ? duelInviteHTML(true) : '<p class="duel-note">' + (invite.status === 'accepted' ? 'The draft is underway. Both teams appear here when it’s finished.' : 'This challenge is no longer open.') + '</p>')
+        + global.challengeCourtHTML({});
+      const right = '<div class="duel-player"><span>CHALLENGER</span><h3>@' + html(creator) + '</h3></div><p class="duel-note">Same choices. Their picks stay hidden until you lock in your team.</p>'
+        + global.challengeCourtHTML({}, {hidden:true});
+      return challengeHeaderHTML('DRAFT DUEL', '@' + creator + ' is calling you out!', 'Think you can build a better squad from the same draft?')
+        + statusMessageHTML() + challengeMessageHTML() + duelLayoutHTML(left, right);
     }
-    if (state.challenge.phase === "not_found") {
-      return challengeHeaderHTML("DRAFT DUEL", "That challenge is gone", "The link may be unfinished, expired or already claimed.")
-        + '<button class="btn" onclick="ATUBackend.resetChallenge()">START A NEW 1V1</button>';
-    }
-    if (state.challenge.phase === "error") {
-      return challengeHeaderHTML("DRAFT DUEL", "The challenge would not load", "Your game progress is safe. Give it another shot.")
-        + challengeMessageHTML() + '<button class="btn" onclick="ATUBackend.resetChallenge()">BACK TO 1V1</button>';
-    }
-    return challengeHeaderHTML("1V1 CHALLENGE", "Build it. Send it. Settle it.", "Draft your squad, send the link, and your friend plays the exact same draft whenever they are ready.")
-      + statusMessageHTML()
-      + '<div class="challengeexplain"><div><b>1</b><h3>Build</h3><p>Draft your ultimate squad.</p></div><div><b>2</b><h3>Send</h3><p>Call out a friend with your link.</p></div><div><b>3</b><h3>Settle It</h3><p>Compare teams and crown the winner.</p></div></div>'
-      + '<div class="challengeactions"><button class="btn gold" onclick="ATUBackend.createChallenge()" ' + (state.busy ? "disabled" : "") + ">START MY CHALLENGE</button>"
-      + (!state.session ? '<small>Sign in and choose a username to start calling out friends.</small>' : "") + "</div>";
+    if (['not_found', 'error'].includes(state.challenge.phase)) return challengeHeaderHTML('DRAFT DUEL', 'The challenge could not load', 'The link may have expired. Try again or start a new duel.')
+      + challengeMessageHTML() + '<button class="btn" onclick="ATUBackend.resetChallenge()">BACK TO 1V1</button>';
+    const left = '<div class="duel-player"><span>YOUR TEAM</span><h3>Classic Draft</h3></div><p class="duel-note">Pick your captain. Build your eight. Set your lineup.</p>'
+      + '<button class="btn gold" onclick="ATUBackend.createChallenge()" ' + (state.busy ? 'disabled' : '') + '>START MY DRAFT</button>' + global.challengeCourtHTML({});
+    const right = '<div class="duel-player"><span>OPPONENT</span><h3>Your friend’s court</h3></div>' + duelInviteHTML(false) + global.challengeCourtHTML({}, {hidden:true});
+    return challengeHeaderHTML('CHALLENGE A FRIEND', 'Draft Duel', 'Classic Draft on your side. A friend on the other. Compare your teams at the final buzzer.')
+      + statusMessageHTML() + duelLayoutHTML(left, right);
   }
 
   function rankingFilterHTML(kind, values, labels, selected) {
@@ -1284,8 +1323,10 @@
     const modes = { draft: "Draft", pack: "Pack", one_v_one: "1v1" };
     const periods = { all_time: "All time", daily: "Today", weekly: "This week" };
     const rows = state.rankings.rows || [];
-    return '<div class="rankingwrap"><div class="challengehero"><div><div class="challengekicker"><span class="eyebrow">LEADERBOARD</span><span class="fairbadge">✓ FAIR PLAY</span></div><h2>The 82-0 Club</h2><p>Own today. Rule the week. Become an all-time legend.</p></div><button class="btn gold" onclick="setScreen(\'challenge\')">START A 1V1</button></div>'
-      + '<div class="challengeactions"><button class="btn primary" onclick="ATUBackend.startRankedRun(\'draft\')">PLAY RANKED DRAFT</button><button class="btn" onclick="ATUBackend.startRankedRun(\'pack\')">PLAY RANKED PACKS</button></div>'
+    return '<div class="rankingwrap"><div class="challengehero"><div><span class="eyebrow">LEADERBOARD</span><h2>The 82–0 Club</h2><p>Pick your mode. Build your team. Chase the perfect season.</p></div></div>'
+      + '<div class="ranking-play"><article><span class="eyebrow">DRAFT</span><h3>Classic Draft</h3><p>Choose your captain and draft your eight.</p><button class="btn gold" onclick="setScreen(\'draft\')">PLAY CLASSIC DRAFT</button><button class="textbtn" onclick="ATUBackend.startRankedRun(\'draft\')">Play for the leaderboard</button></article>'
+      + '<article><span class="eyebrow">PACKS</span><h3>Pack Mode</h3><p>Open packs and build your ultimate lineup.</p><button class="btn primary" onclick="setScreen(\'classic\')">PLAY PACK MODE</button><button class="textbtn" onclick="ATUBackend.startRankedRun(\'pack\')">Play for the leaderboard</button></article>'
+      + '<article><span class="eyebrow">1V1</span><h3>Draft Duel</h3><p>Same picks. Two courts. Challenge a friend.</p><button class="btn primary" onclick="setScreen(\'challenge\')">CHALLENGE A FRIEND</button></article></div>'
       + rankingFilterHTML("modes", Object.keys(modes), modes, state.rankings.mode)
       + rankingFilterHTML("periods", Object.keys(periods), periods, state.rankings.period)
       + (state.rankings.status === "loading" ? '<div class="rankingempty">Loading the leaderboard…</div>'
@@ -1401,6 +1442,8 @@
     createChallenge: createChallenge,
     startRankedRun: startRankedRun,
     acceptChallenge: acceptChallenge,
+    openChallengePick: openChallengePick,
+    closeChallengePick: closeChallengePick,
     chooseChallengeCaptain: chooseChallengeCaptain,
     chooseChallengePick: chooseChallengePick,
     selectChallengeSwap: selectChallengeSwap,

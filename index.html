@@ -3106,17 +3106,13 @@ function collMatches(p){
   return p.name.toLowerCase().includes(COLL_Q)||p.team.toLowerCase().includes(COLL_Q)||String(p.ovr).includes(COLL_Q);
 }
 function collTile(p){
-  const got=!!T.seenCards[p.id];
-  if(!got){
-    return `<div class="ctile locked" title="Undiscovered">
-      <div class="ct-q">?</div>
-      <div class="ct-meta"><b>\u2014\u2014\u2014</b><span>${esc(p.tier.toUpperCase())}</span></div></div>`;
-  }
-  const art=cardArtURL(p);
-  return `<div class="ctile t-${p.tier}" onclick="${efxEligible(p)?`openEquip(${p.id})`:`openCardZoom(event,${p.id})`}">
-    ${art?`<img class="ct-art" src="${art}" ${cardArtFallbackAttr(p)} alt="">`:""}
-    <div class="ct-ovr">${p.ovr}</div>
-    <div class="ct-meta"><b>${esc(p.name)}</b><span>${esc(p.team)} \u00b7 ${esc(p.era)}</span></div></div>`;
+  const got=!!T.seenCards[p.id],art=got&&cardArtURL(p);
+  const action=efxEligible(p)?`openEquip(${p.id})`:`openCardZoom(event,${p.id})`;
+  return `<button type="button" class="ctile t-${p.tier}${got?"":" locked"}" onclick="${action}"
+    title="${esc(p.name)}${got?"":" · Undiscovered — preview card"}">
+    ${got?(art?`<img class="ct-art" src="${art}" ${cardArtFallbackAttr(p)} alt="">`:"")+`<div class="ct-ovr">${p.ovr}</div>`:`<div class="ct-q" aria-hidden="true">?</div>`}
+    <div class="ct-meta"><b>${esc(p.name)}</b><span>${esc(p.team)} · ${esc(p.era)}</span>
+      ${got?"":`<small>UNDISCOVERED</small>`}</div></button>`;
 }
 function collPool(){
   /* item filter spans every tier \u2014 an item you own may sit on a Gold and an Icon */
@@ -3503,8 +3499,9 @@ function raftersHTML(){
             <div class="rfname">RAFTERS</div><div class="rfsub">ALL-TIME ULTIMATE</div></div>
         </div>
         <div class="rftrack"></div>
-        <div class="rftab" id="rftab"><div class="rftabb"></div>
-          <div class="rfhint" id="rfhint">${rfHintText()}</div></div>
+        <div class="rfcurl" id="rfcurl" aria-hidden="true"></div>
+        <button type="button" class="rftab" id="rftab" aria-label="Open Rafters pack"><span class="rftabb"></span>
+          <span class="rfhint" id="rfhint">${rfHintText()}</span></button>
       </div>
     </div>
     <div class="rfreveal" id="rfreveal"></div>
@@ -3544,8 +3541,7 @@ function rfSyncStats(){
   const hint=$("#rfhint");if(hint)hint.textContent=rfHintText();
   const pill=$("#crpill");if(pill)pill.textContent=CR.bal.toLocaleString()+" CR";
 }
-/* Buying happens on first contact with the zipper. Returns false when the pull
-   can't be afforded, which aborts the drag before anything moves. */
+/* Charge once when the foil moves or the player deliberately taps to open. */
 function rfArm(){
   if(RF.done)return false;
   if(RF.open&&RF.pull)return true;
@@ -3574,149 +3570,139 @@ function rfSetGlow(neutral){
   a.style.setProperty("--rf-glow",c);
 }
 function rfBind(){
-  const tab=$("#rftab"),stage=$("#rfstage");
-  if(!tab||!stage||tab.dataset.bound)return;
-  tab.dataset.bound="1";
-
-  /* Re-renders replace the zipper node. Clear old window listeners first so
-     repeated Rafters packs never accumulate input handlers. */
+  const tab=$("#rftab"),stage=$("#rfstage"),pack=$("#rfpack");
+  if(!tab||!stage||!pack||tab.dataset.bound)return;
   if(typeof RF.unbind==="function")RF.unbind();
+  tab.dataset.bound="1";
+  const view=RF.view={stage,pack,tab,top:$("#rftop"),bot:$("#rfbot"),curl:$("#rfcurl"),
+    void:$("#rfvoid"),spill:$("#rfspill"),arena:$("#rfarena"),width:stage.clientWidth,height:stage.clientHeight};
   const removers=[];
-  const on=(el,type,fn,opts)=>{
-    el.addEventListener(type,fn,opts);
-    removers.push(()=>el.removeEventListener(type,fn,opts));
-  };
-  RF.unbind=()=>{removers.splice(0).forEach(off=>off());RF.drag=false;};
-
-  let pointerId=null,startX=0,startProg=0,moved=false,suppressClickUntil=0;
-  const pointX=e=>{
-    if(Number.isFinite(e.clientX))return e.clientX;
-    const t=(e.touches&&e.touches[0])||(e.changedTouches&&e.changedTouches[0]);
-    return t&&Number.isFinite(t.clientX)?t.clientX:null;
+  const on=(el,type,fn,opts)=>{el.addEventListener(type,fn,opts);removers.push(()=>el.removeEventListener(type,fn,opts));};
+  let pointerId=null,startX=0,startProg=0,moved=false,target=RF.prog||0;
+  RF.unbind=()=>{
+    RF.following=false;
+    removers.splice(0).forEach(off=>off());
+    cancelAnimationFrame(RF.raf);
+    (RF.timers||[]).forEach(clearTimeout);RF.timers=[];
+    RF.drag=false;
   };
   const down=e=>{
-    if(RF.done)return;
-    const x=pointX(e);if(x==null)return;
-    if(!rfArm()){if(e.cancelable)e.preventDefault();return;}
-    RF.drag=true;pointerId=e.pointerId??null;startX=x;startProg=RF.prog;moved=false;
-    $("#rfpack")?.classList.add("live");
-    if(e.pointerId!=null&&tab.setPointerCapture){
-      try{tab.setPointerCapture(e.pointerId);}catch(_){/* harmless on older iOS */}
-    }
+    if(RF.done||RF.drag||(e.button!=null&&e.button!==0))return;
+    cancelAnimationFrame(RF.raf);RF.following=false;
+    RF.drag=true;pointerId=e.pointerId;startX=e.clientX;startProg=RF.prog||0;target=startProg;moved=false;
+    // Pause at the current floating pose so grabbing the wrapper never snaps it.
+    pack.getAnimations().forEach(animation=>animation.pause());
+    try{pack.setPointerCapture(pointerId);}catch(_){}
     if(e.cancelable)e.preventDefault();
   };
   const move=e=>{
-    if(!RF.drag||RF.done)return;
-    if(pointerId!=null&&e.pointerId!=null&&e.pointerId!==pointerId)return;
-    const x=pointX(e);if(x==null)return;
-    if(Math.abs(x-startX)>5)moved=true;
-    const b=stage.getBoundingClientRect();
-    rfApply(startProg+(x-startX)/Math.max(1,b.width-28));
-    if(RF.prog>=0.78)rfBurst();
+    if(!RF.drag||RF.done||e.pointerId!==pointerId)return;
+    const distance=e.clientX-startX;
+    if(!moved&&Math.abs(distance)<5)return;
+    moved=true;
+    if(distance<0)return;
+    if(!rfArm()){RF.drag=false;return;}
+    target=Math.max(RF.prog,startProg+distance/Math.max(1,view.width-28));
+    rfFollow(target);
     if(e.cancelable)e.preventDefault();
   };
-  const up=e=>{
-    if(!RF.drag||RF.done)return;
-    if(pointerId!=null&&e&&e.pointerId!=null&&e.pointerId!==pointerId)return;
+  const release=(e,cancelled)=>{
+    if(!RF.drag||e.pointerId!==pointerId)return;
     RF.drag=false;pointerId=null;
-    if(e&&e.cancelable)e.preventDefault();
-    if(!moved&&RF.prog<=0.02){
-      suppressClickUntil=Date.now()+550;
-      rfSpring(0,1,820,rfBurst);
-    }else if(RF.prog>=0.46)rfBurst();
-    else rfSpring(RF.prog,0,220);
-  };
-
-  /* The silver tab is the zipper and the only interaction target.
-     Pointer Events only — every browser that can parse this file's ?. and ??
-     syntax (Safari 13.1+, Chrome 80+, Firefox 72+) supports them, so a
-     mouse/touch fallback here would be unreachable code. */
-  on(tab,"pointerdown",down,{passive:false});
-  on(window,"pointermove",move,{passive:false});
-  on(window,"pointerup",up,{passive:false});
-  on(window,"pointercancel",up,{passive:false});
-  on(tab,"click",e=>{
-    if(Date.now()<suppressClickUntil||RF.done||RF.prog>0.02)return;
+    cancelAnimationFrame(RF.raf);RF.following=false;
+    if(cancelled){rfApply(RF.prog);return;}
+    if(!moved){if(rfArm())rfSpring(RF.prog,1,950,rfBurst);}
+    else if(target>=.78)rfBurst();
+    else rfSpring(RF.prog,Math.min(.77,Math.max(RF.prog,target)),140);
     if(e.cancelable)e.preventDefault();
-    if(!rfArm())return;
-    rfSpring(0,1,820,rfBurst);
+  };
+  on(pack,"pointerdown",down,{passive:false});
+  on(pack,"pointermove",move,{passive:false});
+  on(pack,"pointerup",e=>release(e,false),{passive:false});
+  on(pack,"pointercancel",e=>release(e,true),{passive:false});
+  on(pack,"lostpointercapture",e=>{if(RF.drag)release(e,true);});
+  on(tab,"click",e=>{
+    // Native keyboard activation; pointer taps are handled once on pointerup.
+    if(e.detail!==0||RF.done)return;
+    if(rfArm())rfSpring(RF.prog,1,950,rfBurst);
   });
+  rfApply(RF.prog||0);
+}
+function rfFollow(target){
+  RF.target=Math.max(0,Math.min(1,target));
+  if(RF.following)return;
+  RF.following=true;
+  let last=performance.now();
+  const view=RF.view;
+  const step=now=>{
+    if(RF.view!==view||!view.stage.isConnected||RF.done){RF.following=false;return;}
+    const dt=Math.min(48,now-last);last=now;
+    const next=RF.prog+(RF.target-RF.prog)*(1-Math.exp(-dt/36));
+    rfApply(next);
+    if(RF.prog>=.78){RF.following=false;rfBurst();return;}
+    if(Math.abs(RF.target-RF.prog)>.001)RF.raf=requestAnimationFrame(step);
+    else{rfApply(RF.target);RF.following=false;}
+  };
+  RF.raf=requestAnimationFrame(step);
 }
 function rfApply(p){
   RF.prog=Math.max(0,Math.min(1,p));
-  const seam=10,ease=RF.prog*RF.prog*(3-2*RF.prog),gap=2+ease*12;
-  const top=$("#rftop"),bot=$("#rfbot"),tab=$("#rftab"),
-        vd=$("#rfvoid"),sp=$("#rfspill"),ar=$("#rfarena"),st=$("#rfstage");
-  /* A re-render can swap the stage out mid-animation, so every node is optional
-     from here down — a missing one skips its own writes instead of throwing and
-     killing the spring loop. */
-  if(!st)return;
-
-  const sw=st.clientWidth||1, sh=st.clientHeight||1;
-  const travel=Math.max(0,sw-28),px=travel*RF.prog;
-  const tabPct=14+px;
-  const xPct=(tabPct/sw)*100;
-  const gapPct=(gap/sh)*100;
-
-  /* Right side stays sealed. Only the already-zipped left section separates,
-     producing one crisp opening that follows the tab. */
-  if(top){
-    top.style.clipPath=`polygon(0 0,100% 0,100% ${seam}%,${xPct}% ${seam}%,${xPct}% ${seam-gapPct}%,0 ${seam-gapPct}%)`;
-    top.style.transform="translateY(0) rotate(0deg)";
-  }
-  if(bot){
-    bot.style.clipPath=`polygon(0 ${seam+gapPct}%,${xPct}% ${seam+gapPct}%,${xPct}% ${seam}%,100% ${seam}%,100% 100%,0 100%)`;
-    bot.style.transform="translateY(0) rotate(0deg)";
-  }
-  if(tab){
-    tab.style.left=tabPct+"px";
-    tab.style.setProperty("--zip-p",RF.prog.toFixed(3));
-  }
-  if(vd){
-    vd.style.width=Math.max(0,px)+"px";
-    vd.style.opacity=RF.prog<.015?0:Math.min(1,.2+RF.prog*1.35);
-  }
-  if(sp){
-    sp.style.width=Math.max(0,px)+"px";
-    sp.style.opacity=Math.min(.68,RF.prog*.86);
-    sp.style.transform=`scaleY(${0.18+RF.prog*.72})`;
-  }
-
-  if(ar){
-    ar.style.setProperty("--rf-lift",(0.30+RF.prog*0.58).toFixed(2));
-    if(RF.prog>0.08)rfSetGlow(false); else rfSetGlow(true);
-  }
-  const pack=$("#rfpack");
-  if(pack){
-    if(RF.prog>0.01)pack.classList.add("live");
-    else pack.classList.remove("live");
-  }
+  const v=RF.view;if(!v||!v.stage.isConnected)return;
+  const progress=RF.prog,sw=v.width,sh=v.height,seam=sh*.1;
+  const px=Math.max(0,sw-28)*progress,x=14+px,lift=Math.sin(progress*Math.PI/2)*15;
+  const tip=Math.max(0,x-16);
+  // A tapered tear stays closed ahead of the grip; the peeled foil curls behind it.
+  v.top.style.clipPath=`polygon(0 0,100% 0,100% ${seam}px,${x}px ${seam}px,${tip}px ${seam-lift*.55}px,0 ${seam-lift}px)`;
+  v.bot.style.clipPath=`polygon(0 ${seam+lift*.35}px,${tip}px ${seam+lift*.2}px,${x}px ${seam}px,100% ${seam}px,100% 100%,0 100%)`;
+  v.top.style.transform=`perspective(700px) rotateX(${-progress*8}deg)`;
+  v.bot.style.transform=`perspective(700px) rotateY(${Math.sin(progress*Math.PI)*-2}deg)`;
+  v.tab.style.transform=`translate3d(${px}px,${-lift*.25}px,12px) rotate(${-progress*9}deg)`;
+  v.tab.setAttribute('aria-label',progress>.01?'Continue peeling this pack':'Open Rafters pack');
+  v.curl.style.width=px+'px';
+  v.curl.style.opacity=progress<.01?0:1;
+  v.curl.style.transform=`perspective(500px) translateY(${-lift*.65}px) rotateX(${-25-progress*110}deg)`;
+  v.void.style.width=px+'px';v.void.style.opacity=progress<.015?0:Math.min(1,progress*2);
+  v.spill.style.width=px+'px';v.spill.style.opacity=Math.min(.65,progress*.7);
+  v.spill.style.transform=`scaleY(${.18+progress*.72})`;
+  v.pack.style.setProperty('--foil-shine',`${75-progress*65}%`);
+  v.arena.style.setProperty('--rf-lift',(.3+progress*.58).toFixed(2));
+  rfSetGlow(progress<=.08);
+  if(progress>.01)v.pack.classList.add('peeling');
 }
 function rfSpring(from,to,ms,cb){
-  const t0=performance.now();
-  cancelAnimationFrame(RF.raf);
-  (function step(){
-    const k=Math.min(1,(performance.now()-t0)/ms);
-    const e=to>from?1-Math.pow(1-k,3):k*k;
-    rfApply(from+(to-from)*e);
-    if(k<1)RF.raf=requestAnimationFrame(step);
-    else{ if(cb)cb(); else $("#rfpack").classList.remove("live"); }
-  })();
+  cancelAnimationFrame(RF.raf);RF.following=false;
+  const view=RF.view,t0=performance.now();
+  const duration=window.matchMedia('(prefers-reduced-motion: reduce)').matches?0:ms;
+  const step=now=>{
+    if(RF.view!==view||!view||!view.stage.isConnected)return;
+    const k=duration?Math.min(1,(now-t0)/duration):1;
+    const eased=k*k*(3-2*k);
+    rfApply(from+(to-from)*eased);
+    if(k<1)RF.raf=requestAnimationFrame(step);else if(cb)cb();
+  };
+  RF.raf=requestAnimationFrame(step);
 }
 function rfBurst(){
-  if(RF.done)return; RF.done=true; RF.drag=false;
-  rfSpring(RF.prog,1,300,()=>{
-    const top=$("#rftop"),bot=$("#rfbot"),st=$("#rfstage");
-    if(top&&top.animate){
-      top.animate([{transform:top.style.transform,opacity:1},
-        {transform:"translateY(-260px) rotate(-15deg)",opacity:0}],
-        {duration:560,easing:"cubic-bezier(.3,.8,.3,1)",fill:"forwards"});
-      bot.animate([{transform:bot.style.transform,opacity:1},
-        {transform:"translateY(240px) rotate(9deg)",opacity:0}],
-        {duration:560,easing:"cubic-bezier(.3,.8,.3,1)",fill:"forwards"});
-    }
-    setTimeout(()=>{if(st){st.style.transition="opacity .35s";st.style.opacity=0;}},260);
-    setTimeout(rfReveal,420);
+  if(RF.done)return;RF.done=true;RF.drag=false;
+  const view=RF.view,pull=RF.pull;
+  rfSpring(RF.prog,1,280,()=>{
+    if(!view||RF.view!==view)return;
+    const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(reduced){view.stage.style.opacity=0;rfReveal();return;}
+    view.top.animate([
+      {transform:view.top.style.transform,opacity:1},
+      {transform:'translate3d(20px,-35px,35px) rotateX(-95deg) rotate(-8deg)',opacity:1,offset:.4},
+      {transform:'translate3d(120px,-130px,0) rotateX(-170deg) rotate(25deg)',opacity:0}
+    ],{duration:680,easing:'cubic-bezier(.22,.61,.36,1)',fill:'forwards'});
+    view.bot.animate([
+      {transform:view.bot.style.transform,opacity:1},
+      {transform:'translate3d(0,38px,0) rotateX(14deg) rotate(3deg)',opacity:.95,offset:.4},
+      {transform:'translate3d(-28px,330px,-80px) rotateX(28deg) rotate(-9deg)',opacity:0}
+    ],{duration:820,easing:'cubic-bezier(.4,0,.65,.45)',fill:'forwards'});
+    [view.tab,view.curl,view.void,view.spill].forEach(el=>el.animate([{opacity:1},{opacity:0}],{duration:200,fill:'forwards'}));
+    RF.timers=[setTimeout(()=>{
+      if(RF.pull===pull&&RF.view===view&&view.stage.isConnected)rfReveal();
+    },320)];
   });
 }
 function rfReveal(){
@@ -3732,6 +3718,7 @@ function rfReveal(){
   EFX.equip[card.id][slot]=prevSlot||null;   /* don't auto-equip on the player's behalf */
   if(preview)EFX.equip[card.id]=preview;
   const rv=$("#rfreveal");
+  if(!rv||rv.classList.contains("show"))return;
   rv.innerHTML=`
     <div class="rfitem">${html}</div>
     <div class="rflabel">
@@ -3748,12 +3735,12 @@ function rfReveal(){
     </div>`;
   rv.classList.add("show");
   const it=rv.querySelector(".rfitem");
-  if(it&&it.animate)it.animate(
-    [{opacity:0,transform:"scale(.6) translateY(30px)"},{opacity:1,transform:"scale(1) translateY(0)"}],
-    {duration:700,easing:"cubic-bezier(.16,.9,.3,1.06)",fill:"forwards"});
+  if(it&&it.animate&&!window.matchMedia("(prefers-reduced-motion: reduce)").matches)it.animate(
+    [{opacity:0,transform:"translateY(26px) scale(.88) rotateY(-12deg)"},{opacity:1,transform:"translateY(-5px) scale(1.02) rotateY(2deg)",offset:.75},{opacity:1,transform:"translateY(0) scale(1) rotateY(0)"}],
+    {duration:820,easing:"cubic-bezier(.2,.75,.25,1)",fill:"forwards"});
   if(typeof mountEfxOverlays==="function")mountEfxOverlays();
   rfSetGlow();
-  if(r.tier==="Mythic")confetti(90);
+  if(r.tier==="Mythic"&&!window.matchMedia("(prefers-reduced-motion: reduce)").matches)confetti(90);
 }
 
 
@@ -3784,6 +3771,7 @@ function equipHTML(){
     <div class="eqpreview">
       ${cardHTML(p)}
       <div style="flex:1;min-width:200px">
+        ${!T.seenCards[p.id]?`<p class="eqpreview-note">Undiscovered · Try your unlocked items here. Finding this player in a run adds them to your collection.</p>`:""}
         ${!efxEligible(p)?`<div class="eqempty">Effects only apply to Gold, Elite and Icon cards.</div>`:
           owned.length?`<div class="eqslots">
             ${slots.map(s=>{
@@ -4827,6 +4815,7 @@ function artStatus(filter){
 
 function hasArt(p){return CARD_ART.has(cardSlugFor(p));}
 function cardHTML(p,attrs,badge){
+  if(Number.isInteger(p))p=DB[p];
   /* front face: completely clean — no chemistry text */
   const art=cardArtURL(p);
   const variants=art?cardArtVariants(p):null;
@@ -4924,7 +4913,7 @@ function notice(msg){const n=$("#notice");if(!n)return;n.textContent=msg;
   clearTimeout(notice.t);notice.t=setTimeout(()=>{if($("#notice"))$("#notice").textContent="";},2600);}
 
 /* ================= NAV ================= */
-function setScreen(s){screen=s;render();ATUBackend.onScreen(s);window.scrollTo(0,0);}
+function setScreen(s){if(screen==="rafters"&&s!=="rafters"&&typeof RF.unbind==="function")RF.unbind();screen=s;render();window.scrollTo(0,0);}
 function renderTabs(){
   const bar=$("#tabs");if(!bar)return;
   let items;
@@ -5437,6 +5426,25 @@ function draftSlotHTML(slot){
   const tappable=D.stage==="picking"; /* picked cards can be swapped throughout the draft */
   return `<div class="slot-${slot}" style="position:relative${tappable?";cursor:pointer":""}" ${tappable?`onclick="draftSlotTap('${slot}')"`:""}><div class="${D.lastSlot===slot?"snapin":""}">${cardHTML(DB[pid])}</div>${tappable?`<div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:8px;letter-spacing:.15em;color:var(--cyan);pointer-events:none">TAP TO MOVE</div>`:""}</div>`;
 }
+/* Shared Classic Draft court for online drafts and completed duels. */
+function challengeCourtHTML(roster={},options={}){
+  const hidden=!!options.hidden;
+  const slotHTML=s=>{
+    const id=roster[s],filled=!hidden&&Number.isInteger(id)&&!!DB[id];
+    const next=!hidden&&options.nextSlot===s;
+    const action=filled&&options.interactive?`ATUBackend.selectChallengeSwap('${s}')`:next?"ATUBackend.openChallengePick()":"";
+    return `<div class="slot-${s} duel-slot${options.selectedSlot===s?" selected":""}" data-card-id="${filled?id:""}">
+      ${filled?cardHTML(id):`<div class="slot${next?" eligible":""}"><div class="postag">${s.startsWith("B")?"BN":s}</div><b>${hidden?"?":next?"YOUR PICK":"+"}</b><small>${hidden?"HIDDEN":next?"TAP TO DRAFT":""}</small></div>`}
+      ${action?`<button class="duel-slot-action${next?" duel-next":""}" onclick="${action}" aria-label="${filled?"Move "+esc(DB[id].name):"Draft "+s}">${filled?"TAP TO MOVE":""}</button>`:""}</div>`;
+  };
+  return `<div class="court duel-court${hidden?" duel-hidden":""}">
+    <svg class="squadweb" aria-hidden="true"></svg>
+    <h3>${hidden?"REVEALED WHEN BOTH TEAMS ARE LOCKED":options.title||"YOUR STARTING FIVE"}</h3>
+    <div class="fiveslots">${["C","PF","SF","SG","PG"].map(slotHTML).join("")}</div>
+    <div class="benchlabel">BENCH · ANY POSITION</div>
+    <div class="benchrow">${BENCH_SLOTS.map(slotHTML).join("")}</div>
+  </div>`;
+}
 function draftHTML(){
   reconcileDraftState();
   if(D.stage==="captain"){
@@ -5948,6 +5956,9 @@ function render(){
       <span>·</span><span>Fan-made sandbox — not affiliated with or endorsed by the NBA, its teams, or players.</span>
     </footer>`;
   ATUVisuals.onRender(screen);
+  ATUBackend.onScreen(screen);
+  const duelDialog=$("#duel-pick-dialog");
+  if(duelDialog&&!duelDialog.open)duelDialog.showModal();
   /* the collection grid is painted after mount so a big tier doesn't block the page */
   if(screen==="collection"&&typeof renderCollGrid==="function")
     (window.requestAnimationFrame||setTimeout)(()=>renderCollGrid());
@@ -5956,6 +5967,7 @@ function render(){
     (window.requestAnimationFrame||setTimeout)(()=>{
       rfBind();
       if(!RF.done){rfApply(RF.prog||0);if(!RF.pull)rfSetGlow(true);}
+      else{RF.view.stage.style.opacity=0;rfReveal();}
     });
   if(typeof mountEfxOverlays==="function")
     (window.requestAnimationFrame||setTimeout)(()=>mountEfxOverlays());
@@ -5979,16 +5991,18 @@ function pairLinkKind(a,b){ /* strongest shared chemistry between two starters *
   return era?"era":style?"style":null;
 }
 function drawSquadWeb(){
-  const svg=$(".squadweb");if(!svg)return;
+  document.querySelectorAll(".squadweb").forEach((svg,index)=>{
   const court=svg.closest(".court"),cr=court.getBoundingClientRect();
   if(cr.width)svg.setAttribute("viewBox",`0 0 ${cr.width} ${cr.height}`);
-  const roster=screen==="draft"?D.roster:screen==="daily"?(DD?DD.roster:emptyRoster()):screen==="share"&&SHARED?SHARED.roster:S[sideFor(screen)].roster;
+  const roster=court.classList.contains("duel-court")?Object.fromEntries(ALL_SLOTS.map(s=>{
+    const id=court.querySelector(".slot-"+s)?.dataset.cardId;return [s,id?Number(id):null];
+  })):screen==="draft"?D.roster:screen==="daily"?(DD?DD.roster:emptyRoster()):screen==="share"&&SHARED?SHARED.roster:S[sideFor(screen)].roster;
   const pts={};
   STARTER_SLOTS.forEach(s=>{const el=court.querySelector(".slot-"+s);if(!el)return;
     const r=el.getBoundingClientRect();
     pts[s]={x:r.left-cr.left+r.width/2,y:r.top-cr.top+r.height/2};});
   const fw=(cr.width||600),fh=(cr.height||400);
-  const defs=`<defs><filter id="webneon" filterUnits="userSpaceOnUse" x="-60" y="-60" width="${(fw+120).toFixed(0)}" height="${(fh+120).toFixed(0)}">
+  const defs=`<defs><filter id="webneon${index}" filterUnits="userSpaceOnUse" x="-60" y="-60" width="${(fw+120).toFixed(0)}" height="${(fh+120).toFixed(0)}">
     <feGaussianBlur in="SourceGraphic" stdDeviation="4.5" result="b"/>
     <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
   </filter></defs>`;
@@ -6001,10 +6015,11 @@ function drawSquadWeb(){
     if(roster[A]!=null&&roster[B]!=null){
       const k=pairLinkKind(DB[roster[A]],DB[roster[B]]);
       if(k){const c=WEB_COLORS[k];
-        blue+=seg("core-"+k,`class="core-${k}" stroke="${c}" stroke-width="3" opacity="0.9" stroke-linecap="round" filter="url(#webneon)"`);}
+        blue+=seg("core-"+k,`class="core-${k}" stroke="${c}" stroke-width="3" opacity="0.9" stroke-linecap="round" filter="url(#webneon${index})"`);}
     }
   }
   svg.innerHTML=defs+grey+blue;
+  });
 }
 window.addEventListener("resize",()=>drawSquadWeb());
 function initArena(){
