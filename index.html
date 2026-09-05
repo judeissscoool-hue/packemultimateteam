@@ -1682,7 +1682,6 @@ const P=[
 
 const TIER_ORDER=["Bronze","Silver","Gold","Elite","Icon"];
 function tierOf(o){return o>=96?"Icon":o>=92?"Elite":o>=85?"Gold":o>=75?"Silver":"Bronze";}
-function bucketOf(pos){return pos==="C"?"C":(pos==="PG"||pos==="SG")?"G":"F";}
 /* multi-position eligibility: primary position + secondary/tertiary spots */
 const POS_EXTRA={
 "LeBron James":["PF","PG","SG","C"],"Magic Johnson":["SG","SF","PF","C"],
@@ -1838,15 +1837,9 @@ Story_Draft_2018:"'18 Draft Class",Story_Rival_80s_Classic:"Magic vs Bird",Story
 Story_Rival_TexasTriad:"Texas Triad",Story_Rival_ModernFinals:"Finals Trilogy"};
 /* stamp every card: exactly 1 era + 1-2 styles + any story tags */
 DB.forEach(p=>{p.tags=[ERA_TAG[p.era],...(STYLE_TAGS[p.name]||DEFAULT_STYLE[p.pos]),...(STORIES_BY_NAME[p.name]||[])];});
-function cardChips(p){ /* stories first, then styles, max 2 shown on the card */
-  const t=p.tags.filter(x=>!x.startsWith("Era_"));
-  t.sort((a,b)=>(a.startsWith("Story_")?0:1)-(b.startsWith("Story_")?0:1));
-  return t.slice(0,2).map(x=>TAG_LABEL[x]).join(" · ");
-}
 const POOLS={};TIER_ORDER.forEach(t=>POOLS[t]=DB.filter(p=>p.tier===t));
 /* ---- Eras Mode: optional era-lock shared by Classic Draft + daily Decade Lock ---- */
 let DRAFT_ERA=null; /* null = all eras; else e.g. "'10s" restricts every draft pool */
-const ERA_POOL=e=>DB.filter(p=>p.era===e);
 function viableEras(){ /* eras deep enough to fill a full draft */
   const by={};DB.forEach(p=>{(by[p.era]=by[p.era]||[]).push(p);});
   return Object.entries(by).filter(([e,a])=>a.length>=120&&STARTER_SLOTS.every(s=>a.some(p=>p.positions.includes(s))))
@@ -1883,7 +1876,6 @@ function fisherYates(arr,rng){
   for(let i=a.length-1;i>0;i--){const j=Math.floor(R()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
   return a;
 }
-const COOLDOWN_WEIGHT=0.25; /* legacy flat cooldown — kept for compat; engine now uses pull-memory below */
 
 /* OPTION B SPOTLIGHT
    Visibility tilt only: all cards stay collectible and remain in the same tier/deck cycle.
@@ -1941,14 +1933,7 @@ function unpickPlayer(p){ /* a rolled card replaced by guarantee logic was never
   if(TIER_DECKS[p.tier]&&!TIER_DECKS[p.tier].includes(p.id))TIER_DECKS[p.tier].push(p.id);
   delete PULL_AT[p.id];
 }
-function weightedPick(pool,recent,rng){
-  const R=rng||Math.random;
-  const wts=pool.map(p=>recent&&recent.has(p.id)?COOLDOWN_WEIGHT:1);
-  let r=R()*wts.reduce((a,b)=>a+b,0);
-  for(let i=0;i<pool.length;i++){r-=wts[i];if(r<0)return pool[i];}
-  return pool[pool.length-1];
-}
-function rollCard(packKey,excl,recent,rng){
+function rollCard(packKey,excl,rng){
   const t=rollTier(PACKS[packKey].odds,rng);
   let pool;
   if(packKey==="rare")pool=t==="Gold"?POOL_90.filter(p=>p.ovr<=91):POOLS[t];
@@ -1958,8 +1943,8 @@ function rollCard(packKey,excl,recent,rng){
   /* tier odds strictly picked the pool; the card comes from the pull-memory picker */
   return pickPlayer(open,rng);
 }
-function rollPack(packKey,owned,recent,rng){
-  const pk=PACKS[packKey],rec=recent||new Set();
+function rollPack(packKey,owned,rng){
+  const pk=PACKS[packKey];
   PACK_NO++;
   let excl=new Set(owned||[]);
   /* uniqueness is per CARD (name+team+era = its id): other versions of an owned
@@ -1967,7 +1952,7 @@ function rollPack(packKey,owned,recent,rng){
      3 unowned cards remain, exact dupes become pullable and are auto-discarded. */
   if(packUniverse(packKey).filter(p=>!excl.has(p.id)).length<3)excl=new Set();
   const cards=[];
-  for(let i=0;i<3;i++){const c=rollCard(packKey,excl,rec,rng);cards.push(c);excl.add(c.id);}
+  for(let i=0;i<3;i++){const c=rollCard(packKey,excl,rng);cards.push(c);excl.add(c.id);}
   if(pk.guarTier&&!cards.some(c=>tierRank(c.tier)>=tierRank(pk.guarTier))){
     // upgrade the last card to satisfy the guarantee
     const floor=tierRank(pk.guarTier);
@@ -2208,23 +2193,6 @@ function draftDowngrade(t,counts){
   while(i>-1&&i<2&&DRAFT_LIMITS[order[i]]&&(counts[order[i]]||0)>=DRAFT_LIMITS[order[i]])i++;
   return i===-1?t:order[i]||t;
 }
-function draftOptions(takenIds,rng){
-  const opts=[];let guard=0;
-  while(opts.length<5&&guard++<400){
-    const t=rollTier(DRAFT_ODDS,rng);
-    const pool=POOLS[t].filter(p=>!takenIds.includes(p.id)&&!opts.some(o=>o.id===p.id));
-    if(pool.length)opts.push(pickFrom(pool,rng));
-  }
-  return opts;
-}
-/* draft is positionless: best five by OVR start, rest ride the bench */
-function draftArrange(ids){
-  const s=ids.slice().sort((a,b)=>DB[b].ovr-DB[a].ovr);
-  const r=emptyRoster();
-  STARTER_SLOTS.forEach((slot,i)=>r[slot]=s[i]??null);
-  BENCH_SLOTS.forEach((slot,i)=>r[slot]=s[5+i]??null);
-  return r;
-}
 /* CLASSIC MODE: balanced drop curve with hard high-tier ceilings per session */
 const CLASSIC_ODDS={Bronze:.37,Silver:.425,Gold:.16,Elite:.037,Icon:.008};
 const CLASSIC_PREMIUM_ODDS={Silver:.525,Gold:.35,Elite:.10,Icon:.025};
@@ -2235,7 +2203,7 @@ function classicDowngrade(t,counts,limits){
   while(i>-1&&i<2&&L[order[i]]&&(counts[order[i]]||0)>=L[order[i]])i++;
   return i===-1?t:order[i]||t;
 }
-function classicRollPack(owned,counts,recent,packKey,rng){
+function classicRollPack(owned,counts,packKey,rng){
   const odds=packKey==="premium"?CLASSIC_PREMIUM_ODDS:CLASSIC_ODDS;
   PACK_NO++;
   const excl=new Set(owned||[]),cards=[];
@@ -2336,12 +2304,11 @@ function draftOptionsFor(slot,takenIds,counts,seenNames,rng){
 function draftCaptainOptions(rng){
   const R=rng||Math.random,out=[],hard=new Set(),soft=new Set();let guard=0;
   /* era-aware anchor tiers: prefer Icon/Elite, but fall back to the best tiers the era HAS */
-  const tierPool=t=>eraPool(t);
-  let anchorTiers=["Icon","Elite"].filter(t=>tierPool(t).length>0);
-  if(!anchorTiers.length)anchorTiers=TIER_ORDER.slice().reverse().filter(t=>tierPool(t).length>0).slice(0,2);
+  let anchorTiers=["Icon","Elite"].filter(t=>eraPool(t).length>0);
+  if(!anchorTiers.length)anchorTiers=TIER_ORDER.slice().reverse().filter(t=>eraPool(t).length>0).slice(0,2);
   while(out.length<3&&guard++<400){
     const t=anchorTiers[Math.floor(R()*anchorTiers.length)]||anchorTiers[0];
-    const p=draftFairPick(tierPool(t),hard,soft,R);
+    const p=draftFairPick(eraPool(t),hard,soft,R);
     if(p){out.push(p);hard.add(p.name);soft.add(p.name);}
   }
   persistDraftFair();
@@ -2360,11 +2327,6 @@ function classicCaptainOptions(owned,rng){
   persistRand();
   return out;
 }
-function captainOptions(rng){ /* legacy 5-pure-Icon picker — kept, no longer called */
-  const seen=new Set(),out=[];
-  fisherYates(POOLS.Icon,rng).forEach(p=>{if(out.length<5&&!seen.has(p.name)){seen.add(p.name);out.push(p);}});
-  return out;
-}
 /* canonical entry points */
 const calculateTeamOVR=teamOVR;
 const updateProjectedRecord=projection;
@@ -2375,7 +2337,6 @@ const updateProjectedRecord=projection;
 const MEM={};
 function sGet(k){try{return JSON.parse(localStorage.getItem(k));}catch(e){return MEM[k]??null;}}
 function sSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));if(window.ATUBackend)ATUBackend.noteLocalWrite(k);}catch(e){MEM[k]=v;}}
-function sDel(k){try{localStorage.removeItem(k);}catch(e){delete MEM[k];}}
 
 function emptySide(){return {coll:{},roster:emptyRoster()};}
 function emptyClassic(){return {coll:{},roster:emptyRoster(),opened:0,cap:10+Math.floor(Math.random()*3),premiumPacksLeft:3,tierCounts:{},captainUsed:false};}
@@ -2414,8 +2375,6 @@ function sanitizeSave(){
   /* trophy ledgers keyed by card id: drop entries that no longer resolve */
   if(typeof T!=="undefined"&&T&&T.seenCards)
     Object.keys(T.seenCards).forEach(id=>{if(!DB[id])delete T.seenCards[id];});
-  if(typeof RECENT!=="undefined")
-    RECENT=Array.isArray(RECENT)?RECENT.map(pk=>Array.isArray(pk)?pk.filter(id=>DB[id]):[]).filter(pk=>pk.length):[];
 }
 function save(){sSet("atu-save-v4",S);}
 function saveHS(){sSet("atu-hs-v4",HS);}
@@ -2424,7 +2383,6 @@ function bump(side){const o=teamOVR(S[side].roster);if(!o.ready)return;
   if(o.total>HS[side].ovr){HS[side].ovr=o.total;HS[side].wins=pr.wins;saveHS();}}
 
 let screen="landing";       // landing | team | packs | rare | draft | classic
-let lastOVRc=60;
 function sideFor(scr){return scr==="rare"?"rare":scr==="classic"?"classic":"main";}
 let lastOVR={main:60,rare:60,classic:60};
 let D={stage:"idle",done:false,taken:[],roster:emptyRoster(),opts:null,activeSlot:null,lastSlot:null,captain:[],offeredNames:[]};
@@ -2698,7 +2656,6 @@ function dailyDraftPool(dateKey){
 
 /* ---- daily draft state (mirrors D, but seeded + pool-restricted) ---- */
 let DD=null;
-function dailyEligiblePool(slot){return DD.pool.filter(p=>eligible(p,slot));}
 /* ---- POOL-RELATIVE RARITY ----
    Whatever the day bans, the pull still feels like a draft: the day's own pool is
    ranked by OVR and split into five bands that inherit the draft's rarity odds.
@@ -2743,11 +2700,6 @@ function dailyBands(){
     bands[t]=ranked.slice(i,i+count);i+=count;
   });
   DD._bands=bands;return bands;
-}
-function dailyBandOf(p){
-  const b=dailyBands();
-  for(const t of ["Icon","Elite","Gold","Silver","Bronze"])if(b[t].some(x=>x.id===p.id))return t;
-  return "Silver";
 }
 /* ---- bond surfacing ----
    Duo Hunt / Dynasty are impossible if partners never appear together: with 5-card
@@ -5230,7 +5182,6 @@ function packsHTML(){
 /* ================= REVEAL OVERLAY ================= */
 const SUSPENSE={Bronze:350,Silver:500,Gold:900,Elite:1500,Icon:2200};
 let REV=null; // {cards, side, packKey, flipped:[]}
-let RECENT=(sGet("atu-recent-v1")||[]).map(pk=>Array.isArray(pk)?pk.filter(id=>DB[id]):[]).filter(pk=>pk.length); // ids from the last 2 packs, persisted across resets (stale ids dropped)
 /* hydrate the pull-memory randomizer now that storage helpers exist */
 try{
   PACK_NO=sGet("atu-packno-v2")||0;
@@ -5246,8 +5197,6 @@ try{
     DRAFT_CARD_SHOWN=df.cards&&typeof df.cards==="object"?df.cards:{};
   }
 }catch(e){}
-function recentSet(){return new Set(RECENT.flat());}
-function noteRecent(cards){RECENT.push(cards.map(c=>c.id));RECENT=RECENT.slice(-2);sSet("atu-recent-v1",RECENT);}
 function ownedIds(side){
   const ids=new Set(Object.keys(S[side].coll).map(Number));
   ALL_SLOTS.forEach(s=>{if(S[side].roster[s]!=null)ids.add(S[side].roster[s]);});
@@ -5258,8 +5207,8 @@ function openPack(packKey,side){
     const cl=S.classic;
     if(cl.opened>=cl.cap){notice("Pack budget spent — "+cl.cap+" total. Build your roster from what you pulled.");return;}
     if(packKey==="premium"){if(cl.premiumPacksLeft<=0){notice("Premium pack budget spent — 3 per run.");return;}cl.premiumPacksLeft--;}
-    const cards=classicRollPack(ownedIds("classic"),cl.tierCounts,recentSet(),packKey);
-    noteRecent(cards);cl.opened++;
+    const cards=classicRollPack(ownedIds("classic"),cl.tierCounts,packKey);
+    cl.opened++;
     if(typeof creditsForRun==="function")creditsForRun("pack");
     cards.forEach(c=>{cl.coll[c.id]=(cl.coll[c.id]||0)+1;});
     save();trophyPack(cards);
@@ -5267,9 +5216,8 @@ function openPack(packKey,side){
     renderReveal();return;
   }
   const owned=ownedIds(side);
-  const cards=rollPack(packKey,owned,recentSet());
+  const cards=rollPack(packKey,owned);
   if(!cards)return;
-  noteRecent(cards);
   const dupes=cards.map(c=>owned.has(c.id)); /* exact same card already owned */
   cards.forEach((c,i)=>{if(!dupes[i])S[side].coll[c.id]=(S[side].coll[c.id]||0)+1;});
   save();trophyPack(cards);
@@ -6027,7 +5975,6 @@ function pairLinkKind(a,b){ /* strongest shared chemistry between two starters *
     if(t.startsWith("Era_"))era=true;else style=true;}
   return era?"era":style?"style":null;
 }
-function pairLinked(a,b){return !!pairLinkKind(a,b);}
 function drawSquadWeb(){
   const svg=$(".squadweb");if(!svg)return;
   const court=svg.closest(".court"),cr=court.getBoundingClientRect();

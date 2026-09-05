@@ -10,25 +10,17 @@ function makeStorage(seed = {}) {
   return {
     getItem(key) { return values.has(key) ? values.get(key) : null; },
     setItem(key, value) { values.set(key, String(value)); },
-    removeItem(key) { values.delete(key); },
-    value(key) { return values.get(key); }
+    removeItem(key) { values.delete(key); }
   };
 }
 
 function makeContext({ session = null, rpc, storageSeed = {}, withClient = true, href = "https://game.example/index.html?auth=account" } = {}) {
   const storage = makeStorage(storageSeed);
-  let authCallback = null;
   const calls = [];
   const client = {
     auth: {
-      onAuthStateChange(callback) { authCallback = callback; return { data: { subscription: { unsubscribe() {} } } }; },
-      async getSession() { return { data: { session }, error: null }; },
-      async signUp() { return { data: { session: null }, error: null }; },
-      async signInWithPassword() { return { data: { session }, error: null }; },
-      async resetPasswordForEmail() { return { data: {}, error: null }; },
-      async updateUser() { return { data: {}, error: null }; },
-      async signInWithOAuth() { return { data: {}, error: null }; },
-      async signOut() { return { error: null }; }
+      onAuthStateChange() {},
+      async getSession() { return { data: { session }, error: null }; }
     },
     async rpc(name, args) {
       calls.push({ name, args });
@@ -87,7 +79,7 @@ function makeContext({ session = null, rpc, storageSeed = {}, withClient = true,
     console
   });
   vm.runInContext(source, context, { filename: "backend.js" });
-  return { api: window.ATUBackend, window, storage, calls, client, getAuthCallback: () => authCallback };
+  return { api: window.ATUBackend, window, storage, calls };
 }
 
 async function run() {
@@ -109,7 +101,6 @@ async function run() {
   }
 
   {
-    const hiddenSeed = "a".repeat(64);
     const test = makeContext({
       href: "https://game.example/index.html?challenge=A1B2C3D4E5F60708",
       rpc(name) {
@@ -135,7 +126,7 @@ async function run() {
     const html = test.api.challengeHTML();
     assert.match(html, /@challenger is calling you out!/);
     assert.match(html, /SIGN IN TO PLAY/);
-    assert.doesNotMatch(html, new RegExp(hiddenSeed));
+    assert.equal(test.calls.length, 1, "Opening an invitation must not accept it or request a run");
     assert.equal(test.calls[0].name, "get_async_challenge_invitation");
     assert.equal(test.calls[0].args.p_code, "A1B2C3D4E5F60708");
   }
@@ -185,8 +176,8 @@ async function run() {
     assert.equal(test.calls.some(call => call.name === "sync_cloud_save"), false);
     await test.api.resolveCloud("cloud");
     assert.equal(test.window.location.reloadCalled, true);
-    assert.deepEqual(JSON.parse(test.storage.value("atu-hs-v4")), { draft: { ovr: 80, wins: 40 } });
-    assert.ok(test.storage.value("atu-cloud-backup-v1"));
+    assert.deepEqual(JSON.parse(test.storage.getItem("atu-hs-v4")), { draft: { ovr: 80, wins: 40 } });
+    assert.ok(test.storage.getItem("atu-cloud-backup-v1"));
   }
 }
 

@@ -66,8 +66,7 @@
   function configured() {
     const c = cfg();
     return /^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(c.supabaseUrl || "")
-      && /^(sb_publishable_|eyJ)/.test(c.supabasePublishableKey || "")
-      && !/^(sb_secret_)/.test(c.supabasePublishableKey || "");
+      && /^(sb_publishable_|eyJ)/.test(c.supabasePublishableKey || "");
   }
 
   function html(value) {
@@ -1395,10 +1394,6 @@
     resetChallenge: resetChallenge,
     finishRankedRun: finishRankedRun,
     loadRankings: loadRankings,
-    isSignedIn: function () { return !!state.session; },
-    getSession: function () { return state.session; },
-    getProfile: function () { return state.profile; },
-    getCloudStatus: function () { return state.cloudStatus; },
-    getRulesVersion: function () { return cfg().rulesVersion || "atu-v1"; }
+    isSignedIn: function () { return !!state.session; }
   });
 })(window);
