@@ -83,8 +83,9 @@
     if (/invalid login credentials/i.test(message || "")) return "Incorrect email or password.";
     if (/email not confirmed/i.test(message || "")) return "Verify your email before signing in.";
     if (/user already registered/i.test(message || "")) return "An account already exists for this email.";
+    if (/username is already taken/i.test(message || "")) return "That username is taken. Try another.";
     if (/rate limit/i.test(message || "")) return "Too many attempts. Wait a moment and try again.";
-    return message || "Something went wrong. Please try again.";
+    return fallback || "Something went wrong. Please try again.";
   }
 
   function setMessage(message, kind) {
@@ -899,6 +900,24 @@
       return;
     }
     state.available = true;
+    const callbackUrl = new URL(global.location.href);
+    const callbackHash = new URLSearchParams(callbackUrl.hash.slice(1));
+    const callbackError = callbackHash.get("error") || callbackHash.get("error_code")
+      || callbackUrl.searchParams.get("error") || callbackUrl.searchParams.get("error_code");
+    if (callbackError) {
+      // Provider failures return in the URL without a session. Never display the raw
+      // description: it can contain authorization codes or other provider details.
+      for (const key of ["error", "error_code", "error_description"]) {
+        callbackUrl.searchParams.delete(key);
+        callbackHash.delete(key);
+      }
+      callbackUrl.hash = callbackHash.toString();
+      if (global.history) global.history.replaceState(null, "", callbackUrl.pathname + callbackUrl.search + callbackUrl.hash);
+      setMessage(callbackError === "access_denied"
+        ? "Sign-in was cancelled or denied. Please try again."
+        : "Sign-in could not finish. Please try again. If it keeps happening, contact support.", "error");
+      if (typeof global.setScreen === "function") global.setScreen("account");
+    }
     state.client = global.supabase.createClient(cfg().supabaseUrl, cfg().supabasePublishableKey, {
       auth: {
         persistSession: true,
@@ -924,7 +943,7 @@
       }, 0);
     });
     const result = await state.client.auth.getSession();
-    if (result.error) setMessage(errorText(result.error, "Could not restore your session."), "error");
+    if (result.error && !callbackError) setMessage(errorText(result.error, "Could not restore your session."), "error");
     state.session = result.data && result.data.session || null;
     if (state.session) await refreshSignedInState();
     const challengeCode = challengeCodeFromUrl();
@@ -1069,8 +1088,6 @@
     if (event) event.preventDefault();
     if (!state.client || !state.session || state.busy) return;
     const username = String((global.document.getElementById("atu-profile-username") || {}).value || "").trim();
-    const displayName = String((global.document.getElementById("atu-profile-display") || {}).value || "").trim();
-    const avatarUrl = String((global.document.getElementById("atu-profile-avatar") || {}).value || "").trim();
     if (!/^[A-Za-z0-9_]{3,20}$/.test(username)) {
       setMessage("Username must be 3–20 letters, numbers or underscores.", "error");
       rerender();
@@ -1078,13 +1095,13 @@
     }
     setBusy(true);
     try {
-      if (!state.profile || username.toLowerCase() !== String(state.profile.username || "").toLowerCase()) {
+      if (!state.profile || username !== String(state.profile.username || "")) {
         const usernameResult = await state.client.rpc("set_username", { p_username: username });
         if (usernameResult.error) throw usernameResult.error;
       }
       const profileResult = await state.client.rpc("update_profile", {
-        p_display_name: displayName || null,
-        p_avatar_url: avatarUrl || null
+        p_display_name: username,
+        p_avatar_url: state.profile && state.profile.avatar_url || null
       });
       if (profileResult.error) throw profileResult.error;
       await loadProfile();
@@ -1345,8 +1362,6 @@
       + (conflict ? '<div class="saveconflict"><h3>Which save do you want to keep?</h3><p>You have progress on this device and another save online. Nothing changes until you choose.</p><div><button class="btn primary" onclick="ATUBackend.resolveCloud(\'cloud\')" ' + (state.busy ? "disabled" : "") + '>USE ONLINE SAVE</button><button class="btn danger" onclick="ATUBackend.resolveCloud(\'device\')" ' + (state.busy ? "disabled" : "") + '>USE THIS DEVICE</button></div></div>' : "")
       + '<div class="accountgrid"><div class="accountcard"><h3>Your player</h3><p class="accountsub">This is the name friends will see in Draft Duels and The 82-0 Club.</p>'
       + '<form onsubmit="ATUBackend.saveProfile(event)"><label>Username<input id="atu-profile-username" value="' + html(profile.username || "") + '" autocomplete="username" maxlength="20" pattern="[A-Za-z0-9_]{3,20}" placeholder="3–20 letters, numbers or _" required></label>'
-      + '<label>Display name <small>optional</small><input id="atu-profile-display" value="' + html(profile.display_name || "") + '" maxlength="40" autocomplete="name"></label>'
-      + '<label>Avatar HTTPS URL <small>optional</small><input id="atu-profile-avatar" type="url" value="' + html(profile.avatar_url || "") + '" maxlength="2048" placeholder="https://…"></label>'
       + '<button class="btn primary accountsubmit" type="submit" ' + (state.busy ? "disabled" : "") + '>SAVE PROFILE</button></form></div>'
       + '<div class="accountcard"><h3>Your account</h3><div class="accountfacts"><div><span>Email</span><b>' + html(user.email || "Provided by Google") + '</b></div><div><span>Email ready</span><b>' + (user.email_confirmed_at ? "Yes" : "Not yet") + '</b></div><div><span>Online save</span><b>' + (state.cloudRevision ? "Ready" : "Not saved yet") + '</b></div></div><button class="btn" onclick="ATUBackend.signOut()" ' + (state.busy ? "disabled" : "") + '>Sign out on this device</button></div></div></section>';
   }

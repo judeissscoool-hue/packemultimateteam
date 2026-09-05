@@ -53,7 +53,7 @@ function makeContext({ session = null, rpc, storageSeed = {}, withClient = true,
     setTimeout,
     clearTimeout,
     confirm() { return true; },
-    history: { replaceState() {} },
+    history: { replacedUrl: null, replaceState(_state, _title, url) { this.replacedUrl = url; } },
     document: { getElementById() { return null; } },
     render() {}
   };
@@ -83,6 +83,61 @@ function makeContext({ session = null, rpc, storageSeed = {}, withClient = true,
 }
 
 async function run() {
+  {
+    const profile = { username: null, display_name: "Google Name", avatar_url: "https://example.com/photo.png" };
+    const test = makeContext({
+      session: { user: { id: "profile-test" } },
+      rpc(name, args) {
+        if (name === "get_my_profile") return { data: [profile], error: null };
+        if (name === "set_username") profile.username = args.p_username;
+        if (name === "update_profile") profile.display_name = args.p_display_name;
+        if (name === "sync_cloud_save") return { data: [{ outcome: "created", revision: 1 }], error: null };
+        return { data: [], error: null };
+      }
+    });
+    await test.api.init();
+    assert.match(test.api.accountHTML(), /atu-profile-username/);
+    assert.doesNotMatch(test.api.accountHTML(), /atu-profile-display|atu-profile-avatar/);
+    test.window.document.getElementById = id => id === "atu-profile-username" ? { value: " Player_One " } : null;
+    await test.api.saveProfile();
+    const update = test.calls.find(call => call.name === "update_profile");
+    assert.equal(profile.username, "Player_One");
+    assert.equal(update.args.p_display_name, profile.username);
+    assert.equal(update.args.p_avatar_url, "https://example.com/photo.png");
+    assert.match(test.api.accountHTML(), /Profile saved/);
+  }
+
+  {
+    const test = makeContext({
+      session: { user: { id: "error-test" } },
+      rpc() { return { data: null, error: { message: "JWT issued at future" } }; }
+    });
+    await test.api.init();
+    assert.match(test.api.accountHTML(), /Could not load your account/);
+    assert.doesNotMatch(test.api.accountHTML(), /JWT issued at future/);
+    await test.api.loadRankings();
+    assert.match(test.api.rankingsHTML(), /Could not load rankings/);
+    assert.doesNotMatch(test.api.rankingsHTML(), /JWT issued at future/);
+  }
+
+  for (const separator of ["&", "#"]) {
+    const test = makeContext({
+      href: "https://game.example/index.html?auth=account" + separator
+        + "error=server_error&error_code=unexpected_failure&error_description=private-provider-details"
+    });
+    await test.api.init();
+    assert.match(test.api.accountHTML(), /Sign-in could not finish/);
+    assert.doesNotMatch(test.api.accountHTML(), /private-provider-details/);
+    assert.equal(test.window.history.replacedUrl, "/index.html?auth=account");
+    assert.equal(test.api.isSignedIn(), false);
+  }
+
+  {
+    const test = makeContext({ href: "https://game.example/index.html?auth=account#error=access_denied" });
+    await test.api.init();
+    assert.match(test.api.accountHTML(), /Sign-in was cancelled or denied/);
+  }
+
   {
     const test = makeContext({ withClient: false });
     await test.api.init();
@@ -135,6 +190,7 @@ async function run() {
     const session = { user: { id: "user-1", email: "test@example.com", email_confirmed_at: "2026-08-07T00:00:00Z" } };
     const test = makeContext({
       session,
+      href: "https://game.example/index.html?auth=account#access_token=test-access&refresh_token=test-refresh",
       rpc(name) {
         if (name === "get_my_profile") return { data: [{ public_id: "public-1", username: "tester", display_name: "Test", avatar_url: null }], error: null };
         if (name === "get_cloud_save") return { data: [], error: null };
@@ -146,6 +202,7 @@ async function run() {
     const html = test.api.accountHTML();
     assert.match(html, /@tester/);
     assert.match(html, /Safe &amp; synced/);
+    assert.equal(test.window.history.replacedUrl, null, "Leave successful callback tokens for the Auth client to consume");
     const sync = test.calls.find(call => call.name === "sync_cloud_save");
     assert.equal(sync.args.p_expected_revision, 0);
     assert.equal(sync.args.p_schema_version, 1);
