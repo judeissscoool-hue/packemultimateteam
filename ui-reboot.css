@@ -91,7 +91,9 @@ html :is(.accountintro p,.accountcard p,.challengehero p){font-size:15px;line-he
 html .accountcard label{font-size:12px;letter-spacing:.08em}
 html .accountcard input{min-height:50px;border-radius:12px;font-size:16px;background:#111;transition:border-color .2s,box-shadow .2s}
 html .accountmsg{font-size:14px;border-radius:13px;line-height:1.6}
-html .googlebtn{min-height:48px;border-radius:12px;color:#161616}
+html .googlebtn{min-height:48px;border-radius:12px;background:#fff;color:#1f1f1f!important;-webkit-text-fill-color:#1f1f1f;appearance:none;-webkit-appearance:none;color-scheme:light;border-color:#747775}
+html .googlebtn b{color:#4285f4;-webkit-text-fill-color:#4285f4}
+html .googlebtn:disabled{opacity:.65;color:#1f1f1f!important;-webkit-text-fill-color:#1f1f1f}
 html .accountpill{min-height:38px;background:#242424}
 html .challengehero{padding:28px}
 html .challengehero h2{font-size:38px}
