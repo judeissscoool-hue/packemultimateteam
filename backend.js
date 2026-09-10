@@ -348,8 +348,21 @@
   let cloudPush = null, cloudPrepare = null, cloudOwner = null, cloudWriteVersion = 0;
   function cloudRender() { if (state.visibleScreen === "account") rerender(); }
   function adoptOnlineSave(row, userId) {
-    if (!backupSnapshot("local-before-online-save", buildSnapshot())) throw new Error("Could not back up device progress.");
+    // A second tab or repeated conflict must never turn cloud recovery into a reload loop.
+    const recoveryKey = "atu-cloud-recovery-v1";
+    const recoveryStorage = global.sessionStorage || global.localStorage;
+    let previous;
+    try { previous = JSON.parse(recoveryStorage.getItem(recoveryKey) || "null"); } catch (_) {}
+    cloudOwner = null;
     global.clearTimeout(state.syncTimer);
+    if (previous && previous.userId === userId && Date.now() - previous.at < 60000) {
+      state.cloudStatus = "error";
+      setMessage("Online progress changed again while loading. Automatic recovery is paused to keep the page stable. Close other game tabs, then refresh once to reconnect.", "error");
+      return;
+    }
+    if (!backupSnapshot("local-before-online-save", buildSnapshot())) throw new Error("Could not back up device progress.");
+    // Persist the guard before applying data; if storage fails, do not reload.
+    recoveryStorage.setItem(recoveryKey, JSON.stringify({userId:userId,at:Date.now()}));
     applySnapshot(row.payload, row.revision, userId);
     state.cloudStatus = "synced";
     state.cloudConflict = null;

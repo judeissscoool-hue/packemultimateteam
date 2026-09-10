@@ -677,6 +677,15 @@ async function run() {
     assert.equal(JSON.parse(test.storage.getItem("atu-credits-v1")).bal,777,'Newer online credits restore automatically');
     assert.equal(test.window.location.reloadCalled,true);
     assert.equal(test.calls.filter(c=>c.name==="sync_cloud_save").length,0,'Stale local credits cannot overwrite the online balance');
+    const returning=makeContext({session:{user:{id:"online-owner"}},
+      storageSeed:{"atu-cloud-recovery-v1":test.storage.getItem("atu-cloud-recovery-v1"),
+        "atu-cloud-meta-v1":test.storage.getItem("atu-cloud-meta-v1"),
+        "atu-credits-v1":test.storage.getItem("atu-credits-v1")},
+      rpc(name){if(name==="get_cloud_save")return {data:[{revision:6,payload:remote}]};return {data:[]};}});
+    await returning.api.init();
+    assert.equal(returning.window.location.reloadCalled,false,'Repeated online recovery cannot reload the next page again');
+    assert.equal(JSON.parse(returning.storage.getItem("atu-credits-v1")).bal,777,'Recovery pause preserves loaded credits');
+    assert.equal(returning.calls.filter(c=>c.name==="sync_cloud_save").length,0,'Recovery pause cannot upload stale memory');
   }
   {
     const seed='0123456789abcdef'.repeat(4);
