@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>All-Time Ultimate — Draft Your NBA Dream Team</title>
+<link rel="icon" href="./branding/favicon.ico?v=1" sizes="16x16 32x32 48x48">
+<link rel="icon" type="image/png" sizes="16x16" href="./branding/icon-16.png?v=1">
+<link rel="icon" type="image/png" sizes="32x32" href="./branding/icon-32.png?v=1">
+<link rel="icon" type="image/png" sizes="48x48" href="./branding/icon-48.png?v=1">
+<link rel="apple-touch-icon" sizes="180x180" href="./branding/icon-180.png?v=1">
 <meta name="description" content="Draft your all-time NBA dream team, out-draft your friends, and chase the perfect 82-0 season. Free to play.">
 <meta property="og:title" content="All-Time Ultimate — Draft Your NBA Dream Team">
 <meta property="og:description" content="Draft your all-time NBA dream team, out-draft your friends, and chase the perfect 82-0 season.">
@@ -1116,7 +1121,7 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 @media(max-width:680px){.topright{width:100%;justify-content:space-between}.accountpill{order:-1}.accountintro{align-items:flex-start;flex-direction:column}.accountgrid{grid-template-columns:1fr}.cloudstate{width:100%}.challengehero{flex-direction:column;padding:19px}.challengehero h2{font-size:28px}.challengecards{grid-template-columns:repeat(2,minmax(0,1fr))}.captaincards{grid-template-columns:1fr}.challengeroster{grid-template-columns:repeat(2,minmax(0,1fr))}.challengeexplain{grid-template-columns:1fr}.challengeinvite{grid-template-columns:1fr}.challengeresult{grid-template-columns:1fr}.resultversus{text-align:center}.rankinghead,.rankingrow{grid-template-columns:32px minmax(95px,1fr) 48px 70px}.rankinghead span:last-child,.rankingrow strong{display:none}.challengeprogress span{display:none}}
 
 </style>
-<link rel="stylesheet" href="./ui-reboot.css">
+<link rel="stylesheet" href="./ui-reboot.css?v=branding-1">
 <script src="./ui-reboot.js"></script>
 </head>
 <body>
@@ -5938,7 +5943,7 @@ function render(){
         ${screen==="landing"?"":`<button class="homebtn" onclick="setScreen('landing')"
           aria-label="Back to home" title="Back to home">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5 8 12l6.5 7"/></svg></button>`}
-        <div class="logo">All-Time <em>Ultimate</em><small>DRAFT YOUR DREAM TEAM</small></div>
+        <img class="site-logo" src="./branding/logo.png?v=1" width="432" height="329" alt="All-Time Ultimate" decoding="async">
       </div>
       <div class="topright">
         <div class="hs">BEST TEAM OVR<br><b>${best}</b></div>
