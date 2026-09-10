@@ -1,0 +1,34 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const source=fs.readFileSync(require('node:path').join(__dirname,'../index.html'),'utf8');
+const logic=source.match(/<script>\s*\/\/<LOGIC>([\s\S]*?)\/\/<\/LOGIC>/)[1];
+const context=vm.createContext({console,saveEfx(){},EFX:{owned:{},equip:{}},EFX_BY_ID:{test:{k:'frame'}},EFX_SLOT:{frame:'frame'},S:{main:{coll:{},roster:{}},rare:{coll:{},roster:{}},classic:{coll:{},roster:{}}}});
+vm.runInContext(logic,context);
+const run=s=>vm.runInContext(s,context);
+vm.runInContext(source.slice(source.indexOf('const efxKey='),source.indexOf('/* ---- rolling ---- */')),context);
+vm.runInContext(source.slice(source.indexOf('function equipEfx('),source.indexOf('/* the class string')),context);
+assert.ok(run('efxCardPool().every(p=>["Gold","Elite","Icon"].includes(p.tier))'));
+const low=run('DB.find(p=>p.tier==="Silver").id'),gold=run('efxCardPool()[0].id');
+context.low=low;context.gold=gold;
+run('grantEfx(low,"test");equipEfx(low,"test")');
+assert.deepEqual(context.EFX,{owned:{},equip:{}},'Silver cannot receive or equip a cosmetic');
+run('grantEfx(gold,"test");equipEfx(gold,"test")');
+assert.equal(context.EFX.equip[gold].frame,'test');
+vm.runInContext(source.slice(source.indexOf('function allCurrentCards(){'),source.indexOf('function migrateTrophies(){')),context);
+context.S.rare.coll[gold]=1;
+assert.equal(run('allCurrentCards().length'),0,'Reloading cannot import the Rare Pull pool into collection');
+vm.runInContext(source.slice(source.indexOf('function trophyRoster('),source.indexOf('sanitizeSave();save();')),context);
+run('trophyRoster("rare",{})'); // No ledger, trophy evaluation or credit calls exist in this context.
+let earned=0;
+Object.assign(context,{ownedIds:()=>new Set(),rollPack:()=>[{id:gold}],save(){},trophyPack(){earned++;},renderReveal(){},notice(){}});
+vm.runInContext(source.slice(source.indexOf('async function openPack('),source.indexOf('function renderReveal(){')),context);
+(async()=>{
+  await run('openPack("rare","rare")');assert.equal(earned,0);
+  for(let i=0;i<4;i++)await run('openPack("icon","main")');
+  assert.equal(earned,3,'Deep Team stops after three packs of each type');
+  const button={};Object.assign(context,{RF:{pull:{card:{id:gold},efx:{id:'test',k:'frame'}}},$:()=>button});
+  vm.runInContext(source.slice(source.indexOf('function rfEquip(){'),source.indexOf('function rfReveal(animate=true){')),context);
+  run('rfEquip();rfEquip()');
+  assert.equal(context.EFX.equip[gold].frame,'test','Repeated Equip presses never toggle it off');
+  assert.equal(button.disabled,true);assert.equal(button.textContent,'EQUIPPED');
+  console.log('Sandbox isolation, Deep Team budgets and Rafters eligibility/equip tests passed');
+})().catch(e=>{console.error(e);process.exitCode=1;});

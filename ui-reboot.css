@@ -277,3 +277,6 @@ html .ctile.locked .ct-meta span{color:#9b9ba9}
 .duel-side .projrow{flex-wrap:wrap}
 .duel-side .court:not(.duel-court){padding-inline:8px}
 html #betabar{background-color:#171b1c}
+
+.deep-team-packs{display:flex;flex-wrap:wrap;gap:8px}.deep-team-packs .btn{flex:1 1 160px}
+.game-run-save{display:flex;flex-direction:column;gap:8px}

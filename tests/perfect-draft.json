@@ -1,0 +1,82 @@
+{
+  "seed": "00000000000000000000000000000000000000000000000000000000000000df",
+  "events": [
+    {
+      "type": "captain",
+      "cardId": 246
+    },
+    {
+      "type": "open",
+      "slot": "PG"
+    },
+    {
+      "type": "pick",
+      "cardId": 162
+    },
+    {
+      "type": "open",
+      "slot": "SG"
+    },
+    {
+      "type": "pick",
+      "cardId": 45
+    },
+    {
+      "type": "open",
+      "slot": "SF"
+    },
+    {
+      "type": "pick",
+      "cardId": 229
+    },
+    {
+      "type": "open",
+      "slot": "C"
+    },
+    {
+      "type": "pick",
+      "cardId": 1
+    },
+    {
+      "type": "open",
+      "slot": "B1"
+    },
+    {
+      "type": "pick",
+      "cardId": 230
+    },
+    {
+      "type": "open",
+      "slot": "B2"
+    },
+    {
+      "type": "pick",
+      "cardId": 83
+    },
+    {
+      "type": "open",
+      "slot": "B3"
+    },
+    {
+      "type": "pick",
+      "cardId": 56
+    }
+  ],
+  "roster": {
+    "PG": 162,
+    "SG": 45,
+    "SF": 229,
+    "PF": 246,
+    "C": 1,
+    "B1": 230,
+    "B2": 83,
+    "B3": 56
+  },
+  "result": {
+    "teamOvr": 98,
+    "projectedWins": 82,
+    "chemistry": 4.1,
+    "effectiveRating": 102.73,
+    "score": 829841
+  }
+}

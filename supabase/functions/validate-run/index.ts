@@ -4,6 +4,7 @@ import {
   ENGINE_VERSION,
   RULES_VERSION,
   CLASSIC_RULES_VERSION,
+  PACK_RULES_VERSION,
   validateTranscript
 } from "../_shared/atu-engine-v1.js";
 
@@ -142,11 +143,11 @@ Deno.serve(async (req: Request) => {
     if (runError) throw runError;
     if (!run
       || run.user_id !== userData.user.id
-      || run.status !== "started"
-      || new Date(run.expires_at).getTime() <= Date.now()) {
+      || !["started","completed"].includes(run.status)
+      || (run.status === "started" && new Date(run.expires_at).getTime() <= Date.now())) {
       return json(origin, 404, { error: "Active run not found" });
     }
-    if (![RULES_VERSION, CLASSIC_RULES_VERSION].includes(run.rules_version) || !["draft", "pack", "one_v_one"].includes(run.mode)) {
+    if (![RULES_VERSION, CLASSIC_RULES_VERSION, PACK_RULES_VERSION].includes(run.rules_version) || !["draft", "pack", "one_v_one"].includes(run.mode)) {
       return json(origin, 409, { error: "This run uses an unsupported ruleset" });
     }
 

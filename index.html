@@ -22,7 +22,7 @@
   integrity="sha384-OUpie84zd1LdwNlK9uJJQRwab0BLqo3eKYKFh7hSVL58FSk7wPp2l0kfUMIIoaQd"
   crossorigin="anonymous"></script>
 <script src="./supabase/functions/_shared/classic-draft.js"></script>
-<script src="./backend.js"></script>
+<script src="./backend.js?v=normal-play-1"></script>
 <style>
 /* ============ TOKENS: arena at night ============ */
 :root{
@@ -1121,7 +1121,7 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 @media(max-width:680px){.topright{width:100%;justify-content:space-between}.accountpill{order:-1}.accountintro{align-items:flex-start;flex-direction:column}.accountgrid{grid-template-columns:1fr}.cloudstate{width:100%}.challengehero{flex-direction:column;padding:19px}.challengehero h2{font-size:28px}.challengecards{grid-template-columns:repeat(2,minmax(0,1fr))}.captaincards{grid-template-columns:1fr}.challengeroster{grid-template-columns:repeat(2,minmax(0,1fr))}.challengeexplain{grid-template-columns:1fr}.challengeinvite{grid-template-columns:1fr}.challengeresult{grid-template-columns:1fr}.resultversus{text-align:center}.rankinghead,.rankingrow{grid-template-columns:32px minmax(95px,1fr) 48px 70px}.rankinghead span:last-child,.rankingrow strong{display:none}.challengeprogress span{display:none}}
 
 </style>
-<link rel="stylesheet" href="./ui-reboot.css?v=branding-2">
+<link rel="stylesheet" href="./ui-reboot.css?v=normal-play-1">
 <script src="./ui-reboot.js"></script>
 </head>
 <body>
@@ -2286,7 +2286,7 @@ const MEM={};
 function sGet(k){try{return JSON.parse(localStorage.getItem(k));}catch(e){return MEM[k]??null;}}
 function sSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));if(window.ATUBackend)ATUBackend.noteLocalWrite(k);}catch(e){MEM[k]=v;}}
 
-function emptySide(){return {coll:{},roster:emptyRoster()};}
+function emptySide(){return {coll:{},roster:emptyRoster(),packCounts:{standard:0,premium:0,icon:0}};}
 function emptyClassic(){return {coll:{},roster:emptyRoster(),opened:0,cap:10+Math.floor(Math.random()*3),premiumPacksLeft:3,tierCounts:{},captainUsed:false};}
 let S=sGet("atu-save-v4")||{main:emptySide(),rare:emptySide()};
 let HS=sGet("atu-hs-v4")||{main:{ovr:60,wins:0},rare:{ovr:60,wins:0},draft:{ovr:60,wins:0}};
@@ -2345,12 +2345,12 @@ let TROPHY_FILTER="Featured",ARCHIVE_TAB="chem";
 const TROPHY_POINTS={Bronze:10,Silver:25,Gold:50,Diamond:100,Immortal:250};
 function saveTrophies(){sSet(TROPHY_KEY,T);}
 function ledgerAdd(p){if(!p)return;T.seenCards[p.id]=1;T.seenNames[p.name]=1;}
-function allCurrentCards(){const ids=new Set();["main","rare","classic"].forEach(side=>{if(!S[side])return;Object.keys(S[side].coll||{}).forEach(id=>ids.add(+id));ALL_SLOTS.forEach(sl=>{const id=S[side].roster&&S[side].roster[sl];if(id!=null)ids.add(id);});});return [...ids].map(id=>DB[id]).filter(Boolean);}
-function migrateTrophies(){allCurrentCards().forEach(ledgerAdd);Object.values(HS).forEach(h=>{if(h&&h.wins)T.stats.maxWins=Math.max(T.stats.maxWins,h.wins);});saveTrophies();}
+function allCurrentCards(){const ids=new Set();["main","classic"].forEach(side=>{if(!S[side])return;Object.keys(S[side].coll||{}).forEach(id=>ids.add(+id));ALL_SLOTS.forEach(sl=>{const id=S[side].roster&&S[side].roster[sl];if(id!=null)ids.add(id);});});return [...ids].map(id=>DB[id]).filter(Boolean);}
+function migrateTrophies(){allCurrentCards().forEach(ledgerAdd);Object.entries(HS).filter(([mode])=>mode!=="rare").forEach(([,h])=>{if(h&&h.wins)T.stats.maxWins=Math.max(T.stats.maxWins,h.wins);});saveTrophies();}
 function ownedNames(){return new Set(Object.keys(T.seenNames));}
 function ownedCards(){return Object.keys(T.seenCards).map(Number).map(id=>DB[id]).filter(Boolean);}
 function rosterPlayers(r){return ALL_SLOTS.map(s=>r&&r[s]!=null?DB[r[s]]:null).filter(Boolean);}
-function activeRosters(){const a=[];["main","rare","classic"].forEach(k=>S[k]&&a.push({mode:k,r:S[k].roster}));if(D.done)a.push({mode:"draft",r:D.roster});return a;}
+function activeRosters(){const a=[];["main","classic"].forEach(k=>S[k]&&a.push({mode:k,r:S[k].roster}));if(D.done)a.push({mode:"draft",r:D.roster});return a;}
 function hasLineup(test){return activeRosters().some(x=>{const ps=rosterPlayers(x.r);return ps.length===8&&test(ps,x.r,x.mode);});}
 function starterTest(test){return activeRosters().some(x=>{const ps=STARTER_SLOTS.map(s=>x.r[s]!=null?DB[x.r[s]]:null).filter(Boolean);return ps.length===5&&test(ps,x.r,x.mode);});}
 function bestLive(){let best={wins:0,chem:0,total:60,mode:""};activeRosters().forEach(x=>{const o=teamOVR(x.r);if(!o.ready)return;const pr=projection(o.eff);if(pr.wins>best.wins)best={wins:pr.wins,chem:o.chem.bonus,total:o.total,mode:x.mode};});return best;}
@@ -2462,6 +2462,7 @@ function archiveTile(g,type){const p=setProgressSoft(g.m),tgt=setTarget(g.m),act
 function trophyHTML(){evaluateTrophies(false);const sum=trophySummary(),cats=["Featured",...new Set(allTrophies().map(t=>t.cat)),"Archives"];let body;if(TROPHY_FILTER==="Archives"){const list=ARCHIVE_TAB==="chem"?DUOS:ARCHIVE_TAB==="whatif"?WHAT_IF:ICONIC_TEAMS;body=`<div class="archivetabs"><button class="btn ${ARCHIVE_TAB==="chem"?"on":""}" onclick="ARCHIVE_TAB='chem';render()">Chemistry Archive (${Object.keys(T.activatedChem).length}/${DUOS.length})</button><button class="btn ${ARCHIVE_TAB==="whatif"?"on":""}" onclick="ARCHIVE_TAB='whatif';render()">What If (${WHAT_IF.filter(g=>setProgressSoft(g.m).done).length}/${WHAT_IF.length})</button><button class="btn ${ARCHIVE_TAB==="teams"?"on":""}" onclick="ARCHIVE_TAB='teams';render()">Iconic Teams (${ICONIC_TEAMS.filter(g=>setProgressSoft(g.m).done).length}/${ICONIC_TEAMS.length})</button></div><div class="archivegrid">${list.map(g=>archiveTile(g,ARCHIVE_TAB)).join("")}</div>`;}else{let ts=allTrophies();if(TROPHY_FILTER==="Featured")ts=ts.filter(t=>T.unlocked[t.id]||["Collection","Records","Chemistry","What If","Iconic Teams"].includes(t.cat)).slice(0,30);else ts=ts.filter(t=>t.cat===TROPHY_FILTER);body=`<div class="trophygrid">${ts.map(trophyTile).join("")}</div>`;}return `<div class="trophyhero"><div><h2>Trophy Case</h2><p style="font-size:12px;color:var(--dim);line-height:1.5">Permanent progression across every run. Collection Ledger: <b style="color:var(--ink)">${ownedNames().size}</b> unique players · resets never erase discoveries.</p></div><div class="tpbig">${sum.pts}<small>TROPHY POINTS · ${sum.done}/${sum.total}</small></div></div><div class="trophyfilters">${cats.map(c=>`<button class="${TROPHY_FILTER===c?"on":""}" onclick="TROPHY_FILTER='${c}';render()">${c}</button>`).join("")}</div>${body}<div class="notice" id="notice"></div>`;}
 function trophyPack(cards){T.stats.packs++;let fresh=0;cards.forEach(c=>{if(!T.seenNames[c.name])fresh++;ledgerAdd(c);if(c.tier==="Icon")T.stats.iconsPulled++;if(c.tier==="Elite")T.stats.elitePulled++;if(c.tier==="Gold")T.stats.goldPulled++;if(c.ovr===99)T.stats.pulled99++;});const hi=cards.filter(c=>tierRank(c.tier)>=tierRank("Elite")).length,ic=cards.filter(c=>c.tier==="Icon").length;if(hi>=2)T.stats.doubleElite++;if(hi>=3)T.stats.threeElite++;if(ic>=2)T.stats.doubleIcon++;if(typeof creditsForDiscovery==="function")creditsForDiscovery(fresh);evaluateTrophies();}
 function trophyRoster(mode,r,opts){
+  if(mode==="rare")return;
   /* players you drafted or picked in the daily count as discovered, same as pack pulls */
   {const players=rosterPlayers(r);
    let fresh=0; players.forEach(p=>{if(!T.seenCards[p.id])fresh++; ledgerAdd(p);});
@@ -3196,6 +3197,7 @@ function saveEfx(){sSet(EFX_KEY,EFX);}
 const efxKey=(cardId,efxId)=>cardId+"|"+efxId;
 function ownsEfx(cardId,efxId){return !!EFX.owned[efxKey(cardId,efxId)];}
 function grantEfx(cardId,efxId){
+  if(!efxEligible(DB[cardId])||!EFX_BY_ID[efxId])return false;
   const k=efxKey(cardId,efxId);
   const dupe=!!EFX.owned[k];
   EFX.owned[k]=(EFX.owned[k]||0)+1;
@@ -3268,7 +3270,7 @@ function spendPack(){
 /* ---- equipping ---- */
 function equipEfx(cardId,efxId){
   const e=EFX_BY_ID[efxId]; if(!e)return;
-  if(!ownsEfx(cardId,efxId))return;
+  if(!efxEligible(DB[cardId])||!ownsEfx(cardId,efxId))return;
   EFX.equip[cardId]=EFX.equip[cardId]||{};
   const slot=EFX_SLOT[e.k];
   /* tapping an equipped effect takes it off */
@@ -3278,7 +3280,7 @@ function equipEfx(cardId,efxId){
 function equippedFor(cardId){return EFX.equip[cardId]||{};}
 /* the class string a card should carry */
 function efxClasses(p){
-  if(!p)return "";
+  if(!efxEligible(p))return "";
   const eq=equippedFor(p.id);
   const out=[];
   ["frame","aura","sheen","energy"].forEach(s=>{if(eq[s])out.push(eq[s]);});
@@ -3661,7 +3663,13 @@ function rfBurst(){
     setTimeout(rfReveal,420);
   });
 }
-function rfReveal(){
+function rfEquip(){
+  const r=RF.pull;if(!r||!efxEligible(DB[r.card.id])||!ownsEfx(r.card.id,r.efx.id))return;
+  const slots=EFX.equip[r.card.id]||(EFX.equip[r.card.id]={});
+  slots[EFX_SLOT[r.efx.k]]=r.efx.id;saveEfx();
+  const btn=$("#rf-equip");if(btn){btn.textContent="EQUIPPED";btn.disabled=true;}
+}
+function rfReveal(animate=true){
   const r=RF.pull; if(!r)return;
   const card=DB[r.card.id];
   /* the revealed card WEARS the effect that was pulled */
@@ -3672,8 +3680,9 @@ function rfReveal(){
   EFX.equip[card.id][slot]=r.efx.id;         /* preview only \u2014 restored below */
   const html=cardHTML(card);
   EFX.equip[card.id][slot]=prevSlot||null;   /* don't auto-equip on the player's behalf */
-  if(preview)EFX.equip[card.id]=preview;
-  const rv=$("#rfreveal");
+  if(preview)EFX.equip[card.id]=preview;else delete EFX.equip[card.id];
+  const stage=$("#rfstage");if(stage)stage.style.opacity=0;
+  const rv=$("#rfreveal");if(!rv)return;
   rv.innerHTML=`
     <div class="rfitem">${html}</div>
     <div class="rflabel">
@@ -3682,20 +3691,21 @@ function rfReveal(){
       <div class="rfename">${esc(r.efx.n)} \u2014 ${EFX_SLOT_LABEL[r.efx.k]}</div>
       <div class="rffor">for ${esc(card.name)} \u00b7 ${card.team}</div>
       ${r.dupe?`<div class="rfdupe">Duplicate \u2014 refunded <b>${r.refund} CR</b></div>`
-              :`<div class="rfnew">NEW \u2014 equip it from your Collection</div>`}
+              :`<div class="rfnew">NEW \u2014 ready to equip</div>`}
     </div>
     <div class="rfbtns">
+      <button class="btn primary" id="rf-equip" onclick="rfEquip()" ${equippedFor(card.id)[slot]===r.efx.id?"disabled":""}>${equippedFor(card.id)[slot]===r.efx.id?"EQUIPPED":"EQUIP"}</button>
       <button class="btn gold" onclick="raftersAgain()">OPEN ANOTHER</button>
       <button class="btn" onclick="setScreen('collection')">GO TO COLLECTION</button>
     </div>`;
   rv.classList.add("show");
   const it=rv.querySelector(".rfitem");
-  if(it&&it.animate)it.animate(
+  if(animate&&it&&it.animate)it.animate(
     [{opacity:0,transform:"scale(.6) translateY(30px)"},{opacity:1,transform:"scale(1) translateY(0)"}],
     {duration:700,easing:"cubic-bezier(.16,.9,.3,1.06)",fill:"forwards"});
   if(typeof mountEfxOverlays==="function")mountEfxOverlays();
   rfSetGlow();
-  if(r.tier==="Mythic")confetti(90);
+  if(animate&&r.tier==="Mythic")confetti(90);
 }
 
 
@@ -4870,7 +4880,7 @@ function notice(msg){const n=$("#notice");if(!n)return;n.textContent=msg;
 /* ================= NAV ================= */
 const TOP_NAV=[
   {screen:"landing",label:"Home"},
-  {label:"Play",items:[["draft","Classic Draft"],["classic","Pack Mode"],["daily","Daily Challenge"],["team","My Team"],["packs","Team Packs"],["rare","Rare Pull"]]},
+  {label:"Play",items:[["draft","Classic Draft"],["classic","Pack Mode"],["daily","Daily Challenge"],["team","Deep Team"],["rare","Rare Pull"]]},
   {screen:"challenge",label:"1v1"},
   {screen:"rankings",label:"82-0 Club"},
   {label:"Collection",items:[["collection","Collection"],["rafters","The Rafters"],["trophies","Trophy Case"],["account","Account & Save"]]},
@@ -4897,7 +4907,7 @@ function renderTopNav(){
     else if(end>rail.scrollLeft+rail.clientWidth)rail.scrollLeft=end-rail.clientWidth;
   });
 }
-function setScreen(s){screen=s;render();window.scrollTo(0,0);}
+function setScreen(s){screen=s==="packs"?"team":s;render();window.scrollTo(0,0);}
 function renderTabs(){
   const bar=$("#tabs");if(!bar)return;
   let items;
@@ -4915,7 +4925,7 @@ function renderTabs(){
   else if(screen==="friends")items=[["landing","☰ Modes"],["friends","Friends"],["challenge","⚔ 1v1"]];
   else if(screen==="challenge")items=[["landing","☰ Modes"],["challenge","⚔ 1v1"],["friends","Friends"],["rankings","🏆 82-0 Club"]];
   else if(screen==="rankings")items=[["landing","☰ Modes"],["challenge","⚔ 1v1"],["rankings","🏆 82-0 Club"]];
-  else items=[["landing","☰ Modes"],["team","My Team"],["packs","Packs"],["rare","Rare Pull"],["trophies","🏆 Trophies"]];
+  else items=[["landing","☰ Modes"],["team","Deep Team"],["rare","Rare Pull"],["trophies","🏆 Trophies"]];
   bar.innerHTML=items.map(([k,l])=>`<button class="${screen===k?"on":""}" onclick="setScreen('${k}')">${l}</button>`).join("");
   bar.style.display=items.length?"":"none";
 }
@@ -4976,7 +4986,7 @@ function hubHTML(side){
     ${clLeft?"":`<div class="sub" style="color:var(--amber)">Budget spent — build your final roster from this static pool.</div>`}`;
   const packBtn=side==="rare"?`<button class="btn gold" onclick="openPack('rare','rare')">Open Rare-Pull Pack — all cards 90+</button>`
     :side==="classic"?classicShelf
-    :`<button class="btn primary" onclick="setScreen('packs')">Open Packs</button>`;
+    :packsHTML();
   return `
   <div class="grid2">
     <div class="stack">
@@ -5002,10 +5012,12 @@ function hubHTML(side){
         </div>
       </div>
       <div class="panel">
-        <div class="rowhead"><h2>${side==="rare"?"Rare-Pull Challenge":side==="classic"?"Pack Mode Run":"Front Office"}</h2>
+        <div class="rowhead"><h2>${side==="rare"?"Rare Pull Sandbox":side==="classic"?"Pack Mode Run":"Deep Team"}</h2>
           <span class="sub">Best ${side==="rare"?"challenge":side==="classic"?"Pack Mode run":"team"} OVR: <b style="color:var(--gold)">${HS[side].ovr}</b>${HS[side].wins?` (${HS[side].wins} wins)`:""}</span></div>
         <div class="stack">
           ${packBtn}
+          ${side==="classic"?ATUBackend.gameRunHTML("pack",st.roster):""}
+          ${side==="rare"?`<p class="sub">Sandbox only. Pulls stay here and do not unlock collection cards, trophies or credits.</p>`:""}
           <button class="btn" onclick="autoFill('${side}')">Auto-fill best lineup</button>
           ${side==="classic"?`<button class="btn gold" onclick="shareRosterImage('classic')">Share as image</button><button class="btn" onclick="shareRoster('classic')">Share roster</button>`:""}
           <button class="btn danger" onclick="confirmReset('${side}')">Reset / New Team</button>
@@ -5022,7 +5034,7 @@ function hubHTML(side){
         <div class="benchrow">${BENCH_SLOTS.map(s=>slotHTML(side,s)).join("")}</div>
       </div>
       <div class="panel" style="margin-top:12px">
-        <div class="rowhead"><h2>Collection</h2><span class="sub">${owned.reduce((a,p)=>a+S[side].coll[p.id],0)} card(s) · tap a court slot to fill it · tap a card to discard</span></div>
+        <div class="rowhead"><h2>${side==="rare"?"Sandbox pool":"Collection"}</h2><span class="sub">${owned.reduce((a,p)=>a+S[side].coll[p.id],0)} card(s) · tap a court slot to fill it · tap a card to discard</span></div>
         <div class="coll" ondragover="collDragOver(event)" ondrop="dropToColl(event,'${side}')">${owned.length?owned.map(p=>{
           const n=S[side].coll[p.id];
           return cardHTML(p,`onclick="openSheet(${p.id},'${side}')" draggable="true" ondragstart="dragStart(event,${p.id},'coll')" ondragend="dragEnd()"`,n>1?`<div class="cnt">×${n}</div>`:"");
@@ -5115,6 +5127,7 @@ function autoFill(side){
 function afterRosterChange(side){
   const t=teamOVR(S[side].roster).total;
   bump(side);save();trophyRoster(side,S[side].roster);render();
+  if(side==="classic")ATUBackend.submitGameRun("pack",S.classic.roster,true);
   if(t>lastOVR[side]){const el=$("#ovr-"+side);if(el){el.classList.add("bump");setTimeout(()=>el.classList.remove("bump"),260);}}
   lastOVR[side]=t;
 }
@@ -5126,8 +5139,13 @@ function confirmReset(side){
   $("#sheet").classList.add("show");
   $("#sheet").onclick=e=>{if(e.target.id==="sheet")closeSheet();};
 }
-function doReset(side){
+async function doReset(side){
+  if(side==="classic"&&ATUBackend.isSignedIn()){
+    if(startingNormalRun)return;startingNormalRun=true;
+    try{if(!await ATUBackend.beginGameRun("pack"))return;}finally{startingNormalRun=false;}
+  }
   S[side]=side==="classic"?emptyClassic():emptySide();
+  if(side==="classic"){CC=null;syncOnlinePack();}
   lastOVR[side]=60;save();closeSheet();render();
   notice(side==="classic"?"New Pack Mode run — "+S.classic.cap+" pack budget this time. High score preserved.":"Fresh start. High score preserved.");}
 </script>
@@ -5141,18 +5159,12 @@ function oddsHTML(key){
   }).join("<br>");
 }
 function packsHTML(){
-  const packs=["standard","premium","icon"].map(k=>`
-    <div class="pack ${PACKS[k].cls}">
-      <h3>${PACKS[k].name}</h3>
-      <div class="guar">${PACKS[k].guarLabel}</div>
-      <div class="odds">${oddsHTML(k)}</div>
-      <button class="btn ${k==="icon"?"gold":"primary"}" onclick="openPack('${k}','main')">Open — 3 cards · free</button>
-    </div>`).join("");
-  return `<div class="panel" style="margin-bottom:12px">
-      <div class="rowhead"><h2>Pack Shelf</h2><span class="sub">Unlimited free opens · pulls go straight to your collection · chase the 99s</span></div>
-    </div>
-    <div class="packs">${packs}</div>
-    <div class="notice" id="notice"></div>`;
+  const counts=S.main.packCounts||{};
+  return `<p class="sub">Go deep. How good can you make your roster with three packs each? Icon, premium and standard.</p>
+    <div class="deep-team-packs">${["icon","premium","standard"].map(k=>{
+      const left=Math.max(0,3-(counts[k]||0));
+      return `<button class="btn ${k==="icon"?"gold":"primary"}" ${left?"":"disabled"} onclick="openPack('${k}','main')">${PACKS[k].name} — ${left} left</button>`;
+    }).join("")}</div>`;
 }
 
 /* ================= REVEAL OVERLAY ================= */
@@ -5178,13 +5190,24 @@ function ownedIds(side){
   ALL_SLOTS.forEach(s=>{if(S[side].roster[s]!=null)ids.add(S[side].roster[s]);});
   return ids;
 }
-function openPack(packKey,side){
+async function openPack(packKey,side){
+  if(side==="main"){
+    if(!["standard","premium","icon"].includes(packKey))return;
+    const counts=S.main.packCounts||(S.main.packCounts={});
+    if((counts[packKey]||0)>=3){notice("All three of these packs are open. Reset Deep Team for a new run.");return;}
+  }
+  if(side==="rare"&&packKey!=="rare")return;
   if(side==="classic"){
+    if(!await ensureOnlinePack())return;
     const cl=S.classic;
     if(cl.opened>=cl.cap){notice("Pack budget spent — "+cl.cap+" total. Build your roster from what you pulled.");return;}
-    if(packKey==="premium"){if(cl.premiumPacksLeft<=0){notice("Premium pack budget spent — 3 per run.");return;}cl.premiumPacksLeft--;}
-    const cards=classicRollPack(ownedIds("classic"),cl.tierCounts,packKey);
-    cl.opened++;
+    if(packKey==="premium"){if(cl.premiumPacksLeft<=0){notice("Premium pack budget spent — 3 per run.");return;}if(!ATUBackend.getGameSession("pack"))cl.premiumPacksLeft--;}
+    let cards;
+    const online=ATUBackend.getGameSession("pack");
+    if(online){
+      try{cards=ATUBackend.applyGameAction("pack",{type:"pack",pack:packKey}).map(id=>DB[id]);syncOnlinePack();}
+      catch(error){notice(error.message);return;}
+    }else{cards=classicRollPack(ownedIds("classic"),cl.tierCounts,packKey);cl.opened++;}
     if(typeof creditsForRun==="function")creditsForRun("pack");
     cards.forEach(c=>{cl.coll[c.id]=(cl.coll[c.id]||0)+1;});
     save();trophyPack(cards);
@@ -5196,7 +5219,8 @@ function openPack(packKey,side){
   if(!cards)return;
   const dupes=cards.map(c=>owned.has(c.id)); /* exact same card already owned */
   cards.forEach((c,i)=>{if(!dupes[i])S[side].coll[c.id]=(S[side].coll[c.id]||0)+1;});
-  save();trophyPack(cards);
+  if(side==="main")S.main.packCounts[packKey]=(S.main.packCounts[packKey]||0)+1;
+  save();if(side!=="rare")trophyPack(cards);
   REV={cards,side,packKey,flipped:[false,false,false],busy:false,dupes};
   renderReveal();
 }
@@ -5216,7 +5240,7 @@ function renderReveal(){
       </div></div>`).join("")}
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
-      ${allDone?`${REV.side==="classic"&&S.classic.opened>=S.classic.cap?"":`<button class="btn primary" onclick="openPack('${REV.packKey}','${REV.side}')">Open another</button>`}
+      ${allDone?`${(REV.side==="classic"&&(S.classic.opened>=S.classic.cap||(REV.packKey==="premium"&&S.classic.premiumPacksLeft<=0)))||(REV.side==="main"&&(S.main.packCounts?.[REV.packKey]||0)>=3)?"":`<button class="btn primary" onclick="openPack('${REV.packKey}','${REV.side}')">Open another</button>`}
                  <button class="btn" onclick="closeReveal()">Done — to my team</button>`
                :`<button class="btn" onclick="flipAll()">Reveal all</button>`}
     </div>`;
@@ -5262,12 +5286,12 @@ function confetti(n,palette){
 /* v35 state invariant: older/touch-interrupted sessions could retain selected IDs
    in D.taken while losing their slot assignment. Rebuild those orphan selections
    into legal empty slots before rendering, then derive completion from the court. */
-function activeDraft(){return screen==="challenge"&&ATUBackend.classicDraftState()||D;}
+function activeDraft(){return screen==="challenge"&&ATUBackend.classicDraftState()||(!DRAFT_ERA&&ATUBackend.getGameSession("draft")?.draft)||D;}
 function localDraftRules(){return ATUDraftRules.create({cards:DB,weights:SPOTLIGHT,pool:eraPool,
   fair:{shown:DRAFT_NAME_SHOWN,last:DRAFT_NAME_LAST,cards:DRAFT_CARD_SHOWN,session:DRAFT_FAIR_SESSION}});}
 function applyDraftAction(event){
   if(screen==="challenge"&&ATUBackend.classicDraftState())return ATUBackend.applyClassicDraftAction(event);
-  try{localDraftRules().apply(D,event);persistDraftFair();return true;}
+  try{if(!DRAFT_ERA&&ATUBackend.getGameSession("draft")){ATUBackend.applyGameAction("draft",event);return true;}localDraftRules().apply(D,event);persistDraftFair();return true;}
   catch(error){notice(error.message);return false;}
 }
 function closeDraftPick(){const D=activeDraft();D.activeSlot=null;D.opts=null;render();}
@@ -5305,8 +5329,16 @@ function confirmDraftReset(){
   $("#sheet").onclick=e=>{if(e.target.id==="sheet")closeSheet();};
 }
 function doDraftReset(){closeSheet();startDraft(DRAFT_ERA);}
-function startDraft(era){
+let startingNormalRun=false;
+async function startDraft(era){
+  if(startingNormalRun)return;
   DRAFT_ERA=era||null;
+  if(!DRAFT_ERA&&ATUBackend.isSignedIn()){
+    startingNormalRun=true;
+    try{const session=await ATUBackend.beginGameRun("draft");if(session){D=session.draft;render();}}
+    finally{startingNormalRun=false;}
+    return;
+  }
   beginDraftFairSession();
   D=localDraftRules().start();persistDraftFair();
   render();
@@ -5342,6 +5374,7 @@ function draftPickInto(pid){
   const completed=reconcileDraftState();
   if(completed)confetti(80);
   if(completed&&screen==="draft"){
+    if(!DRAFT_ERA)ATUBackend.submitGameRun("draft",D.roster,true);
     D.done=true; /* stay on the court \u2014 no summary screen */
     const o=teamOVR(D.roster),pr=projection(o.eff);
     if(!DRAFT_ERA&&o.total>HS.draft.ovr){HS.draft.ovr=o.total;HS.draft.wins=pr.wins;saveHS();} /* era runs don't set the all-time best */
@@ -5399,6 +5432,7 @@ function doDraftSwap(a,b){
   if(!applyDraftAction({type:"swap",from:a,to:b}))return;
   closeSheet();
   if(D.done&&screen==="draft"){
+    if(!DRAFT_ERA)ATUBackend.submitGameRun("draft",D.roster,true);
     const o=teamOVR(D.roster),pr=projection(o.eff);
     if(!DRAFT_ERA&&o.total>HS.draft.ovr){HS.draft.ovr=o.total;HS.draft.wins=pr.wins;saveHS();}
     trophyRoster("draft",D.roster,{eraLocked:!!DRAFT_ERA});
@@ -5490,13 +5524,14 @@ function draftHTML(){
     <button class="btn" onclick="setScreen('landing')">Exit to modes</button>
     <span class="draftctl-note">${filled} of 8 locked in${draftEra?` \u00b7 ${eraLabel(draftEra)} era`:""}</span>
   </div>`:""}
+  ${!online&&!draftEra?ATUBackend.gameRunHTML("draft",D.roster):""}
   ${D.done?(online?ATUBackend.classicDraftFinishHTML():`<div style="display:flex;gap:10px;justify-content:center;margin-top:12px">
     <button class="btn gold" onclick="shareDraftImage()">Share as image</button>
       <button class="btn" onclick="shareRoster('draft')">Share roster</button>
       <button class="btn primary" onclick="startDraft(DRAFT_ERA)">${draftEra?eraLabel(draftEra)+" draft again":"Draft again"}</button>
     ${draftEra?`<button class="btn" onclick="startDraft()">All-Time draft</button>`:""}
     <button class="btn" onclick="setScreen('landing')">Exit to modes</button></div>
-  <div class="sub" style="text-align:center;color:var(--cyan);font-size:11px;margin-top:8px">Final board — tap any player (starter or bench) to move them into any slot they fit.</div>`):""}
+  <div class="sub" style="text-align:center;color:var(--cyan);font-size:11px;margin-top:8px">${!online&&ATUBackend.gameRunLocked("draft")?"Result locked for rankings. Draft again to build another team.":"Final board — tap any player (starter or bench) to move them into any slot they fit."}</div>`):""}
   <div class="notice" id="notice" style="margin-top:10px"></div>
   `;
 }
@@ -5521,7 +5556,7 @@ function landingHTML(){
     <div class="modecard" onclick="setScreen('friends')"><h3>Friends</h3><p>Add your people. See who’s online. Get a Draft Duel going.</p><button class="btn primary">OPEN FRIENDS</button></div>
     <div class="modecard" onclick="setScreen('rankings')"><h3>🏆 The 82-0 Club</h3><p>Chase the best record. Own today, climb the weekly table, or become an all-time legend.</p><div class="modebest">GOAL <b>CAN YOU GO 82-0?</b></div><button class="btn">VIEW LEADERBOARD</button></div>
     <div class="modecard" onclick="setScreen('rafters')"><h3>🎫 The Rafters</h3><p>Open packs for card cosmetics — frames, auras, border light and card-face effects. Mythics are the chase.</p><div class="modebest">PACKS <b>${packsAvailable()} free</b></div><button class="btn gold">OPEN PACKS</button></div>
-    <div class="modecard" onclick="setScreen('collection')"><h3>🗃 Collection</h3><p>Every card in the game — see what you've discovered and what's still out there. Pulls from any mode count.</p><div class="modebest">FOUND <b>${collectionStats().seen}/${collectionStats().total}</b></div><button class="btn">VIEW COLLECTION</button></div>
+    <div class="modecard" onclick="setScreen('collection')"><h3>🗃 Collection</h3><p>Every card in the game — see what you've discovered and what's still out there. Discover cards through play. Rare Pull is a separate sandbox.</p><div class="modebest">FOUND <b>${collectionStats().seen}/${collectionStats().total}</b></div><button class="btn">VIEW COLLECTION</button></div>
     <div class="modecard" onclick="setScreen('trophies')"><h3>🏆 Trophy Case</h3><p>Permanent collection progression, franchise and era archives, iconic chemistry discoveries, What If timelines, historic teams, records and hidden challenges.</p><div class="modebest">PROGRESS <b>${trophySummary().done}/${trophySummary().total}</b></div><button class="btn gold">OPEN TROPHY CASE</button></div>
     <div class="modecard" onclick="setScreen('account')"><h3>☁️ Save Your Progress</h3><p>Keep your cards, trophies and records safe—even when you switch devices.</p><div class="modebest">STATUS <b>${ATUBackend.isSignedIn()?"SAFE &amp; SYNCED":"DEVICE SAVE"}</b></div><button class="btn primary">${ATUBackend.isSignedIn()?"OPEN MY SAVE":"SAVE MY GAME"}</button></div>
   </div>`;
@@ -5809,17 +5844,42 @@ async function shareSharedImage(){
   if(SHARED.mode==="draft"){D.roster=SHARED.roster;D.done=true;try{return await shareRosterImage("draft");}finally{D.roster=oldD;D.done=oldDone;}}
   const old=S.classic.roster;S.classic.roster=SHARED.roster;try{return await shareRosterImage("classic");}finally{S.classic.roster=old;}
 }
+function syncOnlinePack(){
+  const p=ATUBackend.getGameSession("pack")?.pack;if(!p)return;
+  Object.assign(S.classic,{cap:p.cap,opened:p.opened,premiumPacksLeft:p.premiumPacksLeft,tierCounts:{...p.tierCounts},captainUsed:p.captainUsed});
+}
+async function ensureOnlinePack(){
+  if(!ATUBackend.isSignedIn())return true;
+  if(ATUBackend.getGameSession("pack"))return true;
+  if(S.classic.opened||S.classic.captainUsed||Object.keys(S.classic.coll).length){notice("Reset this Pack Mode run to enable online rankings.");return false;}
+  if(startingNormalRun)return false;startingNormalRun=true;
+  try{const session=await ATUBackend.beginGameRun("pack");if(!session)return false;syncOnlinePack();save();return true;}
+  finally{startingNormalRun=false;}
+}
+function submitNormalRun(mode){return ATUBackend.submitGameRun(mode,mode==="draft"?activeDraft().roster:S.classic.roster);}
+async function startNormalRankedRun(mode){
+  if(!ATUBackend.isSignedIn()){ATUBackend.openPlayerSetup("rankings");return;}
+  setScreen(mode==="pack"?"classic":"draft");
+  if(mode==="draft")await startDraft();else await doReset("classic");
+}
 let CC=null; /* classic captain options while the overlay is open */
-function openClassicCaptain(){
+async function openClassicCaptain(){
+  if(!await ensureOnlinePack())return;
   if(S.classic.captainUsed)return;
-  CC=classicCaptainOptions(ownedIds("classic"));
+  const online=ATUBackend.getGameSession("pack");
+  if(online){try{CC=(online.pack.captain||ATUBackend.applyGameAction("pack",{type:"captainOpen"})).map(id=>DB[id]);}
+    catch(error){notice(error.message);return;}}
+  else CC=classicCaptainOptions(ownedIds("classic"));
   render();
 }
 function classicPickCaptain(pid){
+  if(!CC?.some(c=>c.id===pid)||S.classic.captainUsed)return;
+  const online=ATUBackend.getGameSession("pack");
+  if(online){try{ATUBackend.applyGameAction("pack",{type:"captain",cardId:pid});syncOnlinePack();}catch(error){notice(error.message);return;}}
   const p=DB[pid],cl=S.classic;
   cl.coll[pid]=(cl.coll[pid]||0)+1;
   cl.captainUsed=true;
-  cl.tierCounts[p.tier]=(cl.tierCounts[p.tier]||0)+1; /* an Icon captain consumes an Icon slot */
+  if(!online)cl.tierCounts[p.tier]=(cl.tierCounts[p.tier]||0)+1; /* an Icon captain consumes an Icon slot */
   CC=null;save();render();
   notice(p.name+" anchors the run — build around them.");
 }
@@ -5872,7 +5932,7 @@ function showPrivacy(){
     <h3>2. Device and cloud game data</h3>
     <p>Collections, rosters, pack history, trophies, credits and high scores are stored in your browser's
     LocalStorage. If you sign in, a versioned copy is also stored in Supabase so it can be restored on
-    another device. Save conflicts are not silently overwritten.</p>
+    another device. Online saves load automatically. A device backup is kept when a newer online save replaces it.</p>
 
     <h3>3. Account and public profile data</h3>
     <p>Supabase Auth processes your email address, authentication identity and session information.
@@ -5970,6 +6030,7 @@ function render(){
   if(screen==="rafters")
     (window.requestAnimationFrame||setTimeout)(()=>{
       rfBind();
+      if(RF.done&&RF.pull)rfReveal(false);
       if(!RF.done){rfApply(RF.prog||0);if(!RF.pull)rfSetGlow(true);}
     });
   if(typeof mountEfxOverlays==="function")

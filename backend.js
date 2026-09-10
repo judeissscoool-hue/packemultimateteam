@@ -10,6 +10,7 @@
   const ACCOUNT_RETURN_KEY = "atu-account-return-v1";
   const PROGRESS_KEYS = Object.freeze([
     "atu-save-v4",
+    "atu-game-runs-v1",
     "atu-hs-v4",
     "atu-trophies-v1",
     "atu-daily-v1",
@@ -132,7 +133,6 @@
     if (!state.session) return { message: "Sign in with Google or email to play online.", label: "SIGN IN TO PLAY" };
     if (state.recovery) return { message: "Choose your new password before continuing.", label: "SET MY PASSWORD" };
     if (!state.profile || !state.profile.username) return { message: "Choose a username so friends can find you.", label: "CHOOSE MY USERNAME" };
-    if (state.cloudStatus === "conflict") return { message: "Choose which save to keep before continuing. Your draft link is safe.", label: "CHOOSE MY SAVE" };
     return null;
   }
 
@@ -345,8 +345,25 @@
     state.cloudServerUpdatedAt = row && row.server_updated_at || null;
   }
 
+  let cloudPush = null, cloudPrepare = null, cloudOwner = null, cloudWriteVersion = 0;
+  function cloudRender() { if (state.visibleScreen === "account") rerender(); }
+  function adoptOnlineSave(row, userId) {
+    if (!backupSnapshot("local-before-online-save", buildSnapshot())) throw new Error("Could not back up device progress.");
+    global.clearTimeout(state.syncTimer);
+    applySnapshot(row.payload, row.revision, userId);
+    state.cloudStatus = "synced";
+    state.cloudConflict = null;
+    global.location.reload();
+  }
   async function pushSnapshot(options) {
+    if (cloudPush) return cloudPush;
+    cloudPush = pushSnapshotNow(options);
+    try { return await cloudPush; } finally { cloudPush = null; }
+  }
+  async function pushSnapshotNow(options) {
     if (!state.client || !state.session || state.cloudStatus === "conflict") return null;
+    const userId = state.session.user.id;
+    const writeVersion = cloudWriteVersion;
     const meta = getCloudMeta();
     const payload = buildSnapshot();
     const expectedRevision = options && Number.isInteger(options.expectedRevision)
@@ -354,7 +371,7 @@
       : (Number(meta.revision) || 0);
     const isImport = !!(options && options.isImport);
     state.cloudStatus = "syncing";
-    rerender();
+    cloudRender();
     const result = await state.client.rpc("sync_cloud_save", {
       p_expected_revision: expectedRevision,
       p_schema_version: SAVE_SCHEMA_VERSION,
@@ -362,14 +379,13 @@
       p_client_updated_at: payload.generatedAt,
       p_import_id: isImport ? meta.importId : null
     });
+    if (state.session?.user.id !== userId) return null;
     if (result.error) throw result.error;
     const row = firstRow(result.data);
     if (!row) throw new Error("Cloud save returned no result.");
     useCloudResult(row);
     if (row.outcome === "conflict") {
-      state.cloudStatus = "conflict";
-      state.cloudConflict = row;
-      setMessage("This device and the cloud both have progress. Choose which copy to keep.", "warn");
+      adoptOnlineSave(row, userId);
       return row;
     }
     if (row.outcome === "missing") {
@@ -377,29 +393,45 @@
       throw new Error("The cloud save disappeared. Refresh and try again.");
     }
     updateCloudMeta({
-      userId: state.session.user.id,
+      userId: userId,
       revision: Number(row.revision),
-      dirty: false,
+      dirty: cloudWriteVersion !== writeVersion,
       updatedAt: payload.generatedAt,
       lastSyncedAt: new Date().toISOString()
     });
     state.cloudStatus = "synced";
     state.cloudConflict = null;
+    if (cloudWriteVersion !== writeVersion) return pushSnapshotNow();
+    cloudRender();
     return row;
   }
 
   async function prepareCloud() {
+    if (cloudPrepare) return cloudPrepare;
+    cloudPrepare = prepareCloudNow();
+    try { return await cloudPrepare; } finally { cloudPrepare = null; }
+  }
+  async function prepareCloudNow() {
     if (!state.session || !state.client) return;
+    const userId = state.session.user.id;
+    if (cloudPush) await cloudPush;
+    if (state.session?.user.id !== userId) return;
     state.cloudStatus = "checking";
     state.cloudConflict = null;
     rerender();
     try {
       const remote = await fetchCloudSave();
-      const userId = state.session.user.id;
+      if (state.session?.user.id !== userId) return;
       const meta = getCloudMeta();
       const meaningfulLocal = hasMeaningfulLocalProgress();
       if (!remote) {
+        // Never import the previous account's device save into a new account.
+        if (meta.userId && meta.userId !== userId) {
+          adoptOnlineSave({payload:{format:"atu-cloud-save",schemaVersion:1,keys:{}},revision:0},userId);
+          return;
+        }
         await pushSnapshot({ expectedRevision: 0, isImport: true });
+        cloudOwner = userId;
         if (meaningfulLocal) setMessage("Your existing device progress is now backed up to the cloud.", "ok");
         return;
       }
@@ -409,18 +441,10 @@
       if (sameAccount && sameRevision) {
         if (meta.dirty) await pushSnapshot({ expectedRevision: Number(remote.revision) });
         else state.cloudStatus = "synced";
+        cloudOwner = userId;
         return;
       }
-      if (!meaningfulLocal || (sameAccount && !meta.dirty)) {
-        backupSnapshot("local-before-cloud-download", buildSnapshot());
-        applySnapshot(remote.payload, remote.revision, userId);
-        state.cloudStatus = "synced";
-        global.location.reload();
-        return;
-      }
-      state.cloudStatus = "conflict";
-      state.cloudConflict = remote;
-      setMessage("Cloud progress already exists, so this device was not uploaded automatically.", "warn");
+      adoptOnlineSave(remote, userId);
     } catch (error) {
       state.cloudStatus = global.navigator && global.navigator.onLine === false ? "offline" : "error";
       setMessage(errorText(error, "Could not check the cloud save."), "error");
@@ -429,58 +453,29 @@
     }
   }
 
-  async function resolveCloud(choice) {
-    if (!state.cloudConflict || !state.session) return;
-    const remote = state.cloudConflict;
-    setBusy(true);
-    try {
-      if (choice === "cloud") {
-        if (!backupSnapshot("local-before-cloud-conflict-resolution", buildSnapshot())) {
-          throw new Error("Could not create a local backup. Free some browser storage and retry.");
-        }
-        applySnapshot(remote.payload, remote.revision, state.session.user.id);
-        global.location.reload();
-        return;
-      }
-      if (choice === "device") {
-        if (!global.confirm("Replace the cloud save with this device's progress? A backup of the cloud copy will remain on this device.")) return;
-        if (!backupSnapshot("cloud-before-device-conflict-resolution", remote.payload)) {
-          throw new Error("Could not back up the cloud copy. Free some browser storage and retry.");
-        }
-        state.cloudStatus = "syncing";
-        state.cloudConflict = null;
-        updateCloudMeta({ revision: Number(remote.revision), userId: state.session.user.id, dirty: true });
-        await pushSnapshot({ expectedRevision: Number(remote.revision) });
-        setMessage("This device is now the current cloud save.", "ok");
-        await returnToPendingChallenge();
-      }
-    } catch (error) {
-      state.cloudStatus = "error";
-      setMessage(errorText(error, "Could not resolve the save conflict."), "error");
-    } finally {
-      setBusy(false);
-    }
-  }
-
   function noteLocalWrite(key) {
     if (!PROGRESS_KEY_SET.has(key)) return;
+    cloudWriteVersion++;
     let meta;
     try {
       meta = updateCloudMeta({ dirty: true, updatedAt: new Date().toISOString() });
     } catch (_) {
       return;
     }
-    if (!state.session || !state.initialized || state.cloudStatus === "conflict") return;
-    clearTimeout(state.syncTimer);
-    state.syncTimer = global.setTimeout(async function () {
+    if (!state.session || !state.initialized || cloudOwner !== state.session.user.id) return;
+    global.clearTimeout(state.syncTimer);
+    state.syncTimer = global.setTimeout(flushCloud, 250);
+  }
+  async function flushCloud() {
+    global.clearTimeout(state.syncTimer);
+    if (!state.session || cloudOwner !== state.session.user.id) return;
       try {
-        await pushSnapshot({ expectedRevision: Number(meta.revision) || state.cloudRevision || 0 });
+        if (getCloudMeta().dirty) await pushSnapshot();
       } catch (error) {
         state.cloudStatus = global.navigator && global.navigator.onLine === false ? "offline" : "error";
         setMessage(errorText(error, "Progress remains on this device and will sync later."), "error");
-        rerender();
+        cloudRender();
       }
-    }, 1800);
   }
 
   function challengeCodeFromUrl() {
@@ -506,7 +501,7 @@
   async function loadEngine() {
     if (state.engine) return state.engine;
     if (!state.enginePromise) {
-      state.enginePromise = import("./supabase/functions/_shared/atu-engine-v1.js")
+      state.enginePromise = import("./supabase/functions/_shared/atu-engine-v1.js?normal-play=1")
         .then(function (engine) {
           state.engine = engine;
           return engine;
@@ -715,7 +710,102 @@
     }
   }
 
+  const GAME_RUNS_KEY = "atu-game-runs-v1";
+  const gameSessions = {}, gameSubmissions = {};
+  function readGameRuns() {
+    const saved = readJSON(GAME_RUNS_KEY, {});
+    return saved?.ownerId === state.session?.user.id && saved?.runs && typeof saved.runs === "object"
+      ? saved : {ownerId:state.session?.user.id,runs:{}};
+  }
+  function saveGameRun(mode, run) {
+    const saved=readGameRuns();saved.runs[mode]=run;writeJSON(GAME_RUNS_KEY,saved);noteLocalWrite(GAME_RUNS_KEY);
+  }
+  function gameSession(mode, run) {
+    const cached=gameSessions[mode];
+    if(cached?.runId===run.runId)return cached.session;
+    const session=mode==="draft"?state.engine.createClassicSession(run.seed,run.events):state.engine.createClassicPackSession(run.seed,run.events);
+    gameSessions[mode]={runId:run.runId,session};return session;
+  }
+  async function beginGameRun(mode) {
+    if(!["draft","pack"].includes(mode))return null;
+    if(playerRequirement()){openPlayerSetup("rankings");return null;}
+    const ownerId=state.session.user.id;
+    try {
+      const engine=await loadEngine();
+      const rulesVersion=mode==="draft"?engine.CLASSIC_RULES_VERSION:engine.PACK_RULES_VERSION;
+      const response=await state.client.rpc("create_ranked_run",{p_mode:mode,p_rules_version:rulesVersion});
+      if(response.error)throw response.error;
+      if(state.session?.user.id!==ownerId)return null;
+      const row=firstRow(response.data);if(!row)throw new Error("Could not start the run.");
+      const run={runId:row.run_id,runToken:row.run_token,seed:row.draft_seed,rulesVersion,expiresAt:row.expires_at,events:[],status:"playing"};
+      saveGameRun(mode,run);
+      return gameSession(mode,run);
+    } catch(error){
+      const message=errorText(error,"Could not start online play. Try again.");
+      setMessage(message,"error");rerender();if(typeof global.notice==="function")global.notice(message);return null;
+    }
+  }
+  function getGameSession(mode) {
+    const run=readGameRuns().runs?.[mode];
+    if(!run||!state.engine||Date.parse(run.expiresAt)<=Date.now())return null;
+    try{return gameSession(mode,run);}catch(_){return null;}
+  }
+  function applyGameAction(mode,event) {
+    const run=readGameRuns().runs?.[mode],session=getGameSession(mode);
+    if(!run||!session||["submitted","saving","retry"].includes(run.status))throw new Error("Start a new online run to keep playing.");
+    if(run.events.length >= (mode==="draft"?256:15))throw new Error("This run has reached its action limit. Start a new run.");
+    const result=session.apply(event);run.events.push(event);saveGameRun(mode,run);return result;
+  }
+  async function submitGameRun(mode,roster,automatic=false) {
+    if(gameSubmissions[mode])return gameSubmissions[mode];
+    const task=submitGameRunNow(mode,roster,automatic);gameSubmissions[mode]=task;
+    try{return await task;}finally{delete gameSubmissions[mode];}
+  }
+  async function submitGameRunNow(mode,roster,automatic) {
+    const run=readGameRuns().runs?.[mode];
+    if(!run||!state.engine||run.status==="submitted")return;
+    if(!ALL_GAME_SLOTS.every(s=>Number.isInteger(roster?.[s])))return;
+    const ownerId=state.session?.user.id;
+    try {
+      const transcript=run.pending||[...run.events,{type:"arrange",roster:{...roster}}];
+      const validated=state.engine.validateTranscript(run.seed,transcript,mode,run.rulesVersion);
+      if(automatic&&validated.result.projectedWins!==82)return;
+      // Keep the exact submission for retries after closing a tab or losing the response.
+      run.pending=transcript;run.status="saving";saveGameRun(mode,run);
+      const response=await state.client.functions.invoke("validate-run",{body:{runId:run.runId,runToken:run.runToken,transcript}});
+      if(state.session?.user.id!==ownerId)return;
+      if(response.error||!response.data?.ok)throw response.error||new Error("Run could not be saved.");
+      run.status="submitted";run.result=response.data.result;delete run.pending;delete run.error;
+      // An older request must not overwrite a newly started run.
+      if(readGameRuns().runs?.[mode]?.runId===run.runId)saveGameRun(mode,run);
+      state.rankings.status="idle";rerender();
+    }catch(error){
+      run.status="retry";run.error="Result not saved yet. Retry when connected.";
+      if(state.session?.user.id===ownerId&&readGameRuns().runs?.[mode]?.runId===run.runId)saveGameRun(mode,run);
+      if(!automatic)rerender();
+    }
+  }
+  const ALL_GAME_SLOTS=["PG","SG","SF","PF","C","B1","B2","B3"];
+  async function retryGameSubmissions() {
+    if(!state.session||!state.engine)return;
+    for(const [mode,run] of Object.entries(readGameRuns().runs)){
+      if(["draft","pack"].includes(mode)&&run.pending&&["saving","retry"].includes(run.status))
+        await submitGameRun(mode,run.pending[run.pending.length-1]?.roster);
+    }
+  }
+  function gameRunHTML(mode,roster) {
+    const run=readGameRuns().runs?.[mode];
+    if(!state.session)return '<p class="sub">Sign in before starting a run to appear in the 82–0 rankings.</p>';
+    if(!run)return '<p class="sub">Start a new run to save its result to the 82–0 rankings.</p>';
+    if(run.status==="submitted")return '<p class="sub" role="status">Saved to the 82–0 rankings: '+html(run.result?.projectedWins)+'–'+html(82-run.result?.projectedWins)+'.</p>';
+    if(run.status==="saving")return '<p class="sub" role="status">Saving your result…</p>';
+    return '<div class="game-run-save">'+(run.error?'<p role="status">'+html(run.error)+'</p>':'')
+      +'<button class="btn gold" '+(ALL_GAME_SLOTS.every(s=>Number.isInteger(roster?.[s]))?'':'disabled')
+      +' onclick="submitNormalRun(\''+mode+'\')">'+(run.status==="retry"?'RETRY SAVING RESULT':'FINISH & SAVE TO RANKINGS')+'</button></div>';
+  }
+
   async function startRankedRun(mode) {
+    if(typeof global.startNormalRankedRun === "function"){global.startNormalRankedRun(mode);return;}
     if (!['draft', 'pack'].includes(mode) || state.busy) return;
     if (playerRequirement()) { openPlayerSetup("rankings"); return; }
     setBusy(true);
@@ -1242,6 +1332,8 @@
     try {
       await loadProfile();
       await prepareCloud();
+      await loadEngine();
+      await retryGameSubmissions();
     } catch (error) {
       setMessage(errorText(error, "Could not load your account."), "error");
     }
@@ -1317,8 +1409,8 @@
         if (typeof global.setScreen === "function") global.setScreen("account");
       }
       global.setTimeout(async function () {
-        if (session) await refreshSignedInState();
-        else {
+        if (session && (cloudOwner !== session.user.id || event === "SIGNED_IN")) await refreshSignedInState();
+        else if (!session) {
           state.profile = null;
           state.cloudStatus = "offline";
         }
@@ -1333,6 +1425,11 @@
     const challengeCode = challengeCodeFromUrl();
     if (challengeCode) await loadChallengeInvitation(challengeCode);
     const refreshSocialAvailability = function () {
+      if(global.navigator.onLine !== false){
+        if(cloudOwner===state.session?.user.id)flushCloud();
+        else if(state.session)prepareCloud();
+        retryGameSubmissions();
+      }
       scheduleSocialActivity();
       if (socialIsActive()) loadFriends(true);
       else {
@@ -1343,6 +1440,7 @@
     global.document.addEventListener?.("visibilitychange", refreshSocialAvailability);
     global.addEventListener?.("online", refreshSocialAvailability);
     global.addEventListener?.("offline", refreshSocialAvailability);
+    global.addEventListener?.("pagehide", function () { flushCloud(); });
     rerender();
   }
 
@@ -1466,6 +1564,8 @@
     if (!state.client || state.busy) return;
     setBusy(true);
     try {
+      await flushCloud();
+      if (getCloudMeta().dirty) throw new Error("Your latest progress is still waiting to save. Reconnect before signing out.");
       const result = await state.client.auth.signOut({ scope: "local" });
       if (result.error) throw result.error;
       state.session = null;
@@ -1689,8 +1789,8 @@
     const periods = { all_time: "All time", daily: "Today", weekly: "This week" };
     const rows = state.rankings.rows || [];
     return '<div class="rankingwrap"><div class="challengehero"><div><span class="eyebrow">LEADERBOARD</span><h2>The 82–0 Club</h2><p>Pick your mode. Build your team. Chase the perfect season.</p></div></div>'
-      + '<div class="ranking-play"><article><span class="eyebrow">DRAFT</span><h3>Classic Draft</h3><p>Choose your captain and draft your eight.</p><button class="btn gold" onclick="setScreen(\'draft\')">PLAY CLASSIC DRAFT</button><button class="textbtn" onclick="ATUBackend.startRankedRun(\'draft\')">Play for the leaderboard</button></article>'
-      + '<article><span class="eyebrow">PACKS</span><h3>Pack Mode</h3><p>Open packs and build your ultimate lineup.</p><button class="btn primary" onclick="setScreen(\'classic\')">PLAY PACK MODE</button><button class="textbtn" onclick="ATUBackend.startRankedRun(\'pack\')">Play for the leaderboard</button></article>'
+      + '<div class="ranking-play"><article><span class="eyebrow">DRAFT</span><h3>Classic Draft</h3><p>Choose your captain and draft your eight.</p><button class="btn gold" onclick="setScreen(\'draft\')">PLAY CLASSIC DRAFT</button></article>'
+      + '<article><span class="eyebrow">PACKS</span><h3>Pack Mode</h3><p>Open packs and build your ultimate lineup.</p><button class="btn primary" onclick="setScreen(\'classic\')">PLAY PACK MODE</button></article>'
       + '<article><span class="eyebrow">1V1</span><h3>Draft Duel</h3><p>Same picks. Two courts. Challenge a friend.</p><button class="btn primary" onclick="setScreen(\'challenge\')">CHALLENGE A FRIEND</button></article></div>'
       + playerRequirementHTML("rankings")
       + rankingFilterHTML("modes", Object.keys(modes), modes, state.rankings.mode)
@@ -1703,7 +1803,7 @@
                 return '<div class="rankingrow"><b>' + html(row.rank) + "</b><span>@" + html(row.username || "Player")
                   + '</span><span>' + html(row.games) + "</span><span>" + (state.rankings.mode === "one_v_one"
                     ? html(row.wins) + "–" + html(row.losses)
-                    : html(row.best_team_ovr || "—") + " OVR")
+                    : html(row.best_projected_wins ?? "—") + "–" + html(82-(row.best_projected_wins||0)))
                   + '</span><strong>' + html(row.points) + "</strong></div>";
               }).join("") + "</div>") + "</div>";
   }
@@ -1720,7 +1820,7 @@
       checking: "Checking your save…",
       syncing: "Saving your game…",
       synced: "Safe & synced",
-      conflict: "Choose your save",
+      conflict: "Loading online save",
       error: "Save paused"
     };
     const detail = state.cloudServerUpdatedAt
@@ -1763,13 +1863,11 @@
   function signedInHTML() {
     const user = state.session.user;
     const profile = state.profile || {};
-    const conflict = state.cloudStatus === "conflict";
     return '<section class="accountwrap"><div class="accountintro"><div><span class="eyebrow">SIGNED IN</span><h2>'
       + html(profile.username ? "@" + profile.username : "Finish your profile")
       + '</h2><p>' + html(user.email || "Google account") + '</p></div>' + cloudStatusHTML() + '</div>'
       + statusMessageHTML()
       + accountJourneyHTML()
-      + (conflict ? '<div class="saveconflict"><h3>Which save do you want to keep?</h3><p>You have progress on this device and another save online. Nothing changes until you choose.</p><div><button class="btn primary" onclick="ATUBackend.resolveCloud(\'cloud\')" ' + (state.busy ? "disabled" : "") + '>USE ONLINE SAVE</button><button class="btn danger" onclick="ATUBackend.resolveCloud(\'device\')" ' + (state.busy ? "disabled" : "") + '>USE THIS DEVICE</button></div></div>' : "")
       + '<div class="accountgrid"><div class="accountcard"><h3>Your player</h3><p class="accountsub">This is the name friends will see in Draft Duels and The 82-0 Club.</p>'
       + '<form onsubmit="ATUBackend.saveProfile(event)"><label>Username<input id="atu-profile-username" value="' + html(profile.username || "") + '" autocomplete="username" maxlength="20" pattern="[A-Za-z0-9_]{3,20}" placeholder="3–20 letters, numbers or _" required></label>'
       + '<button class="btn primary accountsubmit" type="submit" ' + (state.busy ? "disabled" : "") + '>SAVE PROFILE</button></form></div>'
@@ -1816,8 +1914,8 @@
     setAuthMode: setAuthMode,
     openPlayerSetup: openPlayerSetup,
     continueAfterSetup: continueAfterSetup,
-    resolveCloud: resolveCloud,
     noteLocalWrite: noteLocalWrite,
+    flushCloud: flushCloud,
     loadChallengeInvitation: loadChallengeInvitation,
     createChallenge: createChallenge,
     startRankedRun: startRankedRun,
@@ -1832,6 +1930,12 @@
     resetChallenge: resetChallenge,
     finishRankedRun: finishRankedRun,
     loadRankings: loadRankings,
+    beginGameRun: beginGameRun,
+    getGameSession: getGameSession,
+    applyGameAction: applyGameAction,
+    submitGameRun: submitGameRun,
+    gameRunHTML: gameRunHTML,
+    gameRunLocked: mode=>["submitted","saving","retry"].includes(readGameRuns().runs?.[mode]?.status),
     isSignedIn: function () { return !!state.session; }
   });
 })(window);

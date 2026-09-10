@@ -40,7 +40,7 @@ for (const match of source.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)) {
     context.setScreen(page);context.renderTopNav();
     getRoutes().forEach(route=>routes.add(route));
   }
-  for(const page of ['landing','draft','classic','daily','team','packs','rare','challenge','rankings','collection','rafters','trophies','account','friends','updates'])assert.ok(routes.has(page),`${page} is reachable through the top bar`);
+  for(const page of ['landing','draft','classic','daily','team','rare','challenge','rankings','collection','rafters','trophies','account','friends','updates'])assert.ok(routes.has(page),`${page} is reachable through the top bar`);
   document.activeElement={insideNav:true};
   for(const page of routes){
     context.setScreen(page);context.renderTopNav();

@@ -40,4 +40,7 @@ run.user_id='someone-else';assert.equal((await handler(request('POST'))).status,
 run.user_id='owner';
 const forged=structuredClone(body);forged.transcript[2].cardId=999999;
 assert.equal((await handler(request('POST',forged))).status,422);assert.equal(finalized,1,'Invalid drafts must never reach finalization');
+run.mode='draft';run.status='completed';
+assert.equal((await handler(request('POST'))).status,200,'Lost ranked responses can reach the idempotent finalizer again');
+assert.equal(finalized,2);
 console.log('Validator browser preflight, authentication and submission tests passed');

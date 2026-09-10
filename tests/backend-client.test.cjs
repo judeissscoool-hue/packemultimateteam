@@ -633,17 +633,99 @@ async function run() {
       }
     });
     await test.api.init();
-    assert.match(test.api.accountHTML(), /Which save do you want to keep\?/);
-    assert.match(test.api.challengeHTML(),/CHOOSE MY SAVE/);
-    await test.api.createChallenge();
-    assert.equal(test.window.currentScreen,'account');
-    assert.ok(!test.calls.some(c=>c.name==='create_async_challenge'));
+    assert.doesNotMatch(test.api.accountHTML(), /Which save do you want/);
     assert.equal(test.calls.some(call => call.name === "sync_cloud_save"), false);
-    await test.api.resolveCloud("cloud");
     assert.equal(test.window.location.reloadCalled, true);
     assert.deepEqual(JSON.parse(test.storage.getItem("atu-hs-v4")), { draft: { ovr: 80, wins: 40 } });
     assert.ok(test.storage.getItem("atu-cloud-backup-v1"));
   }
+  {
+    // A second credit change made during an upload must be sent using its returned revision.
+    let release,revision=1,inFlight=0,maxInFlight=0,block=true;
+    const credit={bal:120,earned:120};
+    const test=makeContext({session:{user:{id:"save-race"}},
+      storageSeed:{"atu-cloud-meta-v1":JSON.stringify({userId:"save-race",revision:1,dirty:false}),"atu-credits-v1":JSON.stringify(credit)},
+      rpc(name,args){
+        if(name==="get_my_profile")return {data:[{username:"Race"}]};
+        if(name==="get_cloud_save")return {data:[{revision,payload:{format:"atu-cloud-save",schemaVersion:1,keys:{"atu-credits-v1":credit}}}]};
+        if(name==="sync_cloud_save"){
+          assert.equal(args.p_expected_revision,revision);
+          inFlight++;maxInFlight=Math.max(maxInFlight,inFlight);
+          const done=()=>{inFlight--;return {data:[{outcome:"updated",revision:++revision}]};};
+          if(block){block=false;return new Promise(resolve=>{release=()=>resolve(done());});}
+          return done();
+        }
+        return {data:[]};
+      }});
+    await test.api.init();
+    test.storage.setItem("atu-credits-v1",JSON.stringify({bal:150,earned:150}));test.api.noteLocalWrite("atu-credits-v1");
+    const first=test.api.flushCloud();
+    test.storage.setItem("atu-credits-v1",JSON.stringify({bal:90,earned:150}));test.api.noteLocalWrite("atu-credits-v1");
+    const second=test.api.flushCloud();release();await Promise.all([first,second]);
+    assert.equal(maxInFlight,1);
+    const uploads=test.calls.filter(c=>c.name==="sync_cloud_save");
+    assert.equal(uploads.length,2);assert.equal(uploads.at(-1).args.p_payload.keys["atu-credits-v1"].bal,90);
+    assert.equal(JSON.parse(test.storage.getItem("atu-cloud-meta-v1")).dirty,false);
+  }
+  {
+    let revision=5;
+    const remote={format:"atu-cloud-save",schemaVersion:1,keys:{"atu-credits-v1":{bal:777,earned:1000}}};
+    const test=makeContext({session:{user:{id:"online-owner"}},
+      storageSeed:{"atu-credits-v1":JSON.stringify({bal:3}),"atu-cloud-meta-v1":JSON.stringify({userId:"online-owner",revision:1,dirty:true})},
+      rpc(name){if(name==="get_cloud_save")return {data:[{revision,payload:remote}]};return {data:[]};}});
+    await test.api.init();
+    assert.equal(JSON.parse(test.storage.getItem("atu-credits-v1")).bal,777,'Newer online credits restore automatically');
+    assert.equal(test.window.location.reloadCalled,true);
+    assert.equal(test.calls.filter(c=>c.name==="sync_cloud_save").length,0,'Stale local credits cannot overwrite the online balance');
+  }
+  {
+    const seed='0123456789abcdef'.repeat(4);
+    let submissions=0,fail=true;
+    const engine=await import('../supabase/functions/_shared/atu-engine-v1.js');
+    const test=makeContext({session:{user:{id:'normal-player'}},rpc(name,args){
+      if(name==='get_my_profile')return {data:[{username:'Normal'}]};
+      if(name==='sync_cloud_save')return {data:[{outcome:'created',revision:1}]};
+      if(name==='create_ranked_run'){assert.equal(args.p_rules_version,engine.CLASSIC_RULES_VERSION);return {data:[{run_id:'normal-run',run_token:'b'.repeat(64),draft_seed:seed,rules_version:args.p_rules_version,expires_at:'2099-01-01'}]};}
+      return {data:[]};
+    },invoke(name,{body}){
+      submissions++;assert.equal(name,'validate-run');
+      const validated=engine.validateTranscript(seed,body.transcript,'draft',engine.CLASSIC_RULES_VERSION);
+      if(fail){fail=false;return {error:new Error('Disconnected')};}
+      return {data:{ok:true,result:validated.result}};
+    }});
+    await test.api.init();const session=await test.api.beginGameRun('draft');
+    test.api.applyGameAction('draft',{type:'captain',cardId:session.draft.captain[0].id});
+    for(const slot of engine.ALL_SLOTS)if(session.draft.roster[slot]==null){
+      test.api.applyGameAction('draft',{type:'open',slot});test.api.applyGameAction('draft',{type:'pick',cardId:session.draft.opts[0].id});
+    }
+    await test.api.submitGameRun('draft',session.draft.roster);
+    assert.match(test.api.gameRunHTML('draft',session.draft.roster),/RETRY SAVING RESULT/);
+    await test.api.submitGameRun('draft',session.draft.roster);
+    assert.match(test.api.gameRunHTML('draft',session.draft.roster),/Saved to the 82/);
+    await test.api.submitGameRun('draft',session.draft.roster);assert.equal(submissions,2,'Saved runs do not submit twice');
+    await test.api.flushCloud();
+  }
+
+  {
+    const fixture=JSON.parse(fs.readFileSync(require('node:path').join(__dirname,'perfect-draft.json'),'utf8'));
+    const engine=await import('../supabase/functions/_shared/atu-engine-v1.js');let submissions=0;
+    const test=makeContext({session:{user:{id:'perfect-player'}},rpc(name,args){
+      if(name==='get_my_profile')return {data:[{username:'Perfect'}]};
+      if(name==='sync_cloud_save')return {data:[{outcome:'updated',revision:1}]};
+      if(name==='create_ranked_run')return {data:[{run_id:'perfect-run',run_token:'b'.repeat(64),draft_seed:fixture.seed,expires_at:'2099-01-01'}]};
+      return {data:[]};
+    },invoke(name,{body}){
+      submissions++;const valid=engine.validateTranscript(fixture.seed,body.transcript,'draft',engine.CLASSIC_RULES_VERSION);
+      assert.equal(valid.result.projectedWins,82);return {data:{ok:true,result:valid.result}};
+    }});
+    await test.api.init();await test.api.beginGameRun('draft');
+    for(const event of fixture.events)test.api.applyGameAction('draft',event);
+    await test.api.submitGameRun('draft',fixture.roster,true);
+    assert.equal(submissions,1,'A genuine 82-0 draft automatically submits without a separate ranked mode');
+    assert.match(test.api.gameRunHTML('draft',fixture.roster),/82.+0/);
+    await test.api.flushCloud();
+  }
+
 }
 
 run().then(() => {

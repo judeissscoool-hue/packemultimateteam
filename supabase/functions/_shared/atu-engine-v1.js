@@ -4,6 +4,7 @@ import { CARDS, DUOS } from "./atu-data-v1.js";
 export const ENGINE_VERSION = "atu-challenge-v3";
 export const RULES_VERSION = "atu-v1";
 export const CLASSIC_RULES_VERSION = "atu-classic-v2";
+export const PACK_RULES_VERSION = "atu-pack-v2";
 export const STARTER_SLOTS = Object.freeze(["PG", "SG", "SF", "PF", "C"]);
 export const BENCH_SLOTS = Object.freeze(["B1", "B2", "B3"]);
 export const ALL_SLOTS = Object.freeze([...STARTER_SLOTS, ...BENCH_SLOTS]);
@@ -182,6 +183,64 @@ export function createClassicSession(seed,events=[]) {
   return {draft,apply:event=>rules.apply(draft,event)};
 }
 
+// Replay the ordinary Pack Mode budget and pulls on both client and server.
+// Each run has its own random stream, independent of browser pull history.
+export function createClassicPackSession(seed, events = []) {
+  assert(Array.isArray(events) && events.length <= 15, "Too many pack actions");
+  const random = seededRandom(seed);
+  const pack = {cap:10+Math.floor(random()*3),opened:0,premiumPacksLeft:3,tierCounts:{},captainUsed:false,ids:[],captain:null};
+  const pick = pool => {
+    assert(pool.length, "No cards available");
+    const weights = pool.map(c => Math.max(.01,c.w));
+    let r = random()*weights.reduce((a,b)=>a+b,0);
+    return pool.find((c,i)=>(r-=weights[i])<0)||pool[pool.length-1];
+  };
+  const add = card => {
+    pack.ids.push(card.id);
+    if (card.r === "Elite" || card.r === "Icon") pack.tierCounts[card.r]=(pack.tierCounts[card.r]||0)+1;
+  };
+  const apply = event => {
+    assert(event && typeof event === "object", "Invalid pack action");
+    if (event.type === "captainOpen") {
+      assert(!pack.captain && !pack.captainUsed, "Captain already opened");
+      const names = new Set();
+      pack.captain = Array.from({length:3},()=>{
+        const tier=random()<.3?"Icon":"Elite";
+        const card=pick(CARDS.filter(c=>c.r===tier&&!pack.ids.includes(c.id)&&!names.has(c.n)));
+        names.add(card.n);return card.id;
+      });
+      return [...pack.captain];
+    }
+    if (event.type === "captain") {
+      assert(!pack.captainUsed && pack.captain?.includes(event.cardId), "Captain was not offered");
+      add(CARD_BY_ID.get(event.cardId));pack.captainUsed=true;return [event.cardId];
+    }
+    assert(event.type === "pack" && ["standard","premium"].includes(event.pack), "Invalid pack type");
+    assert(pack.opened < pack.cap, "Pack budget spent");
+    assert(event.pack !== "premium" || pack.premiumPacksLeft>0, "Premium budget spent");
+    const odds=event.pack==="premium"?{Silver:.525,Gold:.35,Elite:.10,Icon:.025}:{Bronze:.37,Silver:.425,Gold:.16,Elite:.037,Icon:.008};
+    const pulled=[];
+    for(let i=0;i<3;i++){
+      let r=random(),tier="Gold";
+      for(const t of TIER_ORDER){r-=odds[t]||0;if(r<0){tier=t;break;}}
+      if(tier==="Icon"&&(pack.tierCounts.Icon||0)>=2)tier="Elite";
+      if(tier==="Elite"&&(pack.tierCounts.Elite||0)>=4)tier="Gold";
+      const card=pick(CARDS.filter(c=>c.r===tier&&!pack.ids.includes(c.id)));
+      pulled.push(card);add(card);
+    }
+    if(!pulled.some(c=>["Bronze","Silver"].includes(c.r))){
+      const removed=pulled.pop();pack.ids.pop();
+      if(["Icon","Elite"].includes(removed.r))pack.tierCounts[removed.r]--;
+      const card=pick(CARDS.filter(c=>["Bronze","Silver"].includes(c.r)&&!pack.ids.includes(c.id)));
+      pulled.push(card);add(card);
+    }
+    pack.opened++;if(event.pack==="premium")pack.premiumPacksLeft--;
+    return pulled.map(c=>c.id);
+  };
+  for(const event of events)apply(event);
+  return {pack,apply};
+}
+
 function validateClassicTranscript(seed,transcript) {
   assert(Array.isArray(transcript)&&transcript.length>=16&&transcript.length<=257,"Invalid draft transcript");
   const final=transcript[transcript.length-1];
@@ -302,8 +361,18 @@ function selectedTierCounts(cards) {
 }
 
 export function validateTranscript(seed, transcript, mode = "draft", rulesVersion = RULES_VERSION) {
+  if(rulesVersion===PACK_RULES_VERSION){
+    assert(mode==="pack" && Array.isArray(transcript) && transcript.length>=2 && transcript.length<=16,"Invalid pack transcript");
+    const final=transcript[transcript.length-1];
+    assert(final?.type==="arrange","Missing final arrangement");
+    const {pack}=createClassicPackSession(seed,transcript.slice(0,-1));
+    assert(final.roster && Object.keys(final.roster).length===8 && ALL_SLOTS.every(s=>pack.ids.includes(final.roster[s])),"Roster contains a card that was not pulled");
+    const result=calculateResult(final.roster);
+    assert(new Set(ALL_SLOTS.map(s=>CARD_BY_ID.get(final.roster[s]).n)).size===8,"Duplicate player name");
+    return {roster:{...final.roster},result};
+  }
   if(rulesVersion===CLASSIC_RULES_VERSION){
-    assert(mode==="one_v_one","Unsupported Classic Draft run mode");
+    assert(mode==="one_v_one"||mode==="draft","Unsupported Classic Draft run mode");
     return validateClassicTranscript(seed,transcript);
   }
   assert(rulesVersion===RULES_VERSION,"Unsupported ruleset");

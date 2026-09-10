@@ -15,7 +15,7 @@ const seed='0123456789abcdef'.repeat(4),session=createClassicSession(seed),event
 const context=vm.createContext({console,$,esc:s=>s,render(){},notice(){},closeSheet(){},confetti(){},
   cardHTML(p,attrs=''){return `<div class="card ${p.tier}" ${attrs}>${p.name}</div>`;},
   recordIdentityHTML(){return '';},nearMissHTML(){return '';},
-  ATUBackend:{classicDraftState:()=>session.draft,applyClassicDraftAction(event){session.apply(event);events.push(event);return true;},classicDraftFinishHTML(){return '<button>LOCK IN MY DRAFT</button>';}}
+  ATUBackend:{gameRunLocked:()=>false,getGameSession:()=>null,submitGameRun:()=>{},gameRunHTML:()=>"",isSignedIn:()=>false,classicDraftState:()=>session.draft,applyClassicDraftAction(event){session.apply(event);events.push(event);return true;},classicDraftFinishHTML(){return '<button>LOCK IN MY DRAFT</button>';}}
 });
 vm.runInContext(logic+'\n'+html.match(/const SLOT_LABEL=.+;/)[0]+'\n'+draftCode+'\n'+overlayCode+'\nscreen="challenge";',context);
 const run=source=>vm.runInContext(source,context);
