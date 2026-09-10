@@ -3772,6 +3772,8 @@ const CARD_ART_BASE="cards/"; /* relative to the deployed site root (Vercel /pub
    CARD_ART.add("dwyane-wade"). Kept explicit so the game never fires a request
    (and never shows a broken image) for art that isn't there yet. */
 const CARD_ART=new Set([
+  "tier-bronze",
+  "tier-silver",
   /* CARD ART REGISTRY — one entry per CARD. Activate: upload cards/<slug>.png, delete "// ".
      NOTE: Giannis's Bucks art is the plain file giannis-antetokounmpo.png (his primary card). */
   /* --- ICON (52) --- */
@@ -4724,6 +4726,9 @@ function cardSlugCard(p){return cardSlug(p.name)+"-"+String(p.team||"").toLowerC
 const MULTI_CARD_NAMES=(()=>{const c={},s=new Set();DB.forEach(p=>{c[p.name]=(c[p.name]||0)+1;});
   Object.keys(c).forEach(n=>{if(c[n]>1)s.add(n);});return s;})();
 function cardSlugFor(p){
+  /* Base tiers share approved artwork, including future players and alternate eras. */
+  if(p.tier==="Bronze")return "tier-bronze";
+  if(p.tier==="Silver")return "tier-silver";
   const c=cardSlugCard(p),n=cardSlug(p.name);
   if(CARD_ART.has(c))return c;      /* an explicit team-specific file always wins */
   /* a plain-name file covers a SINGLE-card player. For a multi-card player it only
