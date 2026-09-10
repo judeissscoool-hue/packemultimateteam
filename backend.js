@@ -99,6 +99,8 @@
     if (/user already registered/i.test(message || "")) return "An account already exists for this email.";
     if (/username is already taken/i.test(message || "")) return "That username is taken. Try another.";
     if (/rate limit/i.test(message || "")) return "Too many attempts. Wait a moment and try again.";
+    if (/daily ranked-run quota reached/i.test(message || "")) return "You've reached the online run limit for the past 24 hours. Try again later.";
+    if (/too many active ranked runs/i.test(message || "")) return "Too many unfinished online runs. Please refresh and try starting a new draft.";
     return fallback || "Something went wrong. Please try again.";
   }
 
