@@ -1689,7 +1689,11 @@ const P=[
 ["AJ Lawson","SG",73,"TOR","20s"],
 ["Ajay Mitchell","PG",84,"OKC","20s"],
 ["Derik Queen","C",73,"NOP","20s"],
-["Gui Santos","SF",73,"GSW","20s"]
+["Gui Santos","SF",73,"GSW","20s"],
+// Append new players to preserve existing saved card IDs.
+["Artis Gilmore","C",93,"CHI","70s"],
+["Bob McAdoo","C",94,"LAC","70s"],
+["Sidney Moncrief","SG",94,"MIL","80s"]
 ];
 
 const TIER_ORDER=["Bronze","Silver","Gold","Elite","Icon"];
@@ -3827,7 +3831,7 @@ const CARD_ART=new Set([
   "tim-duncan",  // Tim Duncan (98 SAS '00s)
   "victor-wembanyama",  // Victor Wembanyama (97 SAS '20s)
   "vince-carter-tor",  // Vince Carter (96 TOR '00s)
-  // "wilt-chamberlain-gsw",  // Wilt Chamberlain (99 GSW '60s)
+  "wilt-chamberlain-gsw",  // Wilt Chamberlain (99 GSW '60s)
   "wilt-chamberlain-lal",  // Wilt Chamberlain (96 LAL '70s)
   // "wilt-chamberlain-phi",  // Wilt Chamberlain (98 PHI '60s)
   /* --- ELITE (53) --- */
@@ -3883,11 +3887,11 @@ const CARD_ART=new Set([
   "tyrese-maxey",  // Tyrese Maxey (93 PHI '20s)
   "walt-frazier",  // Walt Frazier (93 NYK '70s)
   /* --- GOLD (138) --- */
-  // "adrian-dantley",  // Adrian Dantley (89 UTA '80s)
+  "adrian-dantley",  // Adrian Dantley (89 UTA '80s)
   // "al-horford",  // Al Horford (86 ATL '10s)
   // "al-jefferson",  // Al Jefferson (85 CHA '00s)
   // "alex-english",  // Alex English (89 DEN '80s)
-  // "alonzo-mourning",  // Alonzo Mourning (90 MIA '90s)
+  "alonzo-mourning",  // Alonzo Mourning (90 MIA '90s)
   // "alperen-sengun",  // Alperen Sengun (88 HOU '20s)
   "amare-stoudemire",  // Amar'e Stoudemire (88 PHX '00s)
   // "amen-thompson",  // Amen Thompson (87 HOU '20s)
@@ -3901,10 +3905,10 @@ const CARD_ART=new Set([
   // "bam-adebayo",  // Bam Adebayo (89 MIA '20s)
   "ben-wallace",  // Ben Wallace (85 DET '00s)
   // "bernard-king",  // Bernard King (90 NYK '80s)
-  // "bill-walton",  // Bill Walton (91 POR '70s)
+  "bill-walton",  // Bill Walton (91 POR '70s)
   // "blake-griffin",  // Blake Griffin (85 LAC '10s)
   // "bradley-beal",  // Bradley Beal (86 WAS '10s)
-  // "brandon-ingram",  // Brandon Ingram (86 NOP '20s)
+  "brandon-ingram",  // Brandon Ingram (86 NOP '20s)
   // "brandon-miller",  // Brandon Miller (87 CHA '20s)
   // "brandon-roy",  // Brandon Roy (88 POR '10s)
   // "carlos-boozer",  // Carlos Boozer (86 UTA '00s)
@@ -3921,7 +3925,7 @@ const CARD_ART=new Set([
   // "deaaron-fox",  // De'Aaron Fox (86 SAC '20s)
   // "demar-derozan",  // DeMar DeRozan (87 TOR '10s)
   // "dejounte-murray",  // Dejounte Murray (86 SAS '20s)
-  // "deni-avdija",  // Deni Avdija (88 POR '20s)
+  "deni-avdija",  // Deni Avdija (88 POR '20s)
   // "dennis-johnson",  // Dennis Johnson (85 BOS '80s)
   "dennis-rodman-chi",  // Dennis Rodman (88 CHI '90s)
   // "dennis-rodman-det",  // Dennis Rodman (90 DET '90s)
@@ -3932,7 +3936,7 @@ const CARD_ART=new Set([
   "dolph-schayes",  // Dolph Schayes (91 PHI '50s)
   // "domantas-sabonis",  // Domantas Sabonis (86 SAC '20s)
   "draymond-green",  // Draymond Green (88 GSW '10s)
-  // "dwight-howard-lal",  // Dwight Howard (89 LAL '10s)
+  "dwight-howard-lal",  // Dwight Howard (89 LAL '10s)
   // "dylan-harper",  // Dylan Harper (85 SAS '20s)
   // "earl-monroe",  // Earl Monroe (89 NYK '70s)
   // "elton-brand",  // Elton Brand (89 LAC '00s)
@@ -3955,7 +3959,7 @@ const CARD_ART=new Set([
   // "james-harden-cle",  // James Harden (89 CLE '20s)
   // "jaren-jackson-jr",  // Jaren Jackson Jr. (89 UTA '20s)
   // "jarrett-allen",  // Jarrett Allen (86 CLE '20s)
-  // "jermaine-oneal",  // Jermaine O'Neal (91 IND '00s)
+  "jermaine-oneal",  // Jermaine O'Neal (91 IND '00s)
   // "jerry-stackhouse",  // Jerry Stackhouse (85 DET '00s)
   // "jimmy-butler-chi",  // Jimmy Butler (90 CHI '10s)
   // "joakim-noah",  // Joakim Noah (87 CHI '10s)
@@ -3987,10 +3991,10 @@ const CARD_ART=new Set([
   // "mitch-richmond",  // Mitch Richmond (87 SAC '90s)
   // "nate-thurmond",  // Nate Thurmond (90 GSW '60s)
   // "nikola-vucevic",  // Nikola Vucevic (85 ORL '20s)
-  // "og-anunoby",  // OG Anunoby (88 NYK '20s)
+  "og-anunoby",  // OG Anunoby (88 NYK '20s)
   // "paolo-banchero",  // Paolo Banchero (88 ORL '20s)
   // "pascal-siakam",  // Pascal Siakam (87 IND '20s)
-  // "pau-gasol-lal",  // Pau Gasol (90 LAL '00s)
+  "pau-gasol-lal",  // Pau Gasol (90 LAL '00s)
   // "pau-gasol-mem",  // Pau Gasol (87 MEM '00s)
   "paul-george",  // Paul George (92 IND '10s)
   // "paul-millsap",  // Paul Millsap (87 ATL '10s)
@@ -4016,7 +4020,7 @@ const CARD_ART=new Set([
   // "trey-murphy-iii",  // Trey Murphy III (85 NOP '20s)
   // "tyler-herro",  // Tyler Herro (87 MIL '20s)
   "victor-oladipo",  // Victor Oladipo (88 IND '20s)
-  // "wes-unseld",  // Wes Unseld (89 WAS '70s)
+  "wes-unseld",  // Wes Unseld (89 WAS '70s)
   // "willis-reed",  // Willis Reed (91 NYK '70s)
   "yao-ming",  // Yao Ming (91 HOU '00s)
   // "zach-lavine",  // Zach LaVine (86 CHI '20s)
