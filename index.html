@@ -1120,7 +1120,6 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .rankingtable{border:1px solid rgba(53,214,255,.24);border-radius:13px;overflow:hidden;box-shadow:0 12px 28px rgba(0,0,0,.2)}.rankinghead,.rankingrow{display:grid;grid-template-columns:45px minmax(120px,1fr) 70px 90px 100px;align-items:center;gap:6px;padding:11px 12px}.rankinghead{background:linear-gradient(90deg,#111d22,#171308);color:#a9a9b2;font-size:8px;letter-spacing:.12em}.rankingrow{border-top:1px solid var(--line);background:rgba(255,255,255,.015);font-size:11px}.rankingrow:nth-child(odd){background:rgba(53,214,255,.025)}.rankingrow>b{font:18px var(--disp);color:var(--gold)}.rankingrow>strong{text-align:right;color:var(--cyan)}.rankingempty{text-align:center;padding:42px 12px;border:1px dashed rgba(255,197,61,.3);border-radius:12px;background:rgba(255,197,61,.025);color:var(--dim);font-size:11px}.rankingempty b,.rankingempty span{display:block}.rankingempty b{font-size:18px;color:var(--gold);margin-bottom:5px}
 @media(max-width:680px){.topright{width:100%;justify-content:space-between}.accountpill{order:-1}.accountintro{align-items:flex-start;flex-direction:column}.accountgrid{grid-template-columns:1fr}.cloudstate{width:100%}.challengehero{flex-direction:column;padding:19px}.challengehero h2{font-size:28px}.challengecards{grid-template-columns:repeat(2,minmax(0,1fr))}.captaincards{grid-template-columns:1fr}.challengeroster{grid-template-columns:repeat(2,minmax(0,1fr))}.challengeexplain{grid-template-columns:1fr}.challengeinvite{grid-template-columns:1fr}.challengeresult{grid-template-columns:1fr}.resultversus{text-align:center}.rankinghead,.rankingrow{grid-template-columns:32px minmax(95px,1fr) 48px 70px}.rankinghead span:last-child,.rankingrow strong{display:none}.challengeprogress span{display:none}}
 
-.roster-pool{margin:12px 0}.roster-pool label{display:grid;gap:8px;font-size:13px}.roster-pool select{width:100%;max-width:360px;padding:12px;border:1px solid var(--line);border-radius:10px;background:#17191e;color:var(--txt)}
 </style>
 <link rel="stylesheet" href="./ui-reboot.css?v=normal-play-1">
 <script src="./ui-reboot.js"></script>
@@ -6113,7 +6112,18 @@ function dropToColl(e,side){e.preventDefault();if(!DRAG||DRAG.from==="coll")retu
   const from=DRAG.from;dragEnd();unslot(side,from);}
 function currentRunRules(){if(screen==="challenge")return ATUBackend.challengeRulesVersion?.();if(screen==="draft"&&!DRAFT_ERA)return ATUBackend.gameRulesVersion?.("draft");if(screen==="classic")return ATUBackend.gameRulesVersion?.("pack");return null;}
 function setRosterPool(value){if(!["modern","history"].includes(value))return;ROSTER_POOL=value;sSet("atu-roster-pool-v1",value);if(typeof S!=="undefined"&&!S.classic.opened&&!S.classic.captainUsed&&!Object.keys(S.classic.coll).length&&!ATUBackend.getGameSession("pack"))S.classic.cardPool=value;render();}
-function rosterPoolHTML(){return '<div class="roster-pool"><label>Player pool<select aria-label="Player pool" onchange="setRosterPool(this.value)"><option value="modern" '+(ROSTER_POOL==="modern"?'selected':'')+'>Modern &amp; Nostalgia</option><option value="history" '+(ROSTER_POOL==="history"?'selected':'')+'>True History</option></select></label></div>';}
+function rosterPoolHTML(){return '<button class="btn" aria-haspopup="dialog" onclick="openRosterPool()">Player pool</button>';}
+function openRosterPool(){
+  const sheet=$("#sheet");
+  sheet.innerHTML=`<div class="sheetbox" role="dialog" aria-modal="true" aria-labelledby="pool-title"><h3 id="pool-title">Player pool</h3>
+    <p class="sub">Choose the pool for your next run.</p><div class="stack">
+    <button class="btn${ROSTER_POOL==="modern"?" primary":""}" aria-pressed="${ROSTER_POOL==="modern"}" onclick="closeSheet();setRosterPool('modern')">Modern &amp; Nostalgia</button>
+    <button class="btn${ROSTER_POOL==="history"?" primary":""}" aria-pressed="${ROSTER_POOL==="history"}" onclick="closeSheet();setRosterPool('history')">True History</button>
+    <button class="btn" onclick="closeSheet()">Close</button></div></div>`;
+  sheet.classList.add("show");
+  sheet.onclick=e=>{if(e.target.id==="sheet")closeSheet();};
+  sheet.querySelector('[aria-pressed="true"]').focus();
+}
 function hubHTML(side){
   const st=S[side],ovr=teamOVR(st.roster),pr=projection(ovr.eff);
   const rec=`${pr.wins}–${pr.losses}`;
