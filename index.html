@@ -6113,7 +6113,7 @@ function dropToColl(e,side){e.preventDefault();if(!DRAG||DRAG.from==="coll")retu
   const from=DRAG.from;dragEnd();unslot(side,from);}
 function currentRunRules(){if(screen==="challenge")return ATUBackend.challengeRulesVersion?.();if(screen==="draft"&&!DRAFT_ERA)return ATUBackend.gameRulesVersion?.("draft");if(screen==="classic")return ATUBackend.gameRulesVersion?.("pack");return null;}
 function setRosterPool(value){if(!["modern","history"].includes(value))return;ROSTER_POOL=value;sSet("atu-roster-pool-v1",value);if(typeof S!=="undefined"&&!S.classic.opened&&!S.classic.captainUsed&&!Object.keys(S.classic.coll).length&&!ATUBackend.getGameSession("pack"))S.classic.cardPool=value;render();}
-function rosterPoolHTML(){return '<div class="roster-pool"><label>Player pool for your next run<select aria-label="Player pool" onchange="setRosterPool(this.value)"><option value="modern" '+(ROSTER_POOL==="modern"?'selected':'')+'>Modern &amp; Nostalgia</option><option value="history" '+(ROSTER_POOL==="history"?'selected':'')+'>True History</option></select></label><p class="sub">'+(ROSTER_POOL==="history"?'The full history of the game, from the 1950s to today.':'Mostly 1980s to today, plus the legendary pioneers.')+'</p></div>';}
+function rosterPoolHTML(){return '<div class="roster-pool"><label>Player pool<select aria-label="Player pool" onchange="setRosterPool(this.value)"><option value="modern" '+(ROSTER_POOL==="modern"?'selected':'')+'>Modern &amp; Nostalgia</option><option value="history" '+(ROSTER_POOL==="history"?'selected':'')+'>True History</option></select></label></div>';}
 function hubHTML(side){
   const st=S[side],ovr=teamOVR(st.roster),pr=projection(ovr.eff);
   const rec=`${pr.wins}–${pr.losses}`;
@@ -6123,7 +6123,6 @@ function hubHTML(side){
   const owned=ownedList(side);
   const cl=S.classic,clLeft=cl.cap-cl.opened;
   const classicShelf=`
-    ${rosterPoolHTML()}
     <div class="sub" style="letter-spacing:.08em">PACK BUDGET: <b style="color:${clLeft?"var(--gold)":"var(--elite)"}">${cl.opened} / ${cl.cap}</b> opened — mix them however you like</div>
     ${S.classic.captainUsed?"":`<button class="btn gold" onclick="openClassicCaptain()">Captain Pack — pick your anchor</button>`}
     <button class="btn primary" ${clLeft?"":"disabled"} onclick="openPack('standard','classic')">Standard Pack${clLeft?" (unlimited)":" — locked"}</button>
@@ -6164,7 +6163,7 @@ function hubHTML(side){
           ${side==="classic"?ATUBackend.gameRunHTML("pack",st.roster):""}
           ${side==="rare"?`<p class="sub">Sandbox only. Pulls stay here and do not unlock collection cards, trophies or credits.</p>`:""}
           <button class="btn" onclick="autoFill('${side}')">Auto-fill best lineup</button>
-          ${side==="classic"?`<button class="btn gold" onclick="shareRosterImage('classic')">Share as image</button><button class="btn" onclick="shareRoster('classic')">Share roster</button>`:""}
+          ${side==="classic"?`<button class="btn gold" onclick="shareRosterImage('classic')">Share image</button>${rosterPoolHTML()}`:""}
           <button class="btn danger" onclick="confirmReset('${side}')">Reset / New Team</button>
         </div>
         <div class="notice" id="notice"></div>
@@ -6673,8 +6672,7 @@ function draftHTML(){
   </div>`:""}
   ${!online&&!draftEra?ATUBackend.gameRunHTML("draft",D.roster):""}
   ${D.done?(online?ATUBackend.classicDraftFinishHTML():`<div style="display:flex;gap:10px;justify-content:center;margin-top:12px">
-    <button class="btn gold" onclick="shareDraftImage()">Share as image</button>
-      <button class="btn" onclick="shareRoster('draft')">Share roster</button>
+    <button class="btn gold" onclick="shareDraftImage()">Share image</button>
       ${!draftEra?rosterPoolHTML():""}<button class="btn primary" onclick="startDraft(DRAFT_ERA)">${draftEra?eraLabel(draftEra)+" draft again":"Draft again"}</button>
     ${draftEra?`<button class="btn" onclick="startDraft()">All-Time draft</button>`:""}
     <button class="btn" onclick="setScreen('landing')">Exit to modes</button></div>
