@@ -14,7 +14,7 @@ import {
   createRunManifest,
   publicCard,
   validateTranscript
-} from "../supabase/functions/_shared/atu-engine-v1.js";
+} from "../supabase/functions/_shared/legacy/atu-engine-v1.js";
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -132,7 +132,7 @@ const fakeRoster = structuredClone(transcript);
 fakeRoster[8].roster.PG = fakeRoster[8].roster.B1;
 assert.throws(() => validateTranscript(seed, fakeRoster), /does not match drafted cards|duplicate/);
 
-const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+const html = '<script>//<LOGIC>\n' + fs.readFileSync(path.join(root, "supabase/functions/_shared/legacy/preview.js"), "utf8").replace(/export \{[^}]+\};/, '') + '\n//</LOGIC></script>';
 const logic = html.match(/<script>\s*\/\/<LOGIC>([\s\S]*?)\/\/<\/LOGIC>\s*<\/script>/);
 assert.ok(logic, "Canonical game logic block missing");
 const context = vm.createContext({ console, Math, Object, Array, Set, Map, JSON });

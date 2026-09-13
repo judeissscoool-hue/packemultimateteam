@@ -1,9 +1,9 @@
 {
-  "seed": "1a1fa139b295e8573703d2db24547f1db1b80dd37fd268be6bd9bae8e22d23ea",
+  "seed": "9275cdc78fa0cb22d11510442ccb4cd959421daf8c4392a06f4978052ea812bf",
   "events": [
     {
       "type": "captain",
-      "cardId": 6
+      "cardId": 5
     },
     {
       "type": "open",
@@ -11,7 +11,7 @@
     },
     {
       "type": "pick",
-      "cardId": 103
+      "cardId": 262
     },
     {
       "type": "open",
@@ -19,7 +19,15 @@
     },
     {
       "type": "pick",
-      "cardId": 116
+      "cardId": 1093
+    },
+    {
+      "type": "open",
+      "slot": "SF"
+    },
+    {
+      "type": "pick",
+      "cardId": 128
     },
     {
       "type": "open",
@@ -27,15 +35,7 @@
     },
     {
       "type": "pick",
-      "cardId": 52
-    },
-    {
-      "type": "open",
-      "slot": "C"
-    },
-    {
-      "type": "pick",
-      "cardId": 134
+      "cardId": 1084
     },
     {
       "type": "open",
@@ -43,7 +43,7 @@
     },
     {
       "type": "pick",
-      "cardId": 71
+      "cardId": 89
     },
     {
       "type": "open",
@@ -51,7 +51,7 @@
     },
     {
       "type": "pick",
-      "cardId": 229
+      "cardId": 107
     },
     {
       "type": "open",
@@ -59,25 +59,35 @@
     },
     {
       "type": "pick",
-      "cardId": 39
+      "cardId": 95
+    },
+    {
+      "type": "swap",
+      "from": "SG",
+      "to": "B2"
+    },
+    {
+      "type": "swap",
+      "from": "SF",
+      "to": "B3"
     }
   ],
   "roster": {
-    "PG": 103,
-    "SG": 116,
-    "SF": 6,
-    "PF": 52,
-    "C": 134,
-    "B1": 71,
-    "B2": 229,
-    "B3": 39
+    "PG": 262,
+    "SG": 107,
+    "SF": 95,
+    "PF": 1084,
+    "C": 5,
+    "B1": 89,
+    "B2": 1093,
+    "B3": 128
   },
   "result": {
     "teamOvr": 97,
     "projectedWins": 82,
-    "chemistry": 4.9,
-    "effectiveRating": 102.55,
-    "score": 829749
+    "chemistry": 5,
+    "effectiveRating": 102.42,
+    "score": 829750
   },
-  "rulesVersion": "atu-classic-v2"
+  "rulesVersion": "atu-classic-v3"
 }

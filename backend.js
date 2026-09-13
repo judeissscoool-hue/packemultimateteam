@@ -11,6 +11,7 @@
   const PROGRESS_KEYS = Object.freeze([
     "atu-save-v4",
     "atu-game-runs-v1",
+    "atu-roster-pool-v1",
     "atu-hs-v4",
     "atu-trophies-v1",
     "atu-daily-v1",
@@ -516,7 +517,7 @@
   async function loadEngine() {
     if (state.engine) return state.engine;
     if (!state.enginePromise) {
-      state.enginePromise = import("./supabase/functions/_shared/atu-engine-v1.js?normal-play=1")
+      state.enginePromise = import("./supabase/functions/_shared/atu-engine-v1.js?gmm=20260913")
         .then(function (engine) {
           state.engine = engine;
           return engine;
@@ -531,14 +532,14 @@
 
   let classicSession = null;
   function restoreClassicSession(active) {
-    classicSession = state.engine.createClassicSession(active.seed, active.events || []);
+    classicSession = state.engine.createClassicSession(active.seed, active.events || [], active.rulesVersion);
     active.roster = classicSession.draft.roster;
     active.stage = classicSession.draft.done ? "arrange" : classicSession.draft.stage;
   }
 
   function classicDraftState() {
     const active = state.challenge.active;
-    return state.challenge.phase === "draft" && active && active.rulesVersion === state.engine?.CLASSIC_RULES_VERSION
+    return state.challenge.phase === "draft" && active && state.engine?.isClassicRulesVersion(active.rulesVersion)
       ? classicSession?.draft || null : null;
   }
 
@@ -581,7 +582,7 @@
     const active = readActiveChallenge();
     if (!active || active.code !== code || !activeChallengeValid(active)) return false;
     const engine = await loadEngine();
-    if(active.rulesVersion===engine.CLASSIC_RULES_VERSION)restoreClassicSession(active);
+    if(engine.isClassicRulesVersion(active.rulesVersion))restoreClassicSession(active);
     else active.manifest = engine.createRunManifest(active.seed, "one_v_one");
     if (!active.roster && active.stage !== 'captain') {
       active.roster = { B3: active.captainId };
@@ -605,7 +606,8 @@
       const engine = await loadEngine();
       if (code !== state.challenge.code) return [];
       state.challenge.resultRows.forEach(function (row) {
-        try { row.displayResult = engine.calculateResult(row.roster); } catch (_) {}
+        const version = row.rules_version || state.challenge.invitation?.rules_version || state.challenge.active?.rulesVersion;
+        if (version) try { row.displayResult = engine.calculateResult(row.roster, version); } catch (_) {}
       });
     }
     return state.challenge.resultRows;
@@ -684,7 +686,7 @@
         mode: "one_v_one",
         manifest: engine.createRunManifest(row.draft_seed, "one_v_one")
       };
-      if(active.rulesVersion===engine.CLASSIC_RULES_VERSION){
+      if(engine.isClassicRulesVersion(active.rulesVersion)){
         delete active.manifest;
         active.events=[];
         restoreClassicSession(active);
@@ -738,16 +740,16 @@
   function gameSession(mode, run) {
     const cached=gameSessions[mode];
     if(cached?.runId===run.runId)return cached.session;
-    const session=mode==="draft"?state.engine.createClassicSession(run.seed,run.events):state.engine.createClassicPackSession(run.seed,run.events);
+    const session=mode==="draft"?state.engine.createClassicSession(run.seed,run.events,run.rulesVersion):state.engine.createClassicPackSession(run.seed,run.events,run.rulesVersion);
     gameSessions[mode]={runId:run.runId,session};return session;
   }
-  async function beginGameRun(mode) {
+  async function beginGameRun(mode, pool = "modern") {
     if(!["draft","pack"].includes(mode))return null;
     if(playerRequirement()){openPlayerSetup("rankings");return null;}
     const ownerId=state.session.user.id;
     try {
       const engine=await loadEngine();
-      const rulesVersion=mode==="draft"?engine.CLASSIC_RULES_VERSION:engine.PACK_RULES_VERSION;
+      const rulesVersion=engine.rulesForPool(pool,mode);
       const response=await state.client.rpc("create_ranked_run",{p_mode:mode,p_rules_version:rulesVersion});
       if(response.error)throw response.error;
       if(state.session?.user.id!==ownerId)return null;
@@ -896,14 +898,14 @@
     const counts = {};
     if (!state.engine) return counts;
     for (const id of selectedChallengeCards(active)) {
-      const card = state.engine.publicCard(id);
+      const card = state.engine.publicCard(id, active.rulesVersion);
       if (card) counts[card.tier] = (counts[card.tier] || 0) + 1;
     }
     return counts;
   }
 
   function challengeTierBlocked(active, cardId) {
-    const card = state.engine.publicCard(cardId);
+    const card = state.engine.publicCard(cardId, state.challenge.active?.rulesVersion || state.engine.CLASSIC_RULES_VERSION);
     const limit = state.engine.TIER_LIMITS[card.tier];
     return !!limit && (challengeTierCounts(active)[card.tier] || 0) >= limit;
   }
@@ -929,7 +931,7 @@
     active.roster[board.slot] = cardId;
     state.challenge.showPicker = false;
     if (active.picks.length === active.manifest.boards.length) {
-      active.localResult = state.engine.calculateResult(active.roster);
+      active.localResult = state.engine.calculateResult(active.roster, active.rulesVersion);
       active.stage = "arrange";
     }
     writeActiveChallenge(active);
@@ -951,8 +953,8 @@
     const from = state.challenge.swapSlot;
     state.challenge.swapSlot = null;
     if (from === slot) { rerender(); return; }
-    const first = state.engine.publicCard(active.roster[from]);
-    const second = state.engine.publicCard(active.roster[slot]);
+    const first = state.engine.publicCard(active.roster[from], active.rulesVersion);
+    const second = state.engine.publicCard(active.roster[slot], active.rulesVersion);
     if (!canChallengeCardLand(first, slot) || !canChallengeCardLand(second, from)) {
       state.challenge.error = "Those two players cannot legally swap positions.";
       rerender();
@@ -961,14 +963,14 @@
     const temporary = active.roster[from];
     active.roster[from] = active.roster[slot];
     active.roster[slot] = temporary;
-    if (active.stage === "arrange") active.localResult = state.engine.calculateResult(active.roster);
+    if (active.stage === "arrange") active.localResult = state.engine.calculateResult(active.roster, active.rulesVersion);
     state.challenge.error = "";
     writeActiveChallenge(active);
     rerender();
   }
 
   function challengeTranscript(active) {
-    if(active.rulesVersion===state.engine.CLASSIC_RULES_VERSION){
+    if(state.engine.isClassicRulesVersion(active.rulesVersion)){
       return [...active.events,{type:"arrange",roster:{...active.roster}}];
     }
     const events = [{ type: "captain", cardId: active.captainId }];
@@ -1000,6 +1002,7 @@
         code: active.code,
         stage: "submitted",
         submittedAt: new Date().toISOString(),
+        rulesVersion: active.rulesVersion,
         roster: Object.assign({}, active.roster),
         serverResult: result.data.result,
         outcome: result.data.outcome
@@ -1634,7 +1637,7 @@
   }
 
   function challengeCardHTML(cardId, action, disabled) {
-    const card = state.engine && state.engine.publicCard(cardId);
+    const card = state.engine && state.engine.publicCard(cardId, state.challenge.active?.rulesVersion || state.engine.CLASSIC_RULES_VERSION);
     if (!card) return "";
     return '<div class="duel-choice' + (disabled ? ' unavailable' : '') + '">'
       + global.cardHTML(cardId)
@@ -1946,6 +1949,9 @@
     finishRankedRun: finishRankedRun,
     loadRankings: loadRankings,
     beginGameRun: beginGameRun,
+    gameRulesVersion: mode => getGameSession(mode) ? readGameRuns().runs[mode].rulesVersion : null,
+    challengeRulesVersion: () => state.challenge.invitation?.rules_version || state.challenge.active?.rulesVersion || null,
+    legacyView: version => state.engine?.legacyView(version) || null,
     getGameSession: getGameSession,
     applyGameAction: applyGameAction,
     submitGameRun: submitGameRun,

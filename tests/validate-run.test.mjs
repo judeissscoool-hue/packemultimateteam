@@ -6,8 +6,9 @@ import {webcrypto} from 'node:crypto';
 import * as engine from '../supabase/functions/_shared/atu-engine-v1.js';
 
 const source=fs.readFileSync(new URL('../supabase/functions/validate-run/index.ts',import.meta.url),'utf8').replace(/import[\s\S]*?from "[^"]+";\n/g,'');
-let handler,finalized=0;
-const seed='0123456789abcdef'.repeat(4),s=engine.createClassicSession(seed),events=[];
+let handler,finalized=0,lastDigest;
+const seed='0123456789abcdef'.repeat(4),events=[];
+let s=engine.createClassicSession(seed);
 const apply=event=>{s.apply(event);events.push(event);};
 apply({type:'captain',cardId:s.draft.captain[0].id});
 for(const slot of [...engine.ALL_SLOTS].reverse())if(s.draft.roster[slot]==null){apply({type:'open',slot});apply({type:'pick',cardId:s.draft.opts[0].id});}
@@ -20,7 +21,7 @@ const context=vm.createContext({
   Deno:{env:{get:name=>env[name]},serve(fn){handler=fn;}},
   createClient(_url,key){return key==='anon'?{auth:{async getUser(token){return token==='valid-session'?{data:{user:{id:'owner'}}}:{data:{user:null},error:{message:'Invalid JWT'}};}}}:{
     from(){return {select(){return this;},eq(){return this;},async maybeSingle(){return {data:run};}};},
-    async rpc(name,args){assert.equal(name,'finalize_validated_run');assert.equal(args.p_run_token,body.runToken);assert.deepEqual(args.p_roster,s.draft.roster);finalized++;return {data:[{outcome:'creator_completed',challenge_status:'open'}]};}
+    async rpc(name,args){assert.equal(name,'finalize_validated_run');assert.equal(args.p_run_token,body.runToken);assert.deepEqual(args.p_roster,s.draft.roster);lastDigest=args.p_result_digest;finalized++;return {data:[{outcome:'creator_completed',challenge_status:'open'}]};}
   };}
 });
 vm.runInContext(stripTypeScriptTypes(source),context);
@@ -43,4 +44,14 @@ assert.equal((await handler(request('POST',forged))).status,422);assert.equal(fi
 run.mode='draft';run.status='completed';
 assert.equal((await handler(request('POST'))).status,200,'Lost ranked responses can reach the idempotent finalizer again');
 assert.equal(finalized,2);
+// Completed pre-release runs must retain the old digest for safe retry.
+const legacy=JSON.parse(fs.readFileSync(new URL('./perfect-draft.json',import.meta.url)));
+run.rules_version=legacy.rulesVersion;run.draft_seed=legacy.seed;
+s={draft:{roster:legacy.roster}};body.transcript=[...legacy.events,{type:'arrange',roster:legacy.roster}];
+assert.equal((await handler(request('POST'))).status,200);
+const stable=v=>v===null||typeof v!=='object'?JSON.stringify(v):Array.isArray(v)?'['+v.map(stable).join(',')+']':'{'+Object.keys(v).sort().map(k=>JSON.stringify(k)+':'+stable(v[k])).join(',')+'}';
+const hashInput={engineVersion:'atu-challenge-v3',rulesVersion:legacy.rulesVersion,runId:run.id,userId:'owner',seed:legacy.seed,roster:legacy.roster,transcript:body.transcript,result:legacy.result};
+const expected=[...new Uint8Array(await webcrypto.subtle.digest('SHA-256',new TextEncoder().encode(stable(hashInput))))].map(b=>b.toString(16).padStart(2,'0')).join('');
+assert.equal(lastDigest,expected,'Legacy digest must be unchanged');
+run.rules_version='unrecognised';assert.equal((await handler(request('POST'))).status,409);
 console.log('Validator browser preflight, authentication and submission tests passed');

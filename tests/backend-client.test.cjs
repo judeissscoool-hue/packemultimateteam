@@ -89,8 +89,9 @@ function makeContext({ session = null, rpc, storageSeed = {}, withClient = true,
 }
 
 async function run() {
-  for (const rulesVersion of ["atu-v1", "atu-classic-v2"]) {
-    const engine = await import('../supabase/functions/_shared/atu-engine-v1.js');
+  for (const rulesVersion of ["atu-v1", "atu-classic-v2", "atu-classic-v3", "atu-history-draft-v1"]) {
+    const router = await import('../supabase/functions/_shared/atu-engine-v1.js');
+    const engine = router.getEngineForRules(rulesVersion);
     const seed = '0123456789abcdef'.repeat(4), code = 'A1B2C3D4E5F60708';
     let completed = false, finalRoster, result, submissions = 0;
     const test = makeContext({
@@ -718,16 +719,16 @@ async function run() {
   {
     const fixture=JSON.parse(fs.readFileSync(require('node:path').join(__dirname,'perfect-draft.json'),'utf8'));
     const engine=await import('../supabase/functions/_shared/atu-engine-v1.js');let submissions=0;
-    const test=makeContext({session:{user:{id:'perfect-player'}},rpc(name,args){
+    const test=makeContext({session:{user:{id:'perfect-player'}},storageSeed:{'atu-game-runs-v1':JSON.stringify({ownerId:'perfect-player',runs:{draft:{runId:'perfect-run',runToken:'b'.repeat(64),seed:fixture.seed,rulesVersion:'atu-classic-v2',expiresAt:'2099-01-01',events:[],status:'playing'}}})},rpc(name,args){
       if(name==='get_my_profile')return {data:[{username:'Perfect'}]};
       if(name==='sync_cloud_save')return {data:[{outcome:'updated',revision:1}]};
       if(name==='create_ranked_run')return {data:[{run_id:'perfect-run',run_token:'b'.repeat(64),draft_seed:fixture.seed,expires_at:'2099-01-01'}]};
       return {data:[]};
     },invoke(name,{body}){
-      submissions++;const valid=engine.validateTranscript(fixture.seed,body.transcript,'draft',engine.CLASSIC_RULES_VERSION);
+      submissions++;const valid=engine.validateTranscript(fixture.seed,body.transcript,'draft','atu-classic-v2');
       assert.equal(valid.result.projectedWins,82);return {data:{ok:true,result:valid.result}};
     }});
-    await test.api.init();await test.api.beginGameRun('draft');
+    await test.api.init();assert.equal(test.api.gameRulesVersion('draft'),'atu-classic-v2');
     for(const event of fixture.events)test.api.applyGameAction('draft',event);
     await test.api.submitGameRun('draft',fixture.roster,true);
     assert.equal(submissions,1,'A genuine 82-0 draft automatically submits without a separate ranked mode');

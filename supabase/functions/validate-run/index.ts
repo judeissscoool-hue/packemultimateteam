@@ -1,11 +1,8 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2.112.2/cors";
 import {
-  ENGINE_VERSION,
-  RULES_VERSION,
-  CLASSIC_RULES_VERSION,
-  PACK_RULES_VERSION,
-  validateTranscript
+  SUPPORTED_RULES_VERSIONS,
+  getEngineForRules
 } from "../_shared/atu-engine-v1.js";
 
 type JsonRecord = Record<string, unknown>;
@@ -147,19 +144,20 @@ Deno.serve(async (req: Request) => {
       || (run.status === "started" && new Date(run.expires_at).getTime() <= Date.now())) {
       return json(origin, 404, { error: "Active run not found" });
     }
-    if (![RULES_VERSION, CLASSIC_RULES_VERSION, PACK_RULES_VERSION].includes(run.rules_version) || !["draft", "pack", "one_v_one"].includes(run.mode)) {
+    if (!SUPPORTED_RULES_VERSIONS.includes(run.rules_version) || !["draft", "pack", "one_v_one"].includes(run.mode)) {
       return json(origin, 409, { error: "This run uses an unsupported ruleset" });
     }
 
+    const engine = getEngineForRules(run.rules_version);
     let validated;
     try {
-      validated = validateTranscript(run.draft_seed, transcript, run.mode, run.rules_version);
+      validated = engine.validateTranscript(run.draft_seed, transcript, run.mode, run.rules_version);
     } catch (error) {
       return json(origin, 422, { error: validationMessage(error) });
     }
 
     const resultDigest = await sha256({
-      engineVersion: ENGINE_VERSION,
+      engineVersion: engine.ENGINE_VERSION,
       rulesVersion: run.rules_version,
       runId: run.id,
       userId: userData.user.id,
