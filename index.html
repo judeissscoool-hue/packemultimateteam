@@ -4924,7 +4924,7 @@ const CARD_ART=new Set([
   "jerry-west",  // Jerry West (97 LAL '60s)
   "joel-embiid",  // Joel Embiid (96 PHI '20s)
   "john-stockton",  // John Stockton (97 UTA '90s)
-  "julius-erving",  // Julius Erving (97 PHI '70s)
+  "julius-erving",  // Julius Erving — Philadelphia artwork
   // "kareem-abdul-jabbar-lal",  // Kareem Abdul-Jabbar (99 LAL '80s)
   "kareem-abdul-jabbar-mil",  // Kareem Abdul-Jabbar (97 MIL '70s)
   "karl-malone",  // Karl Malone (97 UTA '90s)
@@ -5856,6 +5856,102 @@ const CARD_ART_EXTS=[".png",".PNG",".png.PNG",".png.png",".jpg",".jpeg",".JPG","
    file is registered we fall back to the plain name slug, which keeps single-card
    players on one simple filename. */
 function cardSlugCard(p){return cardSlug(p.name)+"-"+String(p.team||"").toLowerCase();}
+/* Plain-name artwork belongs to a fixed franchise, never the highest current OVR.
+   Preserve the original artwork owners when adding or upgrading team versions.
+   New multi-team artwork should use an explicit name-team slug or owner here. */
+const CARD_ART_TEAMS=Object.freeze({
+  "giannis-antetokounmpo":"MIL",
+  "anthony-edwards":"MIN",
+  "bill-russell":"BOS",
+  "bob-cousy":"BOS",
+  "clyde-drexler":"POR",
+  "david-robinson":"SAS",
+  "dirk-nowitzki":"DAL",
+  "dwyane-wade":"MIA",
+  "elgin-baylor":"LAL",
+  "hakeem-olajuwon":"HOU",
+  "jalen-brunson":"NYK",
+  "jerry-west":"LAL",
+  "joel-embiid":"PHI",
+  "john-stockton":"UTA",
+  "julius-erving":"PHI",
+  "karl-malone":"UTA",
+  "kobe-bryant":"LAL",
+  "larry-bird":"BOS",
+  "magic-johnson":"LAL",
+  "michael-jordan":"CHI",
+  "nikola-jokic":"DEN",
+  "oscar-robertson":"MIL",
+  "scottie-pippen":"CHI",
+  "shai-gilgeous-alexander":"OKC",
+  "stephen-curry":"GSW",
+  "tim-duncan":"SAS",
+  "victor-wembanyama":"SAS",
+  "bob-pettit":"ATL",
+  "cade-cunningham":"DET",
+  "damian-lillard":"POR",
+  "derrick-rose":"CHI",
+  "devin-booker":"PHX",
+  "dominique-wilkins":"ATL",
+  "donovan-mitchell":"CLE",
+  "elvin-hayes":"WAS",
+  "gary-payton":"OKC",
+  "george-gervin":"SAS",
+  "george-mikan":"LAL",
+  "isiah-thomas":"DET",
+  "james-worthy":"LAL",
+  "jaylen-brown":"BOS",
+  "jayson-tatum":"BOS",
+  "kevin-mchale":"BOS",
+  "patrick-ewing":"NYK",
+  "paul-pierce":"BOS",
+  "pete-maravich":"UTA",
+  "reggie-miller":"IND",
+  "rick-barry":"GSW",
+  "russell-westbrook":"OKC",
+  "tyrese-haliburton":"IND",
+  "tyrese-maxey":"PHI",
+  "walt-frazier":"NYK",
+  "adrian-dantley":"UTA",
+  "alex-english":"DEN",
+  "alonzo-mourning":"MIA",
+  "amare-stoudemire":"PHX",
+  "ben-wallace":"DET",
+  "bernard-king":"NYK",
+  "bill-walton":"POR",
+  "brandon-ingram":"NOP",
+  "chauncey-billups":"DET",
+  "chris-mullin":"GSW",
+  "chris-webber":"SAC",
+  "dave-cowens":"BOS",
+  "deni-avdija":"POR",
+  "dikembe-mutombo":"DEN",
+  "dolph-schayes":"PHI",
+  "draymond-green":"GSW",
+  "gilbert-arenas":"WAS",
+  "grant-hill":"DET",
+  "jalen-williams":"OKC",
+  "jermaine-oneal":"IND",
+  "joakim-noah":"CHI",
+  "joe-johnson":"ATL",
+  "khris-middleton":"MIL",
+  "klay-thompson":"GSW",
+  "lamarcus-aldridge":"POR",
+  "manu-ginobili":"SAS",
+  "nate-thurmond":"GSW",
+  "og-anunoby":"NYK",
+  "paul-george":"IND",
+  "penny-hardaway":"ORL",
+  "shawn-kemp":"OKC",
+  "shawn-marion":"PHX",
+  "tony-parker":"SAS",
+  "victor-oladipo":"IND",
+  "wes-unseld":"WAS",
+  "yao-ming":"HOU",
+  "bob-mcadoo":"LAC",
+  "artis-gilmore":"CHI",
+  "sidney-moncrief":"MIL",
+});
 /* names that appear on more than one card — only these need a team suffix */
 const MULTI_CARD_NAMES=(()=>{const c={},s=new Set();DB.forEach(p=>{c[p.name]=(c[p.name]||0)+1;});
   Object.keys(c).forEach(n=>{if(c[n]>1)s.add(n);});return s;})();
@@ -5865,15 +5961,10 @@ function cardSlugFor(p){
   if(p.tier==="Silver")return "tier-silver";
   const c=cardSlugCard(p),n=cardSlug(p.name);
   if(CARD_ART.has(c))return c;      /* an explicit team-specific file always wins */
-  /* a plain-name file covers a SINGLE-card player. For a multi-card player it only
-     covers their primary (highest-OVR) card, so their other kits fall through to a
-     team slug and don't wrongly reuse the same art. */
+  /* A franchise's artwork stays with that franchise when ratings or cards change. */
   if(CARD_ART.has(n)){
-    if(!MULTI_CARD_NAMES.has(p.name))return n;
-    const cards=DB.filter(q=>q.name===p.name);
-    const primary=cards.reduce((a,b)=>b.ovr>a.ovr?b:a,cards[0]);
-    if(p.team===primary.team)return n;   /* plain file = the primary card */
-    return c;                             /* other kits use their team slug */
+    if(CARD_ART_TEAMS[n])return p.team===CARD_ART_TEAMS[n]?n:c;
+    return MULTI_CARD_NAMES.has(p.name)?c:n;
   }
   return MULTI_CARD_NAMES.has(p.name)?c:n;
 }

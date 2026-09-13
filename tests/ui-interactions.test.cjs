@@ -10,6 +10,24 @@ for (const match of source.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)) {
 }
 
 {
+  const logic=source.match(/<script>\s*\/\/<LOGIC>([\s\S]*?)\/\/<\/LOGIC>/)[1];
+  const art=source.slice(source.indexOf('const CARD_ART_BASE='),source.indexOf('function cardArtFallbackAttr'));
+  const context=vm.createContext({console});
+  vm.runInContext(logic+art+';globalThis.cards=DB;globalThis.artFor=cardSlugFor;',context);
+  const card=(name,team)=>context.cards.find(p=>p&&p.name===name&&p.team===team);
+  for(const [name,owner,other,slug] of [['Julius Erving','PHI','BKN','julius-erving'],['Dikembe Mutombo','DEN','ATL','dikembe-mutombo']]){
+    const original=card(name,owner),alternate=card(name,other);
+    assert(original.acquisitionActive&&alternate.acquisitionActive,'Meaningful franchise versions must remain separately pullable');
+    assert.equal(context.artFor(original),slug);
+    assert.equal(context.artFor(alternate),slug+'-'+other.toLowerCase());
+    original.ovr=85;alternate.ovr=99;
+    assert.equal(context.artFor(original),slug,'Rating changes must not reassign artwork');
+    assert.equal(context.artFor(alternate),slug+'-'+other.toLowerCase());
+  }
+  assert.equal(context.artFor(card('LeBron James','LAL')),'lebron-james-lal','Explicit team artwork keeps priority');
+}
+
+{
   const player={id:1,name:'Test Player',team:'CHI',era:'90s',tier:'Gold'};
   const seen={},context=vm.createContext({T:{seenCards:seen},cardArtURL(){return 'test.png';},efxEligible(){return true;},esc:s=>s});
   vm.runInContext(source.slice(source.indexOf('function collTile(p){'),source.indexOf('function collPool(){')),context);
