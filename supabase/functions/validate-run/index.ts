@@ -2,6 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@2.112.2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2.112.2/cors";
 import {
   SUPPORTED_RULES_VERSIONS,
+  isClassicRulesVersion,
   getEngineForRules
 } from "../_shared/atu-engine-v1.js";
 
@@ -147,6 +148,10 @@ Deno.serve(async (req: Request) => {
     if (!SUPPORTED_RULES_VERSIONS.includes(run.rules_version) || !["draft", "pack", "one_v_one"].includes(run.mode)) {
       return json(origin, 409, { error: "This run uses an unsupported ruleset" });
     }
+    if (run.mode === "pack") return json(origin, 422, { error: "Pack Mode is not eligible for rankings or the 82–0 Club" });
+    if (run.mode === "draft" && !isClassicRulesVersion(run.rules_version)) {
+      return json(origin, 422, { error: "Only Classic Draft rules qualify for the 82–0 Club" });
+    }
 
     const engine = getEngineForRules(run.rules_version);
     let validated;
@@ -155,6 +160,13 @@ Deno.serve(async (req: Request) => {
     } catch (error) {
       return json(origin, 422, { error: validationMessage(error) });
     }
+
+    if (run.mode === "draft" && validated.result.projectedWins !== 82) {
+      return json(origin, 422, { error: "Only 82–0 Classic Drafts qualify for rankings" });
+    }
+    const rankingOvr = run.mode === "draft"
+      ? +validated.result.effectiveRating.toFixed(2)
+      : null;
 
     const resultDigest = await sha256({
       engineVersion: engine.ENGINE_VERSION,
@@ -172,7 +184,7 @@ Deno.serve(async (req: Request) => {
       p_run_token: runToken,
       p_roster: validated.roster,
       p_transcript: transcript,
-      p_score: validated.result.score,
+      p_score: rankingOvr === null ? validated.result.score : 1000 + rankingOvr,
       p_team_ovr: validated.result.teamOvr,
       p_projected_wins: validated.result.projectedWins,
       p_result_digest: resultDigest
@@ -193,6 +205,7 @@ Deno.serve(async (req: Request) => {
         teamOvr: validated.result.teamOvr,
         projectedWins: validated.result.projectedWins,
         chemistry: validated.result.chemistry,
+        rankingOvr,
         score: validated.result.score
       }
     });

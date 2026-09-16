@@ -89,6 +89,34 @@ function makeContext({ session = null, rpc, storageSeed = {}, withClient = true,
 }
 
 async function run() {
+  {
+    const rows = [1,2,3,10,50,100,101].map(rank => ({rank, username: rank === 1 ? '<unsafe>' : 'Player', profile_id: 'public-'+rank, games:5, points:5102.95, best_team_ovr:102.95}));
+    const test = makeContext({session:{user:{id:'season-user'}},rpc(name) {
+      if(name==='get_my_profile')return {data:[{username:'Season_Player',public_id:'public-101'}]};
+      if(name==='get_leaderboard')return {data:rows};
+      if(name==='get_beta_season_status')return {data:{eligible_players:10000,viewer:{rank:101,games:5,points:5102.95}}};
+      return {data:[]};
+    }});
+    await test.api.init();
+    await test.api.loadRankings('draft','all_time');
+    let view=test.api.rankingsHTML();
+    assert.match(view, /@&lt;unsafe&gt;/, 'Handles must remain escaped');
+    assert.match(view, /season-gold/);assert.match(view,/season-silver/);assert.match(view,/season-bronze/);
+    for(const tier of [10,50,100])assert.match(view,new RegExp('TOP '+tier));
+    assert.match(view,/Qualified · skin reveal coming soon/);
+    assert.match(view, /Projected Top 5% reward/, 'Percentiles use the complete eligible population');
+    assert.match(view, /#101/, 'Viewer outside the top 100 still sees their own rank');
+    assert.ok(view.indexOf('season-rankingtable') < view.indexOf('ranking-play'));
+    assert.match(view,/102\.95/);assert.match(view,/5,102\.95/);
+    assert.equal(test.calls.find(c=>c.name==='get_leaderboard').args.p_limit,100);
+    await test.api.loadRankings('one_v_one','all_time');
+    assert.doesNotMatch(test.api.rankingsHTML(),/season-gold/, 'Duels cannot award beta draft honours');
+    test.api.setRankingTab('rewards');
+    view=test.api.rankingsHTML();
+    assert.match(view,/20,000 CR/);assert.match(view,/CHAMPION/);
+    assert.doesNotMatch(view,/Elite badge|Contender badge|Challenger badge|gold frame|silver frame|bronze frame/);
+    assert.match(view,/aria-selected="true"[^>]*>REWARDS/);
+  }
   for (const rulesVersion of ["atu-v1", "atu-classic-v2", "atu-classic-v3", "atu-history-draft-v1"]) {
     const router = await import('../supabase/functions/_shared/atu-engine-v1.js');
     const engine = router.getEngineForRules(rulesVersion);
@@ -183,7 +211,7 @@ async function run() {
     await other.api.init();
     assert.match(other.api.challengeHTML(), /SIGN IN TO PLAY/, 'Another account must not inherit the saved creator draft');
     const links=test.api.rankingsHTML();
-    for(const route of ['draft','classic','challenge']) assert.ok(links.includes("setScreen('"+route+"')"));
+    for(const route of ['draft','challenge']) assert.ok(links.includes("setScreen('"+route+"')"));
   }
 
   {
@@ -317,7 +345,7 @@ async function run() {
   for(const destination of ['challenge','rankings','friends']) {
     const guest=makeContext();await guest.api.init();
     if(destination==='challenge')await guest.api.createChallenge();
-    else if(destination==='rankings') await guest.api.startRankedRun('pack');
+    else if(destination==='rankings') await guest.api.startRankedRun('draft');
     else await guest.api.sendFriendRequest();
     assert.equal(guest.window.currentScreen,'account');
     const returning=makeContext({session:{user:{id:'returning-player'}},
@@ -709,16 +737,18 @@ async function run() {
       test.api.applyGameAction('draft',{type:'open',slot});test.api.applyGameAction('draft',{type:'pick',cardId:session.draft.opts[0].id});
     }
     await test.api.submitGameRun('draft',session.draft.roster);
-    assert.match(test.api.gameRunHTML('draft',session.draft.roster),/RETRY SAVING RESULT/);
-    await test.api.submitGameRun('draft',session.draft.roster);
-    assert.match(test.api.gameRunHTML('draft',session.draft.roster),/Saved to the 82/);
-    await test.api.submitGameRun('draft',session.draft.roster);assert.equal(submissions,2,'Saved runs do not submit twice');
+    assert.equal(submissions,0,'A non-perfect draft cannot be submitted manually');
+    assert.doesNotMatch(test.api.gameRunHTML('draft',session.draft.roster),/onclick="submitNormalRun/);
+    assert.equal(await test.api.beginGameRun('pack'),null,'Pack cannot start a ranked run');
+    await test.api.submitGameRun('pack',session.draft.roster);
+    assert.equal(submissions,0,'Pack never submits');
+    assert.doesNotMatch(test.api.rankingsHTML(),/PLAY PACK MODE|loadRankings\('pack/);
     await test.api.flushCloud();
   }
 
   {
     const fixture=JSON.parse(fs.readFileSync(require('node:path').join(__dirname,'perfect-draft.json'),'utf8'));
-    const engine=await import('../supabase/functions/_shared/atu-engine-v1.js');let submissions=0;
+    const engine=await import('../supabase/functions/_shared/atu-engine-v1.js');let submissions=0, fail=true;
     const test=makeContext({session:{user:{id:'perfect-player'}},storageSeed:{'atu-game-runs-v1':JSON.stringify({ownerId:'perfect-player',runs:{draft:{runId:'perfect-run',runToken:'b'.repeat(64),seed:fixture.seed,rulesVersion:'atu-classic-v2',expiresAt:'2099-01-01',events:[],status:'playing'}}})},rpc(name,args){
       if(name==='get_my_profile')return {data:[{username:'Perfect'}]};
       if(name==='sync_cloud_save')return {data:[{outcome:'updated',revision:1}]};
@@ -726,13 +756,25 @@ async function run() {
       return {data:[]};
     },invoke(name,{body}){
       submissions++;const valid=engine.validateTranscript(fixture.seed,body.transcript,'draft','atu-classic-v2');
-      assert.equal(valid.result.projectedWins,82);return {data:{ok:true,result:valid.result}};
+      assert.equal(valid.result.projectedWins,82);if(fail){fail=false;return {error:new Error('Disconnected')}};return {data:{ok:true,result:valid.result}};
     }});
     await test.api.init();assert.equal(test.api.gameRulesVersion('draft'),'atu-classic-v2');
     for(const event of fixture.events)test.api.applyGameAction('draft',event);
-    await test.api.submitGameRun('draft',fixture.roster,true);
-    assert.equal(submissions,1,'A genuine 82-0 draft automatically submits without a separate ranked mode');
-    assert.match(test.api.gameRunHTML('draft',fixture.roster),/82.+0/);
+    const session=test.api.getGameSession('draft');
+    await test.api.submitGameRun('draft',session.draft.roster);
+    assert.equal(submissions,1);
+    assert.match(test.api.gameRunHTML('draft',session.draft.roster),/RETRY SAVING RESULT/);
+    test.api.applyGameAction('draft',{type:'swap',from:'B1',to:'B2'});
+    await test.api.submitGameRun('draft',session.draft.roster);
+    assert.equal(submissions,2);
+    assert.equal(test.api.gameRunLocked('draft'),false,'Saving never permanently locks lineup moves');
+    assert.equal(JSON.parse(test.storage.getItem('atu-game-runs-v1')).runs.draft.result.rankingOvr,+engine.calculateResult(fixture.roster,'atu-classic-v2').effectiveRating.toFixed(2));
+    assert.match(test.api.gameRunHTML('draft',session.draft.roster),/Saved to the 82/);
+    assert.notDeepEqual(session.draft.roster,fixture.roster,'A successful retry preserves intervening rearrangements');
+    test.api.applyGameAction('draft',{type:'swap',from:'B2',to:'B3'});
+    await test.api.submitGameRun('draft',session.draft.roster);
+    assert.equal(submissions,2,'Equal OVR rearrangements do not count or submit again');
+    assert.throws(()=>test.api.applyGameAction('draft',{type:'captain',cardId:1}),/Only lineup moves/);
     await test.api.flushCloud();
   }
 

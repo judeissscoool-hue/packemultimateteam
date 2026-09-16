@@ -64,7 +64,10 @@
       mode: "draft",
       period: "all_time",
       rows: [],
-      error: ""
+      error: "",
+      tab: "rankings",
+      season: null,
+      request: 0
     }
   };
 
@@ -744,7 +747,7 @@
     gameSessions[mode]={runId:run.runId,session};return session;
   }
   async function beginGameRun(mode, pool = "modern") {
-    if(!["draft","pack"].includes(mode))return null;
+    if(mode!=="draft")return null;
     if(playerRequirement()){openPlayerSetup("rankings");return null;}
     const ownerId=state.session.user.id;
     try {
@@ -763,13 +766,15 @@
     }
   }
   function getGameSession(mode) {
+    if(mode!=="draft")return null;
     const run=readGameRuns().runs?.[mode];
-    if(!run||!state.engine||Date.parse(run.expiresAt)<=Date.now())return null;
+    if(!run||!state.engine||(Date.parse(run.expiresAt)<=Date.now()&&!run.result))return null;
     try{return gameSession(mode,run);}catch(_){return null;}
   }
   function applyGameAction(mode,event) {
     const run=readGameRuns().runs?.[mode],session=getGameSession(mode);
-    if(!run||!session||["submitted","saving","retry"].includes(run.status))throw new Error("Start a new online run to keep playing.");
+    if(!run||!session)throw new Error("Start a new online run to keep playing.");
+    if((run.result||run.pending)&&event.type!=="swap")throw new Error("Only lineup moves are allowed after saving a draft.");
     if(run.events.length >= (mode==="draft"?256:15))throw new Error("This run has reached its action limit. Start a new run.");
     const result=session.apply(event);run.events.push(event);saveGameRun(mode,run);return result;
   }
@@ -779,49 +784,72 @@
     try{return await task;}finally{delete gameSubmissions[mode];}
   }
   async function submitGameRunNow(mode,roster,automatic) {
+    if(mode!=="draft")return;
     const run=readGameRuns().runs?.[mode];
-    if(!run||!state.engine||run.status==="submitted")return;
+    if(!run||!state.engine)return;
     if(!ALL_GAME_SLOTS.every(s=>Number.isInteger(roster?.[s])))return;
     const ownerId=state.session?.user.id;
     try {
       const transcript=run.pending||[...run.events,{type:"arrange",roster:{...roster}}];
       const validated=state.engine.validateTranscript(run.seed,transcript,mode,run.rulesVersion);
-      if(automatic&&validated.result.projectedWins!==82)return;
+      if(validated.result.projectedWins!==82){
+        if(run.pending){delete run.pending;delete run.error;run.status="playing";saveGameRun(mode,run);}
+        return;
+      }
+      const rankingOvr=draftRankingOvr(validated.roster,run.rulesVersion,validated.result);
+      if(!run.pending&&run.result&&rankingOvr<=run.result.rankingOvr)return;
       // Keep the exact submission for retries after closing a tab or losing the response.
       run.pending=transcript;run.status="saving";saveGameRun(mode,run);
       const response=await state.client.functions.invoke("validate-run",{body:{runId:run.runId,runToken:run.runToken,transcript}});
       if(state.session?.user.id!==ownerId)return;
       if(response.error||!response.data?.ok)throw response.error||new Error("Run could not be saved.");
-      run.status="submitted";run.result=response.data.result;delete run.pending;delete run.error;
       // An older request must not overwrite a newly started run.
-      if(readGameRuns().runs?.[mode]?.runId===run.runId)saveGameRun(mode,run);
+      const current=readGameRuns().runs?.[mode];
+      if(current?.runId===run.runId){
+        current.status="submitted";
+        current.result={...response.data.result,rankingOvr:response.data.result?.rankingOvr??rankingOvr};
+        delete current.pending;delete current.error;saveGameRun(mode,current);
+      }
       state.rankings.status="idle";rerender();
     }catch(error){
-      run.status="retry";run.error="Result not saved yet. Retry when connected.";
-      if(state.session?.user.id===ownerId&&readGameRuns().runs?.[mode]?.runId===run.runId)saveGameRun(mode,run);
+      const current=readGameRuns().runs?.[mode];
+      if(state.session?.user.id===ownerId&&current?.runId===run.runId){
+        current.status="retry";current.error="Result not saved yet. Retry when connected.";
+        saveGameRun(mode,current);
+      }
       if(!automatic)rerender();
     }
   }
   const ALL_GAME_SLOTS=["PG","SG","SF","PF","C","B1","B2","B3"];
+  function draftRankingOvr(roster,rulesVersion,result){
+    // Match the game's uncapped "OVR with Chem" readout, not the rounded 99 display.
+    return +result.effectiveRating.toFixed(2);
+  }
   async function retryGameSubmissions() {
     if(!state.session||!state.engine)return;
     for(const [mode,run] of Object.entries(readGameRuns().runs)){
-      if(["draft","pack"].includes(mode)&&run.pending&&["saving","retry"].includes(run.status))
+      if(mode==="draft"&&run.pending&&["saving","retry"].includes(run.status))
         await submitGameRun(mode,run.pending[run.pending.length-1]?.roster);
     }
   }
   function gameRunHTML(mode,roster) {
+    if(mode!=="draft")return '<p class="sub">Unranked · Pack Mode does not count toward the 82–0 Club.</p>';
     const run=readGameRuns().runs?.[mode];
     if(!state.session)return '<p class="sub">Sign in before starting a run to appear in the 82–0 rankings.</p>';
     if(!run)return '<p class="sub">Start a new run to save its result to the 82–0 rankings.</p>';
-    if(run.status==="submitted")return '<p class="sub" role="status">Saved to the 82–0 rankings: '+html(run.result?.projectedWins)+'–'+html(82-run.result?.projectedWins)+'.</p>';
-    if(run.status==="saving")return '<p class="sub" role="status">Saving your result…</p>';
-    return '<div class="game-run-save">'+(run.error?'<p role="status">'+html(run.error)+'</p>':'')
-      +'<button class="btn gold" '+(ALL_GAME_SLOTS.every(s=>Number.isInteger(roster?.[s]))?'':'disabled')
-      +' onclick="submitNormalRun(\''+mode+'\')">'+(run.status==="retry"?'RETRY SAVING RESULT':'FINISH & SAVE TO RANKINGS')+'</button></div>';
+    const saved=run.result?.projectedWins===82?'<p class="sub">Saved to the 82–0 rankings · One perfect draft. Keep rearranging to improve your OVR.</p>':'';
+    if(run.status==="saving")return saved+'<p class="sub" role="status">Saving your result… You can keep rearranging.</p>';
+    if(run.pending)return saved+'<div class="game-run-save"><p role="status">'+html(run.error||'Result not saved yet.')+'</p><button class="btn gold" onclick="submitNormalRun(\'draft\')">RETRY SAVING RESULT</button></div>';
+    if(Date.parse(run.expiresAt)<=Date.now())return saved+'<p class="sub">This run has expired. You can rearrange it for practice or start a new ranked draft.</p>';
+    let result,rankingOvr;
+    try{result=state.engine.getEngineForRules(run.rulesVersion).calculateResult(roster);rankingOvr=draftRankingOvr(roster,run.rulesVersion,result);}catch(_){return saved+'<p class="sub">Fill all eight slots. Only 82–0 Classic Drafts qualify. Unlimited daily attempts.</p>';}
+    if(result.projectedWins!==82)return saved+'<p class="sub">Only 82–0 qualifies for rankings. Keep rearranging or draft again — unlimited attempts.</p>';
+    if(run.result&&rankingOvr<=run.result.rankingOvr)return saved+'<p class="sub">Your best saved OVR + chemistry: '+html(run.result.rankingOvr)+'. This lineup does not improve it.</p>';
+    return saved+'<div class="game-run-save"><p class="sub">82–0 qualifies. Rearrange freely, then save your best lineup.</p><button class="btn gold" onclick="submitNormalRun(\'draft\')">'+(run.result?'UPDATE BEST OVR':'SAVE 82–0 TO RANKINGS')+'</button></div>';
   }
 
   async function startRankedRun(mode) {
+    if(mode!=="draft")return;
     if(typeof global.startNormalRankedRun === "function"){global.startNormalRankedRun(mode);return;}
     if (!['draft', 'pack'].includes(mode) || state.busy) return;
     if (playerRequirement()) { openPlayerSetup("rankings"); return; }
@@ -1058,26 +1086,38 @@
 
   async function loadRankings(mode, period) {
     if (!state.client) return;
-    if (mode) state.rankings.mode = mode;
+    if (mode) state.rankings.mode = mode === "one_v_one" ? mode : "draft";
     if (period) state.rankings.period = period;
     state.rankings.status = "loading";
     state.rankings.error = "";
+    const request = ++state.rankings.request;
+    const rankingMode = state.rankings.mode;
+    const rankingPeriod = state.rankings.period;
+    const viewerId = state.session?.user.id || null;
     rerender();
     try {
-      const result = await state.client.rpc("get_leaderboard", {
-        p_mode: state.rankings.mode,
-        p_period: state.rankings.period,
-        p_limit: 50
-      });
+      const [result, season] = await Promise.all([
+        state.client.rpc("get_leaderboard", { p_mode: rankingMode, p_period: rankingPeriod, p_limit: 100 }),
+        state.client.rpc("get_beta_season_status")
+      ]);
+      if (request !== state.rankings.request || viewerId !== (state.session?.user.id || null)) return;
       if (result.error) throw result.error;
+      if (season.error) throw season.error;
+      state.rankings.season = season.data && !Array.isArray(season.data) ? { ...season.data, viewerId } : null;
       state.rankings.rows = Array.isArray(result.data) ? result.data : [];
       state.rankings.status = "ready";
     } catch (error) {
+      if (request !== state.rankings.request) return;
       state.rankings.status = "error";
       state.rankings.error = errorText(error, "Could not load rankings.");
     } finally {
       rerender();
     }
+  }
+
+  function setRankingTab(tab) {
+    state.rankings.tab = tab === "rewards" ? "rewards" : "rankings";
+    rerender();
   }
 
   function socialIsActive() {
@@ -1802,28 +1842,87 @@
     }).join("") + "</div>";
   }
 
+  const SEASON_REWARDS = [
+    { label: '1st', rank: 1, credits: 20000, packs: 10 },
+    { label: '2nd', rank: 2, credits: 15000, packs: 8 },
+    { label: '3rd', rank: 3, credits: 12000, packs: 6 },
+    { label: 'Top 10', rank: 10, credits: 8000, packs: 5 },
+    { label: 'Top 50', rank: 50, credits: 6000, packs: 4 },
+    { label: 'Top 100', rank: 100, credits: 4000, packs: 3 },
+    { label: 'Top 5%', percent: .05, credits: 3200, packs: 2 },
+    { label: 'Top 10%', percent: .1, credits: 2400, packs: 1 },
+    { label: 'Top 20%', percent: .2, credits: 1600, packs: 1 },
+    { label: 'Top 50%', percent: .5, credits: 800, packs: 0 },
+    { label: 'Top 80%', percent: .8, credits: 400, packs: 0 }
+  ];
+
+  function seasonBadgeHTML(rank) {
+    rank = Number(rank);
+    if (!Number.isInteger(rank) || rank < 1 || rank > 100) return '';
+    if (rank <= 3) return '<span class="season-awards"><span class="season-place season-' + ['gold','silver','bronze'][rank-1] + '">' + ['1st','2nd','3rd'][rank-1] + '</span>'
+      + (rank === 1 ? '<span class="season-badge season-champion"><span aria-hidden="true">♛</span> CHAMPION</span>' : '') + '</span>';
+    const tier = rank <= 10 ? 10 : rank <= 50 ? 50 : 100;
+    return '<span class="season-badge season-top-' + tier + '"><span aria-hidden="true">☆</span> TOP ' + tier + '</span>';
+  }
+
+  function currentSeason() {
+    const season = state.rankings.season;
+    return season?.viewerId === (state.session?.user.id || null) ? season : null;
+  }
+
+  function seasonRewardTier(rank, population) {
+    if (!(rank > 0) || !(population > 0)) return null;
+    return SEASON_REWARDS.find(tier => rank <= (tier.rank || Math.ceil(population * tier.percent))) || null;
+  }
+
+  function seasonRewardsHTML() {
+    return '<div class="season-rewards"><h3>Season rewards</h3><p>Your highest qualifying tier pays once at season end. The five-draft skin is separate. Exact ties share the same tier.</p>'
+      + '<p class="season-timing">Beta is open. End date and featured player skin to be announced; rewards have not been issued.</p>'
+      + '<div class="season-reward-list"><div class="season-reward-line season-reward-heading"><span>FINISH</span><span>CREDITS</span><span>RAFTERS</span><span>HONOUR</span></div>'
+      + SEASON_REWARDS.map(tier => '<div class="season-reward-line"><b>' + tier.label + '</b><span>' + tier.credits.toLocaleString('en-US') + ' CR</span><span>' + tier.packs + ' packs</span><span>' + (tier.rank ? seasonBadgeHTML(tier.rank) : '—') + '</span></div>').join('')
+      + '</div></div>';
+  }
+
+  function seasonProgressHTML() {
+    const season = currentSeason(), viewer = season?.viewer;
+    const count = Number(viewer?.games || 0), progress = Math.min(5, count);
+    const tier = seasonRewardTier(Number(viewer?.rank), Number(season?.eligible_players));
+    const loaded = state.rankings.status === 'ready';
+    return '<aside class="season-milestone"><span class="eyebrow">FIVE PERFECT DRAFTS</span><h3>One exclusive player skin</h3>'
+      + '<div class="season-skin-preview" aria-hidden="true"><b>82–0</b><span>BETA REWARD</span></div>'
+      + '<p>Save five separate 82–0 Classic Drafts to qualify. Improving the same draft counts once.</p>'
+      + '<div class="season-steps" aria-label="' + progress + ' of 5 perfect drafts">' + [1,2,3,4,5].map(n => '<span class="' + (n <= progress ? 'done' : '') + '">' + (n <= progress ? '✓' : n) + '</span>').join('') + '</div>'
+      + '<p><b>' + (!state.session ? 'Sign in to track your progress' : !loaded ? 'Loading your progress…' : count >= 5 ? 'Qualified · skin reveal coming soon' : progress + ' / 5 perfect drafts') + '</b></p>'
+      + '<small>Featured player and skin reveal to come.</small>'
+      + (loaded && viewer ? '<div class="season-my-standing"><span class="eyebrow">YOUR CURRENT STANDING</span><div class="season-handle">@' + html(state.profile?.username || 'You') + seasonBadgeHTML(viewer.rank) + '</div><p>#' + html(viewer.rank) + ' · ' + Number(viewer.points).toLocaleString('en-US', {maximumFractionDigits:2}) + ' points</p>'
+        + (tier ? '<b>' + tier.credits.toLocaleString('en-US') + ' CR + ' + tier.packs + ' Rafters packs</b><small>Projected ' + tier.label + ' reward · not final</small>' : '<small>Outside the placement reward tiers</small>') + '</div>' : '')
+      + '<button class="season-text-button" onclick="ATUBackend.setRankingTab(\'rewards\')">VIEW SEASON REWARDS →</button></aside>';
+  }
+
   function rankingsHTML() {
-    const modes = { draft: "Draft", pack: "Pack", one_v_one: "1v1" };
-    const periods = { all_time: "All time", daily: "Today", weekly: "This week" };
+    const draft = state.rankings.mode === 'draft';
+    const seasonBoard = draft && state.rankings.period === 'all_time';
+    const modes = { draft: 'Classic Draft', one_v_one: '1v1' };
+    const periods = { all_time: draft ? 'Beta season' : 'All time', daily: 'Today', weekly: 'This week' };
     const rows = state.rankings.rows || [];
-    return '<div class="rankingwrap"><div class="challengehero"><div><span class="eyebrow">LEADERBOARD</span><h2>The 82–0 Club</h2><p>Pick your mode. Build your team. Chase the perfect season.</p></div></div>'
+    const rewards = state.rankings.tab === 'rewards';
+    const board = state.rankings.status === 'loading' ? '<div class="rankingempty">Loading the leaderboard…</div>'
+      : state.rankings.status === 'error' ? '<div class="accountmsg error">' + html(state.rankings.error) + '</div>'
+      : !rows.length ? '<div class="rankingempty"><b>The throne is empty</b><span>Save an 82–0 Classic Draft to join the Club.</span></div>'
+      : '<div class="rankingtable season-rankingtable"><div class="rankinghead"><span>#</span><span>PLAYER</span><span>' + (draft ? '82–0s' : 'W–L') + '</span><span>POINTS</span></div>'
+        + rows.map(row => '<div class="rankingrow' + (row.profile_id === state.profile?.public_id ? ' season-you' : '') + '"><b>' + html(row.rank)
+          + '</b><div class="season-player-cell"><div class="season-handle"><span>@' + html(row.username || 'Player') + '</span>' + (seasonBoard ? seasonBadgeHTML(row.rank) : '') + '</div>'
+          + (draft ? '<small>Best OVR with Chem ' + Number(row.best_team_ovr || 0).toFixed(2) + '</small>' : '')
+          + '</div><span>' + (draft ? html(row.games) : html(row.wins) + '–' + html(row.losses)) + '</span><strong>'
+          + Number(row.points).toLocaleString('en-US', {maximumFractionDigits:2}) + '</strong></div>').join('') + '</div>';
+    return '<div class="rankingwrap season-club"><div class="challengehero"><div><span class="eyebrow">BETA SEASON</span><h2>The 82–0 Club</h2><p>Classic Draft only. Perfect records. Unlimited daily attempts.</p></div></div>'
+      + playerRequirementHTML('rankings')
+      + '<div class="season-tabs" role="tablist" aria-label="82–0 Club"><button id="season-rankings-tab" role="tab" aria-controls="season-club-panel" aria-selected="' + !rewards + '" onclick="ATUBackend.setRankingTab(\'rankings\')">RANKINGS</button><button id="season-rewards-tab" role="tab" aria-controls="season-club-panel" aria-selected="' + rewards + '" onclick="ATUBackend.setRankingTab(\'rewards\')">REWARDS</button></div>'
+      + '<div id="season-club-panel" role="tabpanel" aria-labelledby="season-' + (rewards ? 'rewards' : 'rankings') + '-tab">'
+      + (rewards ? seasonRewardsHTML() : '<div class="season-club-grid"><section><div class="season-filter-row">' + rankingFilterHTML('modes',Object.keys(modes),modes,state.rankings.mode) + rankingFilterHTML('periods',Object.keys(periods),periods,state.rankings.period) + '</div>' + board
+        + '<p class="season-ranking-note">' + (draft ? '1,000 points per perfect draft + your best OVR with Chem. Badges show current beta standing; final honours are awarded when the season ends.' : 'Draft Duels have their own leaderboard. They do not count toward the 82–0 skin.') + '</p></section>' + seasonProgressHTML() + '</div>') + '</div>'
       + '<div class="ranking-play"><article><span class="eyebrow">DRAFT</span><h3>Classic Draft</h3><p>Choose your captain and draft your eight.</p><button class="btn gold" onclick="setScreen(\'draft\')">PLAY CLASSIC DRAFT</button></article>'
-      + '<article><span class="eyebrow">PACKS</span><h3>Pack Mode</h3><p>Open packs and build your ultimate lineup.</p><button class="btn primary" onclick="setScreen(\'classic\')">PLAY PACK MODE</button></article>'
-      + '<article><span class="eyebrow">1V1</span><h3>Draft Duel</h3><p>Same picks. Two courts. Challenge a friend.</p><button class="btn primary" onclick="setScreen(\'challenge\')">CHALLENGE A FRIEND</button></article></div>'
-      + playerRequirementHTML("rankings")
-      + rankingFilterHTML("modes", Object.keys(modes), modes, state.rankings.mode)
-      + rankingFilterHTML("periods", Object.keys(periods), periods, state.rankings.period)
-      + (state.rankings.status === "loading" ? '<div class="rankingempty">Loading the leaderboard…</div>'
-        : state.rankings.status === "error" ? '<div class="accountmsg error">' + html(state.rankings.error) + "</div>"
-          : !rows.length ? '<div class="rankingempty"><b>The throne is empty</b><span>Be the first player to take the top spot.</span></div>'
-            : '<div class="rankingtable"><div class="rankinghead"><span>#</span><span>PLAYER</span><span>GAMES</span><span>' + (state.rankings.mode === "one_v_one" ? "W–L" : "BEST") + "</span><span>POINTS</span></div>"
-              + rows.map(function (row) {
-                return '<div class="rankingrow"><b>' + html(row.rank) + "</b><span>@" + html(row.username || "Player")
-                  + '</span><span>' + html(row.games) + "</span><span>" + (state.rankings.mode === "one_v_one"
-                    ? html(row.wins) + "–" + html(row.losses)
-                    : html(row.best_projected_wins ?? "—") + "–" + html(82-(row.best_projected_wins||0)))
-                  + '</span><strong>' + html(row.points) + "</strong></div>";
-              }).join("") + "</div>") + "</div>";
+      + '<article><span class="eyebrow">1V1</span><h3>Draft Duel</h3><p>Same picks. Two courts. Challenge a friend.</p><button class="btn primary" onclick="setScreen(\'challenge\')">CHALLENGE A FRIEND</button></article></div></div>';
   }
 
   function statusMessageHTML() {
@@ -1916,6 +2015,7 @@
     applyClassicDraftAction: applyClassicDraftAction,
     classicDraftFinishHTML: classicDraftFinishHTML,
     rankingsHTML: rankingsHTML,
+    setRankingTab: setRankingTab,
     friendsHTML: friendsHTML,
     dismissFriendInvite: dismissFriendInvite,
     loadFriends: loadFriends,
@@ -1953,10 +2053,11 @@
     challengeRulesVersion: () => state.challenge.invitation?.rules_version || state.challenge.active?.rulesVersion || null,
     legacyView: version => state.engine?.legacyView(version) || null,
     getGameSession: getGameSession,
+    gameRunId: mode => readGameRuns().runs?.[mode]?.runId || null,
     applyGameAction: applyGameAction,
     submitGameRun: submitGameRun,
     gameRunHTML: gameRunHTML,
-    gameRunLocked: mode=>["submitted","saving","retry"].includes(readGameRuns().runs?.[mode]?.status),
+    gameRunLocked: () => false,
     isSignedIn: function () { return !!state.session; }
   });
 })(window);

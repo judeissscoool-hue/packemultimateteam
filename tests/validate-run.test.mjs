@@ -42,8 +42,10 @@ run.user_id='owner';
 const forged=structuredClone(body);forged.transcript[2].cardId=999999;
 assert.equal((await handler(request('POST',forged))).status,422);assert.equal(finalized,1,'Invalid drafts must never reach finalization');
 run.mode='draft';run.status='completed';
-assert.equal((await handler(request('POST'))).status,200,'Lost ranked responses can reach the idempotent finalizer again');
-assert.equal(finalized,2);
+assert.equal((await handler(request('POST'))).status,422,'Even completed non-perfect drafts cannot enter rankings');
+assert.equal(finalized,1);
+run.mode='pack';assert.equal((await handler(request('POST'))).status,422,'Pack is excluded server-side');assert.equal(finalized,1);
+run.mode='draft';
 // Completed pre-release runs must retain the old digest for safe retry.
 const legacy=JSON.parse(fs.readFileSync(new URL('./perfect-draft.json',import.meta.url)));
 run.rules_version=legacy.rulesVersion;run.draft_seed=legacy.seed;

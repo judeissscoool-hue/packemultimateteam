@@ -215,7 +215,7 @@ html .duel-court{padding:16px 8px;overflow:hidden}
 .duel-reveal .slot-PF{animation-delay:.1s}.duel-reveal .slot-SF{animation-delay:.2s}.duel-reveal .slot-SG{animation-delay:.3s}.duel-reveal .slot-PG{animation-delay:.4s}
 .duel-reveal .slot-B1{animation-delay:.5s}.duel-reveal .slot-B2{animation-delay:.6s}.duel-reveal .slot-B3{animation-delay:.7s}
 @keyframes duel-card-in{from{opacity:0;transform:translateY(18px) scale(.96)}to{opacity:1;transform:none}}
-.ranking-play{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:28px}
+.ranking-play{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:24px;margin-bottom:28px}
 .ranking-play article{display:flex;flex-direction:column;align-items:stretch;gap:12px;padding:24px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,#242424,#171717)}
 .ranking-play h3{font-size:28px}
 .ranking-play p{font-size:16px;color:var(--dim);line-height:1.5;flex:1}
@@ -280,3 +280,54 @@ html #betabar{background-color:#171b1c}
 
 .deep-team-packs{display:flex;flex-wrap:wrap;gap:8px}.deep-team-packs .btn{flex:1 1 160px}
 .game-run-save{display:flex;flex-direction:column;gap:8px}
+
+/* Beta season: live standings and approved handle honours. */
+html .season-club{max-width:1100px}
+.season-tabs{display:flex;gap:24px;border-bottom:1px solid #34383d;margin-bottom:20px}
+.season-tabs button{min-height:46px;padding:10px 0;background:none;border:0;border-bottom:3px solid transparent;color:#b2b7c0;font:700 13px var(--body);letter-spacing:.05em}
+.season-tabs button[aria-selected=true]{border-bottom-color:var(--cyan);color:var(--cyan)}
+.season-club-grid{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:20px;align-items:start}
+.season-club-grid>section{min-width:0}
+.season-filter-row{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px;margin-bottom:10px}
+html .season-filter-row .rankingfilters{margin:0}
+html .season-rankingtable .rankinghead,html .season-rankingtable .rankingrow{grid-template-columns:30px minmax(0,1fr) 44px 84px;gap:8px;padding:14px 12px}
+html .season-rankingtable .rankinghead{font-size:10px}
+html .season-rankingtable .rankinghead span:last-child{display:block;text-align:right}
+html .season-rankingtable .rankingrow>strong{display:block;white-space:nowrap;font-size:13px}
+html .season-rankingtable .rankingrow{font-size:13px}
+html .season-rankingtable .rankingrow.season-you{background:#153039}
+.season-player-cell{min-width:0}
+.season-player-cell>small{display:block;font-size:11px;color:#b2b7c0;margin-top:5px}
+.season-handle{display:flex;flex-wrap:wrap;gap:7px;align-items:center;font:600 14px/1.5 var(--body);overflow-wrap:anywhere}
+.season-awards{display:inline-flex;align-items:center;flex-wrap:wrap;gap:7px}
+.season-place{display:inline-block;font:900 italic 21px/1.2 system-ui,sans-serif;letter-spacing:-.05em;padding-right:3px;color:var(--metal-mid);background:linear-gradient(155deg,var(--metal-deep) 4%,var(--metal-mid) 27%,var(--metal-light) 39%,var(--metal-light) 44%,var(--metal-mid) 49%,var(--metal-deep) 62%,var(--metal-mid) 79%,var(--metal-light) 100%);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.season-gold{--metal-deep:#b68120;--metal-mid:#f9c85b;--metal-light:#fff5cd}
+.season-silver{--metal-deep:#788998;--metal-mid:#c7d5e2;--metal-light:#fff}
+.season-bronze{--metal-deep:#9e5737;--metal-mid:#db946c;--metal-light:#ffe0c4}
+.season-badge{display:inline-flex;gap:5px;align-items:center;white-space:nowrap;border:1px solid;border-radius:5px;padding:3px 7px;font:800 11px/16px var(--body);letter-spacing:.025em}
+.season-champion{border-color:#ac8738;background:linear-gradient(120deg,#332918,#1f1c16);color:#ffdb85;box-shadow:inset 0 1px 0 #ffe9a81f}
+.season-top-10{background:#15353c;border-color:#347989;color:#66e4ff}
+.season-top-50{background:#202d38;border-color:#50697f;color:#bad7ef}
+.season-top-100{background:#292c31;border-color:#575d67;color:#d0d5df}
+.season-ranking-note{font-size:12px;line-height:1.6;color:#b2b7c0;margin:14px 2px}
+.season-milestone{padding:20px;border:1px solid #615026;border-radius:14px;background:linear-gradient(150deg,#302714,#1d1d1b 75%)}
+.season-milestone h3,.season-rewards h3{margin:5px 0 10px;font:24px var(--disp)}
+.season-milestone p,.season-rewards p{font-size:13px;line-height:1.6;color:#c4c0b5}
+.season-milestone small{display:block;font-size:11px;color:#c4c0b5;line-height:1.6}
+.season-skin-preview{display:flex;flex-direction:column;justify-content:center;align-items:center;width:80px;height:108px;margin:20px auto;border:2px solid var(--gold);border-radius:9px;transform:rotate(-5deg);background:linear-gradient(145deg,#675222,#1a1d21 58%);color:var(--gold)}
+.season-skin-preview b{font:30px var(--disp)}
+.season-skin-preview span{font-size:9px;letter-spacing:.06em}
+.season-steps{display:flex;gap:7px;margin:18px 0 8px}
+.season-steps span{flex:1;padding:8px 0;background:#35352f;border-radius:6px;text-align:center;color:#b9b8aa;font-weight:700}
+.season-steps .done{background:var(--gold);color:#282008}
+.season-my-standing{margin-top:20px;padding-top:20px;border-top:1px solid #51462d}
+.season-my-standing>b{font-size:14px;color:var(--gold)}
+.season-text-button{padding:14px 0 0;min-height:44px;background:none;border:0;color:var(--cyan);font:700 12px var(--body)}
+.season-reward-list{margin-top:20px;border:1px solid #34383d;border-radius:12px;overflow:hidden}
+.season-reward-line{display:grid;grid-template-columns:75px 100px 85px minmax(0,1fr);gap:12px;padding:14px 18px;align-items:center;border-bottom:1px solid #34383d;font:13px var(--body)}
+.season-reward-line:last-child{border:0}
+.season-reward-heading{background:#202326;font-size:11px;color:#b2b7c0}
+.season-timing{color:var(--gold)!important}
+@media(max-width:850px){.season-club-grid{grid-template-columns:minmax(0,1fr)}.season-milestone{max-width:none}.season-skin-preview{float:right;margin:0 8px 15px 20px}.season-my-standing{clear:both}}
+@media(max-width:500px){html .season-rankingtable .rankinghead,html .season-rankingtable .rankingrow{grid-template-columns:23px minmax(0,1fr) 34px 68px;gap:6px;padding:12px 8px}html .season-rankingtable .rankingrow>strong{font-size:12px}.season-handle{font-size:12px}.season-badge{padding:2px 5px}.season-reward-line{grid-template-columns:65px minmax(70px,1fr) minmax(65px,1fr);gap:9px;padding:12px}.season-reward-line>span:last-child{grid-column:1/-1}.season-reward-heading>span:last-child{display:none}}
+@media(forced-colors:active){.season-place{-webkit-text-fill-color:currentColor;background:none}}

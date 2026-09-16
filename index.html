@@ -22,7 +22,7 @@
   integrity="sha384-OUpie84zd1LdwNlK9uJJQRwab0BLqo3eKYKFh7hSVL58FSk7wPp2l0kfUMIIoaQd"
   crossorigin="anonymous"></script>
 <script src="./supabase/functions/_shared/classic-draft.js"></script>
-<script src="./backend.js?v=gmm-20260913"></script>
+<script src="./backend.js?v=beta-season-20260916"></script>
 <style>
 /* ============ TOKENS: arena at night ============ */
 :root{
@@ -1121,7 +1121,7 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 @media(max-width:680px){.topright{width:100%;justify-content:space-between}.accountpill{order:-1}.accountintro{align-items:flex-start;flex-direction:column}.accountgrid{grid-template-columns:1fr}.cloudstate{width:100%}.challengehero{flex-direction:column;padding:19px}.challengehero h2{font-size:28px}.challengecards{grid-template-columns:repeat(2,minmax(0,1fr))}.captaincards{grid-template-columns:1fr}.challengeroster{grid-template-columns:repeat(2,minmax(0,1fr))}.challengeexplain{grid-template-columns:1fr}.challengeinvite{grid-template-columns:1fr}.challengeresult{grid-template-columns:1fr}.resultversus{text-align:center}.rankinghead,.rankingrow{grid-template-columns:32px minmax(95px,1fr) 48px 70px}.rankinghead span:last-child,.rankingrow strong{display:none}.challengeprogress span{display:none}}
 
 </style>
-<link rel="stylesheet" href="./ui-reboot.css?v=normal-play-1">
+<link rel="stylesheet" href="./ui-reboot.css?v=beta-season-20260916">
 <script src="./ui-reboot.js"></script>
 </head>
 <body>
@@ -1158,7 +1158,7 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 </svg></div>
 <div id="arena"></div>
 <div id="site-chrome">
-  <div id="betabar">BETA · in active development — <button onclick="setScreen('updates')"><span>see what's coming</span></button><span id="crpill" onclick="setScreen('rafters')"></span></div>
+  <div id="betabar">BETA SEASON · in active development — <button onclick="setScreen('updates')"><span>see what's coming</span></button><span id="crpill" onclick="setScreen('rafters')"></span></div>
   <nav id="topnav" class="game-nav" aria-label="Main navigation"></nav>
 </div>
 <div id="app"></div>
@@ -3299,7 +3299,8 @@ const PERFECT_BOUNDARY=(()=>{let lo=60,hi=EIGHTY_TWO_EFF;
   for(let i=0;i<80;i++){const mid=(lo+hi)/2;if(projection(mid).wins>=82)hi=mid;else lo=mid;}
   return {cap:lo,winning:hi};})();
 const EFF_CAP_NO_PERFECT=PERFECT_BOUNDARY.cap;
-function recordIdentityHTML(pr,ready){
+function recordIdentityHTML(pr,ready,clubEligible=true){
+  if(!clubEligible&&pr.wins===82)return `<div class="recordid"><div><div class="rid-main">Perfect projection</div><div class="rid-sub">Unranked · not eligible for the 82–0 Club</div></div><div class="rid-record">82–0</div></div>`;
   /* live verdict from the first pick — empty slots still count as 60, so the record
      climbs as the roster fills rather than sitting blank until it is complete */
   if(!ready){const j=pr.identity||recordIdentity(pr.wins);
@@ -3564,7 +3565,7 @@ function baseTrophies(){const a=[];const add=(id,n,tier,cat,desc,fn,hidden=false
  add("complete-toolkit","Complete Toolkit","Diamond","Styles","Discover at least 15 players from every playstyle.",()=>{const vals=STYLE_KEYS.map(t=>namesFor(p=>p.tags.includes(t)).filter(n=>ownedNames().has(n)).length);return trophyProgress(vals.filter(v=>v>=15).length,STYLE_KEYS.length)});
  TEAM_KEYS.forEach(team=>{const req=namesFor(p=>p.team===team);add("team-"+team,team+" Legacy Collection",req.length>30?"Diamond":"Gold","Franchises",`Discover every unique player associated with ${team}.`,()=>setProgress(req));});
  [["winning","Winning Season",42,"Bronze"],["playoff","Playoff Bound",47,"Silver"],["contender","Contender",60,"Gold"],["historic","Historic Pace",72,"Gold"],["dynasty","Dynasty Material",77,"Diamond"],["ages","One for the Ages",80,"Diamond"],["threat","Perfect Season Threat",81,"Diamond"],["club","82–0 Club",82,"Immortal"]].forEach(([id,n,w,t])=>add(id,n,t,"Records",`Project at least ${w} wins.`,()=>trophyProgress(Math.max(T.stats.maxWins,bestLive().wins),w)));
- add("pack-perfect","Pack Perfection","Immortal","Records","Reach 82–0 in Pack Mode.",()=>trophyProgress(T.stats.pack82,1));add("draft-perfect","Draft Perfection","Immortal","Records","Reach 82–0 in Classic Draft.",()=>trophyProgress(T.stats.draft82,1));add("master-both","Master of Both","Immortal","Records","Reach 82–0 in Pack Mode and Draft.",()=>trophyProgress((T.stats.pack82>0)+(T.stats.draft82>0),2));
+ add("draft-perfect","Draft Perfection","Immortal","Records","Reach 82–0 in Classic Draft.",()=>trophyProgress(T.stats.draft82,1));
  [["spark","Spark",1,"Bronze"],["connected","Connected",3,"Silver"],["perfect-fit","Perfect Fit",5,"Gold"],["chem-master","Chemistry Masterclass",8,"Diamond"],["max-chem","Maximum Chemistry",10,"Immortal"]].forEach(([id,n,c,t])=>add(id,n,t,"Chemistry",`Reach +${c} chemistry.`,()=>trophyProgress(Math.max(T.stats.maxChem,bestLive().chem),c)));
  add("first-connection","First Connection","Bronze","Chemistry","Activate one iconic chemistry group.",()=>trophyProgress(Object.keys(T.activatedChem).length,1));add("chem-student","Chemistry Student","Silver","Chemistry","Activate ten iconic groups.",()=>trophyProgress(Object.keys(T.activatedChem).length,10));add("linked-history","Linked Through History","Diamond","Chemistry","Activate fifty iconic groups.",()=>trophyProgress(Object.keys(T.activatedChem).length,50));add("every-story","Every Story Told","Immortal","Chemistry","Activate every iconic chemistry group.",()=>trophyProgress(Object.keys(T.activatedChem).length,DUOS.length));
  add("same-colours","Same Colours","Silver","Squad Building","Start five players from one franchise.",()=>trophyProgress(starterTest(ps=>new Set(ps.map(p=>p.team)).size===1)?1:0,1));add("eight-deep","Eight Deep","Diamond","Squad Building","Field eight players from one franchise.",()=>trophyProgress(hasLineup(ps=>new Set(ps.map(p=>p.team)).size===1)?1:0,1));add("across-ages","Across the Ages","Silver","Squad Building","Start players from five different era tags.",()=>trophyProgress(starterTest(ps=>new Set(ps.map(p=>p.tags.find(t=>t.startsWith("Era_")))).size===5)?1:0,1));
@@ -3595,8 +3596,8 @@ function trophyRoster(mode,r,opts){
   {const players=rosterPlayers(r);
    let fresh=0; players.forEach(p=>{if(!T.seenCards[p.id])fresh++; ledgerAdd(p);});
    if(fresh){saveTrophies(); if(typeof creditsForDiscovery==="function")creditsForDiscovery(fresh);}}
-  const o=teamOVR(r);const ranked=!(opts&&opts.eraLocked); /* era-locked drafts don't count toward win/record prestige */
-  if(o.ready&&ranked){const w=projection(o.eff).wins;T.stats.maxWins=Math.max(T.stats.maxWins,w);T.stats.maxChem=Math.max(T.stats.maxChem,o.chem.bonus);if(w===82){const sig=ALL_SLOTS.map(s=>r[s]??"x").join(",");if(T.last82[mode]!==sig){T.last82[mode]=sig;if(mode==="draft")T.stats.draft82++;else if(mode==="classic")T.stats.pack82++;}}}
+  const o=teamOVR(r);const ranked=mode!=="classic"&&!(opts&&opts.eraLocked); /* era-locked drafts don't count toward win/record prestige */
+  if(o.ready&&ranked){const w=projection(o.eff).wins;T.stats.maxWins=Math.max(T.stats.maxWins,w);T.stats.maxChem=Math.max(T.stats.maxChem,o.chem.bonus);if(w===82){const sig=mode==="draft"?(ATUBackend.gameRunId("draft")||(D.perfectRunId||(D.perfectRunId=Date.now()+"-"+Math.random()))):ALL_SLOTS.map(s=>r[s]??"x").join(",");if(T.last82[mode]!==sig){T.last82[mode]=sig;if(mode==="draft")T.stats.draft82++;else if(mode==="classic")T.stats.pack82++;}}}
   evaluateTrophies();}
 sanitizeSave();save();
 migrateTrophies();
@@ -6288,7 +6289,7 @@ function hubHTML(side){
               <div><b>${rec}</b>projected record</div>
               <div><b>+${ovr.chem.bonus.toFixed(1)}</b>chemistry</div>
             </div>
-            ${recordIdentityHTML(pr,ovr.ready)}
+            ${recordIdentityHTML(pr,ovr.ready,side!=="classic")}
             <div class="chemlinks">${chemHTML}</div>${nearMissHTML(ovr)}
           </div>
           <div class="chemlegend">
@@ -6417,7 +6418,6 @@ function autoFill(side){
 function afterRosterChange(side){
   const t=teamOVR(S[side].roster).total;
   bump(side);save();trophyRoster(side,S[side].roster);render();
-  if(side==="classic")ATUBackend.submitGameRun("pack",S.classic.roster,true);
   if(t>lastOVR[side]){const el=$("#ovr-"+side);if(el){el.classList.add("bump");setTimeout(()=>el.classList.remove("bump"),260);}}
   lastOVR[side]=t;
 }
@@ -6430,10 +6430,6 @@ function confirmReset(side){
   $("#sheet").onclick=e=>{if(e.target.id==="sheet")closeSheet();};
 }
 async function doReset(side){
-  if(side==="classic"&&ATUBackend.isSignedIn()){
-    if(startingNormalRun)return;startingNormalRun=true;
-    try{if(!await ATUBackend.beginGameRun("pack",ROSTER_POOL))return;}finally{startingNormalRun=false;}
-  }
   S[side]=side==="classic"?emptyClassic():emptySide();
   if(side==="classic"){CC=null;syncOnlinePack();}
   lastOVR[side]=60;save();closeSheet();render();
@@ -6665,7 +6661,6 @@ function draftPickInto(pid){
   const completed=reconcileDraftState();
   if(completed)confetti(80);
   if(completed&&screen==="draft"){
-    if(!DRAFT_ERA)ATUBackend.submitGameRun("draft",D.roster,true);
     D.done=true; /* stay on the court \u2014 no summary screen */
     const o=teamOVR(D.roster),pr=projection(o.eff);
     if(!DRAFT_ERA&&o.total>HS.draft.ovr){HS.draft.ovr=o.total;HS.draft.wins=pr.wins;saveHS();} /* era runs don't set the all-time best */
@@ -6723,7 +6718,6 @@ function doDraftSwap(a,b){
   if(!applyDraftAction({type:"swap",from:a,to:b}))return;
   closeSheet();
   if(D.done&&screen==="draft"){
-    if(!DRAFT_ERA)ATUBackend.submitGameRun("draft",D.roster,true);
     const o=teamOVR(D.roster),pr=projection(o.eff);
     if(!DRAFT_ERA&&o.total>HS.draft.ovr){HS.draft.ovr=o.total;HS.draft.wins=pr.wins;saveHS();}
     trophyRoster("draft",D.roster,{eraLocked:!!DRAFT_ERA});
@@ -6822,7 +6816,7 @@ function draftHTML(){
       ${!draftEra?rosterPoolHTML():""}<button class="btn primary" onclick="startDraft(DRAFT_ERA)">${draftEra?eraLabel(draftEra)+" draft again":"Draft again"}</button>
     ${draftEra?`<button class="btn" onclick="startDraft()">All-Time draft</button>`:""}
     <button class="btn" onclick="setScreen('landing')">Exit to modes</button></div>
-  <div class="sub" style="text-align:center;color:var(--cyan);font-size:11px;margin-top:8px">${!online&&ATUBackend.gameRunLocked("draft")?"Result locked for rankings. Draft again to build another team.":"Final board — tap any player (starter or bench) to move them into any slot they fit."}</div>`):""}
+  <div class="sub" style="text-align:center;color:var(--cyan);font-size:11px;margin-top:8px">Final board — keep rearranging, even after 82–0. Save a better OVR on the same draft.</div>`):""}
   <div class="notice" id="notice" style="margin-top:10px"></div>
   `;
 }
@@ -7009,9 +7003,9 @@ function drawRosterCanvas(modeKey,roster,eraLocked){
       c.textAlign="left";
       c.fillStyle="#f2f2f5";c.font="700 40px Arial";c.fillText("projected "+pr.wins+"\u2013"+pr.losses,520,232);
       c.fillStyle="#f2a93b";c.font="700 34px Arial";c.fillText("+"+o.chem.bonus.toFixed(1)+" chemistry",520,280);
-      const ident=pr.identity||recordIdentity(pr.wins);
+      const ident=modeKey!=="draft"&&pr.wins===82?{title:"Perfect projection · unranked"}:pr.identity||recordIdentity(pr.wins);
       c.fillStyle=pr.wins===82?"#ffc53d":"#ff7ac8";c.font="700 30px Arial";c.fillText(ident.title,520,326);
-      if(pr.wins===82){
+      if(pr.wins===82&&modeKey==="draft"){
         /* sits beside the scoreboard, clear of the title (which runs to ~x930) */
         c.save();c.translate(912,286);c.rotate(-0.08);
         c.shadowColor="#ffc53d";c.shadowBlur=24;c.strokeStyle="#ffc53d";c.lineWidth=5;
@@ -7068,7 +7062,7 @@ async function shareRosterImage(modeKey){
   const eraLocked=modeKey==="draft"&&!!DRAFT_ERA;
   const blob=await drawRosterCanvas(modeKey,roster,eraLocked);
   if(!blob){notice("Couldn't render the image on this browser.");return;}
-  const o=teamOVR(roster),pr=projection(o.eff),perfect=pr.wins===82;
+  const o=teamOVR(roster),pr=projection(o.eff),perfect=modeKey==="draft"&&!eraLocked&&pr.wins===82;
   const stem=modeKey==="draft"?"draft":modeKey==="daily"?"daily":"pack-mode";
   const file=new File([blob],`all-time-ultimate-${stem}${(perfect&&!eraLocked)?"-82-0-club":""}.png`,{type:"image/png"});
   const dailyName=modeKey==="daily"&&DD?DD.challenge.name:"";
@@ -7112,7 +7106,7 @@ function shareHTML(){
       <div><div class="projrow">
         <div><b>${pr.wins+"\u2013"+pr.losses}</b>projected record</div>
         <div><b>+${ovr.chem.bonus.toFixed(1)}</b>chemistry</div></div>
-        ${recordIdentityHTML(pr,ovr.ready)}
+        ${recordIdentityHTML(pr,ovr.ready,SHARED.mode==="draft")}
         <div class="chemlinks">${ovr.chem.links.map(l=>`<span class="${"ck-"+l.kind}">${l.label} ×${l.n} → +${l.bonus.toFixed(1)}</span>`).join("")||"<span>No chemistry links</span>"}</div>${nearMissHTML(ovr)}
       </div></div>
   </div>
@@ -7139,18 +7133,12 @@ function syncOnlinePack(){
   const p=ATUBackend.getGameSession("pack")?.pack;if(!p)return;
   Object.assign(S.classic,{cardPool:p.cardPool,cap:p.cap,opened:p.opened,premiumPacksLeft:p.premiumPacksLeft,tierCounts:{...p.tierCounts},captainUsed:p.captainUsed});
 }
-async function ensureOnlinePack(){
-  if(!ATUBackend.isSignedIn())return true;
-  if(ATUBackend.getGameSession("pack"))return true;
-  if(S.classic.opened||S.classic.captainUsed||Object.keys(S.classic.coll).length){notice("Reset this Pack Mode run to enable online rankings.");return false;}
-  if(startingNormalRun)return false;startingNormalRun=true;
-  try{const session=await ATUBackend.beginGameRun("pack",ROSTER_POOL);if(!session)return false;syncOnlinePack();save();return true;}
-  finally{startingNormalRun=false;}
-}
+async function ensureOnlinePack(){return true;} // Pack Mode is always unranked.
 function submitNormalRun(mode){return ATUBackend.submitGameRun(mode,mode==="draft"?activeDraft().roster:S.classic.roster);}
 async function startNormalRankedRun(mode){
+  if(mode!=="draft")return;
   if(!ATUBackend.isSignedIn()){ATUBackend.openPlayerSetup("rankings");return;}
-  setScreen(mode==="pack"?"classic":"draft");
+  setScreen("draft");
   if(mode==="draft")await startDraft();else await doReset("classic");
 }
 let CC=null; /* classic captain options while the overlay is open */
