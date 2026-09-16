@@ -117,7 +117,7 @@ async function run() {
     assert.doesNotMatch(view,/Elite badge|Contender badge|Challenger badge|gold frame|silver frame|bronze frame/);
     assert.match(view,/aria-selected="true"[^>]*>REWARDS/);
   }
-  for (const rulesVersion of ["atu-v1", "atu-classic-v2", "atu-classic-v3", "atu-history-draft-v1"]) {
+  for (const rulesVersion of ["atu-v1", "atu-classic-v2", "atu-classic-v3", "atu-history-draft-v1", "atu-classic-v4", "atu-history-draft-v2"]) {
     const router = await import('../supabase/functions/_shared/atu-engine-v1.js');
     const engine = router.getEngineForRules(rulesVersion);
     const seed = '0123456789abcdef'.repeat(4), code = 'A1B2C3D4E5F60708';

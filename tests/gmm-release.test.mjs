@@ -18,7 +18,7 @@ assert.throws(()=>router.rulesForPool('typo','draft'),/Invalid/);
 const clean=v=>JSON.parse(JSON.stringify(v,(k,value)=>k==="cardPool"?undefined:value));
 for(const version of router.SUPPORTED_RULES_VERSIONS){
  const engine=router.getEngineForRules(version);
- assert.equal(engine.ENGINE_VERSION,router.isLegacyRulesVersion(version)?'atu-challenge-v3':'atu-gmm-v1');
+ assert.equal(engine.ENGINE_VERSION,router.isLegacyRulesVersion(version)?'atu-challenge-v3':(['atu-classic-v3','atu-pack-v3','atu-history-draft-v1','atu-history-pack-v1'].includes(version)?'atu-gmm-v1':'atu-gmm-v2'));
  if(version==='atu-v1')continue;
  const isPack=version.includes('pack'),mode=isPack?'pack':'draft';
  for(let i=0;i<8;i++){

@@ -520,7 +520,7 @@
   async function loadEngine() {
     if (state.engine) return state.engine;
     if (!state.enginePromise) {
-      state.enginePromise = import("./supabase/functions/_shared/atu-engine-v1.js?gmm=20260913")
+      state.enginePromise = import("./supabase/functions/_shared/atu-engine-v1.js?gmm=20260916")
         .then(function (engine) {
           state.engine = engine;
           return engine;

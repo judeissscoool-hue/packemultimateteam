@@ -22,7 +22,7 @@
   integrity="sha384-OUpie84zd1LdwNlK9uJJQRwab0BLqo3eKYKFh7hSVL58FSk7wPp2l0kfUMIIoaQd"
   crossorigin="anonymous"></script>
 <script src="./supabase/functions/_shared/classic-draft.js"></script>
-<script src="./backend.js?v=beta-season-20260916"></script>
+<script src="./backend.js?v=win-curve-20260916"></script>
 <style>
 /* ============ TOKENS: arena at night ============ */
 :root{
@@ -3258,8 +3258,8 @@ function teamOVR(roster){
   if(gated)eff=Math.min(eff,EFF_CAP_NO_PERFECT);
   return {base:Math.round(base),chem,total,eff,ready:startersFull(roster),full,minOvr,gated};
 }
-/* logistic-style win curve on anchor points with cosine easing between them:
-   flat-ish under 75, climbing through the 80s, exploding past 90 */
+/* Linear progression between anchors below 80 wins avoids repeated flat spots.
+   The calibrated cosine 80–82 segment and perfection gate remain unchanged. */
 const CHEM_WIN_MULT=2.10; /* shared by teamOVR and the near-miss readout — must stay top-level */
 /* GMM: upper cosine anchor, not the rounded 82-win boundary.
    103.6 targets original optimised-play difficulty with the updated roster.
@@ -3287,7 +3287,7 @@ function projection(eff){
   const e=Math.max(60,Math.min(EIGHTY_TWO_EFF,eff));
   let wins=PROJ[PROJ.length-1][1];
   for(let i=0;i<PROJ.length-1;i++){const [a,wa]=PROJ[i],[b,wb]=PROJ[i+1];
-    if(e<=b){const t=(e-a)/(b-a),s=(1-Math.cos(Math.PI*t))/2; /* smooth, non-linear */
+    if(e<=b){const t=(e-a)/(b-a),s=b<=100?t:(1-Math.cos(Math.PI*t))/2; /* preserve calibrated 80–82 segment */
       wins=Math.round(wa+(wb-wa)*s);break;}}
   wins=Math.max(12,Math.min(82,wins));
   const identity=recordIdentity(wins);
