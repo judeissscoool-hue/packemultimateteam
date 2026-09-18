@@ -520,7 +520,7 @@
   async function loadEngine() {
     if (state.engine) return state.engine;
     if (!state.enginePromise) {
-      state.enginePromise = import("./supabase/functions/_shared/atu-engine-v1.js?gmm=20260916")
+      state.enginePromise = import("./supabase/functions/_shared/atu-engine-v1.js?gmm=20260918-history")
         .then(function (engine) {
           state.engine = engine;
           return engine;
@@ -743,7 +743,7 @@
   function gameSession(mode, run) {
     const cached=gameSessions[mode];
     if(cached?.runId===run.runId)return cached.session;
-    const session=mode==="draft"?state.engine.createClassicSession(run.seed,run.events,run.rulesVersion):state.engine.createClassicPackSession(run.seed,run.events,run.rulesVersion);
+    const session=mode==="draft"?state.engine.createClassicSession(run.seed,run.events,run.rulesVersion,run.fairness):state.engine.createClassicPackSession(run.seed,run.events,run.rulesVersion);
     gameSessions[mode]={runId:run.runId,session};return session;
   }
   async function beginGameRun(mode, pool = "modern") {
@@ -753,11 +753,13 @@
     try {
       const engine=await loadEngine();
       const rulesVersion=engine.rulesForPool(pool,mode);
-      const response=await state.client.rpc("create_ranked_run",{p_mode:mode,p_rules_version:rulesVersion});
-      if(response.error)throw response.error;
+      const previous=readGameRuns().runs?.draft;
+      const response=await state.client.functions.invoke("draft-history",{body:{action:"start",pool,
+        ...(previous?{previous:{runId:previous.runId,runToken:previous.runToken,events:previous.events}}:{})}});
+      if(response.error||!response.data?.ok)throw response.error||new Error(response.data?.error||"Could not start draft");
       if(state.session?.user.id!==ownerId)return null;
-      const row=firstRow(response.data);if(!row)throw new Error("Could not start the run.");
-      const run={runId:row.run_id,runToken:row.run_token,seed:row.draft_seed,rulesVersion,expiresAt:row.expires_at,events:[],status:"playing"};
+      const row=response.data.run;if(!row||!row.draft_fairness)throw new Error("Could not load draft history.");
+      const run={runId:row.run_id,runToken:row.run_token,seed:row.draft_seed,rulesVersion,fairness:row.draft_fairness,expiresAt:row.expires_at,events:[],status:"playing"};
       saveGameRun(mode,run);
       return gameSession(mode,run);
     } catch(error){
@@ -776,7 +778,15 @@
     if(!run||!session)throw new Error("Start a new online run to keep playing.");
     if((run.result||run.pending)&&event.type!=="swap")throw new Error("Only lineup moves are allowed after saving a draft.");
     if(run.events.length >= (mode==="draft"?256:15))throw new Error("This run has reached its action limit. Start a new run.");
-    const result=session.apply(event);run.events.push(event);saveGameRun(mode,run);return result;
+    const result=session.apply(event);run.events.push(event);saveGameRun(mode,run);
+    // Record revealed boards, including unchosen cards. Checkpoints are idempotent;
+    // the next start also flushes the full transcript if a background request fails.
+    if(event.type==="open"&&run.fairness){
+      state.client.functions.invoke("draft-history",{body:{action:"checkpoint",previous:{
+        runId:run.runId,runToken:run.runToken,events:[...run.events]
+      }}}).catch(()=>{});
+    }
+    return result;
   }
   async function submitGameRun(mode,roster,automatic=false) {
     if(gameSubmissions[mode])return gameSubmissions[mode];
@@ -791,7 +801,7 @@
     const ownerId=state.session?.user.id;
     try {
       const transcript=run.pending||[...run.events,{type:"arrange",roster:{...roster}}];
-      const validated=state.engine.validateTranscript(run.seed,transcript,mode,run.rulesVersion);
+      const validated=state.engine.validateTranscript(run.seed,transcript,mode,run.rulesVersion,run.fairness);
       if(validated.result.projectedWins!==82){
         if(run.pending){delete run.pending;delete run.error;run.status="playing";saveGameRun(mode,run);}
         return;

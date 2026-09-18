@@ -135,7 +135,7 @@ Deno.serve(async (req: Request) => {
     });
     const { data: run, error: runError } = await admin
       .from("game_runs")
-      .select("id,user_id,mode,rules_version,draft_seed,status,expires_at")
+      .select("id,user_id,mode,rules_version,draft_seed,status,expires_at,draft_fairness")
       .eq("id", runId)
       .maybeSingle();
     if (runError) throw runError;
@@ -156,7 +156,7 @@ Deno.serve(async (req: Request) => {
     const engine = getEngineForRules(run.rules_version);
     let validated;
     try {
-      validated = engine.validateTranscript(run.draft_seed, transcript, run.mode, run.rules_version);
+      validated = engine.validateTranscript(run.draft_seed, transcript, run.mode, run.rules_version, run.mode === "draft" ? run.draft_fairness : null);
     } catch (error) {
       return json(origin, 422, { error: validationMessage(error) });
     }
@@ -174,6 +174,7 @@ Deno.serve(async (req: Request) => {
       runId: run.id,
       userId: userData.user.id,
       seed: run.draft_seed,
+      ...(run.mode === "draft" && run.draft_fairness ? {draftFairness:run.draft_fairness} : {}),
       roster: validated.roster,
       transcript,
       result: validated.result

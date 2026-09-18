@@ -35,8 +35,8 @@ export function rulesForPool(pool,mode) {
   return mode==='draft'?engine.CLASSIC_RULES_VERSION:engine.PACK_RULES_VERSION;
 }
 function poolForRules(version) { return [history,priorHistory].includes(engines.get(version))?'history':engines.get(version)===legacy?'legacy':'modern'; }
-export function createClassicSession(seed,events=[],version=CLASSIC_RULES_VERSION) {
-  const session=getEngineForRules(version).createClassicSession(seed,events);
+export function createClassicSession(seed,events=[],version=CLASSIC_RULES_VERSION,fairness=null) {
+  const session=getEngineForRules(version).createClassicSession(seed,events,fairness);
   session.draft.cardPool=poolForRules(version);
   return session;
 }
@@ -46,7 +46,7 @@ export function createClassicPackSession(seed,events=[],version=PACK_RULES_VERSI
   return session;
 }
 export function calculateResult(roster,version=CLASSIC_RULES_VERSION) { return getEngineForRules(version).calculateResult(roster); }
-export function validateTranscript(seed,transcript,mode='draft',version=RULES_VERSION) { return getEngineForRules(version).validateTranscript(seed,transcript,mode,version); }
+export function validateTranscript(seed,transcript,mode='draft',version=RULES_VERSION,fairness=null) { return getEngineForRules(version).validateTranscript(seed,transcript,mode,version,fairness); }
 export function publicCard(id,version=CLASSIC_RULES_VERSION) { return getEngineForRules(version).publicCard(id); }
 // The original board-manifest API belongs to atu-v1 saved challenges.
 export const {createDraftManifest,createPackManifest,createRunManifest} = legacy;

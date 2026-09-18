@@ -726,12 +726,18 @@ async function run() {
       if(name==='create_ranked_run'){assert.equal(args.p_rules_version,engine.CLASSIC_RULES_VERSION);return {data:[{run_id:'normal-run',run_token:'b'.repeat(64),draft_seed:seed,rules_version:args.p_rules_version,expires_at:'2099-01-01'}]};}
       return {data:[]};
     },invoke(name,{body}){
+      if(name==='draft-history'){
+        if(body.action==='checkpoint')return {data:{ok:true}};
+        assert.equal(body.pool,'modern');
+        return {data:{ok:true,run:{run_id:'normal-run',run_token:'b'.repeat(64),draft_seed:seed,expires_at:'2099-01-01',draft_fairness:{session:1,shown:{},last:{},cards:{}}}}};
+      }
       submissions++;assert.equal(name,'validate-run');
       const validated=engine.validateTranscript(seed,body.transcript,'draft',engine.CLASSIC_RULES_VERSION);
       if(fail){fail=false;return {error:new Error('Disconnected')};}
       return {data:{ok:true,result:validated.result}};
     }});
     await test.api.init();const session=await test.api.beginGameRun('draft');
+    assert.equal(JSON.parse(test.storage.getItem('atu-game-runs-v1')).runs.draft.fairness.session,1,'Signed-in run stores its trusted history snapshot');
     test.api.applyGameAction('draft',{type:'captain',cardId:session.draft.captain[0].id});
     for(const slot of engine.ALL_SLOTS)if(session.draft.roster[slot]==null){
       test.api.applyGameAction('draft',{type:'open',slot});test.api.applyGameAction('draft',{type:'pick',cardId:session.draft.opts[0].id});
