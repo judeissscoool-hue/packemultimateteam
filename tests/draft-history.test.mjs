@@ -60,6 +60,24 @@ assert.equal((await handler(request({action:'checkpoint',previous:{...previous,r
 row.user_id='other';assert.equal((await handler(request({action:'checkpoint',previous}))).status,400);row.user_id='owner';
 assert.equal((await handler(request({action:'checkpoint',previous:{...previous,events:[{type:'captain',cardId:999999}]}}))).status,400);
 assert.equal(records.length,recorded,'Forged and cross-account checkpoints never change history');
+// Restart partially completed runs from both before and after the history release.
+// Flush the old offers before initializing the replacement run's snapshot.
+for(const snapshot of [null,fair]){
+ row.draft_fairness=snapshot;
+ const session=engine.createClassicSession(seed,[],engine.CLASSIC_RULES_VERSION,snapshot),events=[];
+ const act=event=>{session.apply(event);events.push(event);};
+ act({type:'captain',cardId:session.draft.captain[0].id});
+ for(const slot of engine.ALL_SLOTS.filter(s=>session.draft.roster[s]==null).slice(0,3)){
+  act({type:'open',slot});
+  act({type:'pick',cardId:session.draft.opts[0].id});
+ }
+ const before=records.length;
+ res=await handler(request({action:'start',pool:'modern',previous:{...previous,events}}));
+ assert.equal(res.status,200,'A mid-draft restart accepts legacy and account-history runs');
+ assert.deepEqual(records[before].p_exposure,draftExposure(session.draft),'Previous offers are saved before the new captain offers');
+ assert.equal(records.length,before+2);
+}
+row.draft_fairness=fair;
 assert.equal((await handler(request({action:'start',pool:'modern'},'bad'))).status,401);
 assert.equal((await handler(request({action:'start',pool:'modern'},'valid','https://evil.example'))).status,403);
 console.log('Persistent draft history: immutable replay, reloads, exposure counting, auth and tamper checks passed');

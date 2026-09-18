@@ -6606,6 +6606,7 @@ function startEraByIndex(i){const e=viableEras()[i];if(e)startDraft(e);}
 /* Bail out of a half-finished draft. Same sheet pattern as the hub reset, so a
    destructive action always asks first. */
 function confirmDraftReset(){
+  const D=activeDraft();
   if(D.stage!=="picking")return;
   const n=ALL_SLOTS.filter(s=>D.roster[s]!=null).length;
   $("#sheet").innerHTML=`<div class="sheetbox"><h3>Restart this draft?</h3>

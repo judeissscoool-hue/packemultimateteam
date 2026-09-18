@@ -73,4 +73,22 @@ for (const match of source.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)) {
   assert.match(bar.innerHTML,/aria-current="page">Classic Draft/);
   assert.deepEqual(draft,{roster:{PG:42},activeSlot:'C'},'Navigation never resets the draft or its open board');
 }
+{
+  const slots=['PG','SG','SF','PF','C','B1','B2','B3'];
+  const restored={stage:'picking',roster:Object.fromEntries(slots.map((s,i)=>[s,i<3?i:null]))};
+  const sheet={innerHTML:'',classList:{add(value){this.value=value;}}};
+  const context=vm.createContext({screen:'draft',D:{stage:'captain',roster:{}},DRAFT_ERA:null,
+    ALL_SLOTS:slots,ATUBackend:{getGameSession:()=>({draft:restored})},$:()=>sheet});
+  vm.runInContext(source.slice(source.indexOf('function activeDraft(){'),source.indexOf('function localDraftRules(){'))+
+    source.slice(source.indexOf('function confirmDraftReset(){'),source.indexOf('function doDraftReset(){')),context);
+  context.confirmDraftReset();
+  assert.equal(sheet.classList.value,'show','Restart must open for a restored signed-in draft even when the local draft is still at captain selection');
+  assert.match(sheet.innerHTML,/3 picks/,'Restart confirmation counts the displayed online roster');
+  assert.match(sheet.innerHTML,/doDraftReset\(\)/);
+  context.ATUBackend.getGameSession=()=>null;
+  context.D=restored;
+  sheet.classList.value=null;
+  context.confirmDraftReset();
+  assert.equal(sheet.classList.value,'show','Guest drafts still restart');
+}
 console.log('UI interaction tests passed');
