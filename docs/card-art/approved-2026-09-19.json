@@ -1,0 +1,236 @@
+{
+  "approvedAt": "2026-09-19",
+  "cards": [
+    {
+      "id": 2,
+      "name": "Kareem Abdul-Jabbar",
+      "team": "LAL",
+      "approvedImageTitle": "Iconic Skyhook in Purple and Gold",
+      "approvedVersionSelector": "User-downloaded and approved latest image, 2026-09-19",
+      "repoPath": "cards/kareem-abdul-jabbar-lal.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "f08b628c3473d424f124c4277e08540b36a5b4c2323d087dd96da9cbcc43ab34"
+    },
+    {
+      "id": 51,
+      "name": "Ray Allen",
+      "team": "BOS",
+      "approvedImageTitle": "Geometric Celtics-Style Basketball Defender",
+      "approvedVersionSelector": "User-downloaded and approved latest image, 2026-09-19",
+      "repoPath": "cards/ray-allen-bos.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "53d575358d21f4a338bf1972e38da77247f07d775af87935e712a74a43369e70"
+    },
+    {
+      "id": 224,
+      "name": "Wilt Chamberlain",
+      "team": "PHI",
+      "approvedImageTitle": "Retro Mid-Century Basketball Poster",
+      "approvedVersionSelector": "User-downloaded and approved latest image, 2026-09-19",
+      "repoPath": "cards/wilt-chamberlain-phi.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "a7515148aa3c49b47adf305cc22d8de65f3c9ad273141af3d4957972014479f7"
+    },
+    {
+      "id": 86,
+      "name": "Dennis Rodman",
+      "team": "DET",
+      "approvedImageTitle": "ChatGPT Image Sep 19, 2026, 03_52_08 PM",
+      "approvedVersionSelector": "User-downloaded and approved latest image, 2026-09-19",
+      "repoPath": "cards/dennis-rodman-det.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "85554e4fe70b6a08f4ad3031b2c68cfa464443f7a82d8d3a32c00f8f834898d2"
+    },
+    {
+      "id": 137,
+      "name": "Rajon Rondo",
+      "team": "BOS",
+      "approvedImageTitle": "Celtics-Style Player in Ready Stance",
+      "approvedVersionSelector": "User-downloaded and approved latest image, 2026-09-19",
+      "repoPath": "cards/rajon-rondo-bos.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "31708dcfa69b0d895eb76db5db76749c7c2798ff208e06ba234e079913498a68"
+    },
+    {
+      "id": 237,
+      "name": "Ray Allen",
+      "team": "MIA",
+      "approvedImageTitle": "Crimson Basketball Shooter Poster",
+      "approvedVersionSelector": "User-downloaded and approved latest image, 2026-09-19",
+      "repoPath": "cards/ray-allen-mia.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "e60d12ba5d488eca64dee116623bcbc10089ac12dc221f3583631556754393f5"
+    },
+    {
+      "id": 140,
+      "name": "Kyle Lowry",
+      "team": "TOR",
+      "approvedImageTitle": "ChatGPT Image Sep 19, 2026, 03_49_06 PM",
+      "approvedVersionSelector": "User-downloaded and approved latest image, 2026-09-19",
+      "repoPath": "cards/kyle-lowry-tor.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "60b125521cf25023d712c17ab85f214919c6719867f42db2732128fee2de2b91"
+    },
+    {
+      "id": 147,
+      "name": "Richard Hamilton",
+      "team": "DET",
+      "approvedImageTitle": "ChatGPT Image Sep 19, 2026, 03_53_26 PM",
+      "approvedVersionSelector": "User-downloaded and approved latest image, 2026-09-19",
+      "repoPath": "cards/richard-hamilton-det.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "df65ec6a7f5074b3654c8584554d9195c8c1fce6730a36dfda3eef2c8cd1b168"
+    },
+    {
+      "id": 160,
+      "name": "Bradley Beal",
+      "team": "WAS",
+      "approvedImageTitle": "ChatGPT Image Sep 19, 2026, 03_49_18 PM",
+      "approvedVersionSelector": "User-downloaded and approved latest image, 2026-09-19",
+      "repoPath": "cards/bradley-beal-was.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "5d1728eb55161747337fa0ad23152aab22f57bf27f99a7af62152647cdc5f5ee"
+    },
+    {
+      "id": 162,
+      "name": "Scottie Barnes",
+      "team": "TOR",
+      "approvedImageTitle": "ChatGPT Image Sep 19, 2026, 03_49_29 PM",
+      "approvedVersionSelector": "User-downloaded and approved latest image, 2026-09-19",
+      "repoPath": "cards/scottie-barnes-tor.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "c6844e11d847dfc9ac05de88c756883d92e0d0c8cb228e7a81453e78df52c588"
+    },
+    {
+      "id": 166,
+      "name": "Zach Randolph",
+      "team": "MEM",
+      "approvedImageTitle": "Minimalist Post-Up Basketball Poster",
+      "approvedVersionSelector": "User-downloaded and approved latest image, 2026-09-19",
+      "repoPath": "cards/zach-randolph-mem.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "3e0490976cf53c589760a52ca81c67be272a1a6e5ee495551fc80303e028aa26"
+    },
+    {
+      "id": 181,
+      "name": "Andrei Kirilenko",
+      "team": "UTA",
+      "approvedImageTitle": "Airborne Purple Defender",
+      "approvedVersionSelector": "User-downloaded and approved latest image, 2026-09-19",
+      "repoPath": "cards/andrei-kirilenko-uta.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "c409b78c87c616aaa80de4335c6e89021d5fc04b5a8585e564fffc896a737622"
+    },
+    {
+      "id": 242,
+      "name": "James Harden",
+      "team": "CLE",
+      "approvedImageTitle": "James Harden–Inspired Basketball Poster",
+      "approvedVersionSelector": "User-downloaded and approved latest image, 2026-09-19",
+      "repoPath": "cards/james-harden-cle.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "31976b6a24d2f7262d16e9560411ba0cee9c4f3d6a924ad70254ff7e4c06abb2"
+    },
+    {
+      "id": 255,
+      "name": "Isaiah Thomas",
+      "team": "BOS",
+      "approvedImageTitle": "Dynamic Celtics-Inspired Basketball Poster",
+      "approvedVersionSelector": "User-downloaded and approved latest image, 2026-09-19",
+      "repoPath": "cards/isaiah-thomas-bos.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "d09fa8b8ff5d3d021df37fa155d94c0b4e2caad0bb6bd76d466c43f3db0011a8"
+    },
+    {
+      "id": 259,
+      "name": "Kemba Walker",
+      "team": "CHA",
+      "approvedImageTitle": "ChatGPT Image Sep 19, 2026, 03_50_26 PM",
+      "approvedVersionSelector": "User-downloaded and approved latest image, 2026-09-19",
+      "repoPath": "cards/kemba-walker-cha.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "c55a30afbfb3b998e83266c260e7b5b07109e373ef8d52fefd4e543a1429ef0e"
+    },
+    {
+      "id": 284,
+      "name": "Jerry Stackhouse",
+      "team": "DET",
+      "approvedImageTitle": "Retro Basketball Dunk Poster",
+      "approvedVersionSelector": "User-downloaded and approved latest image, 2026-09-19",
+      "repoPath": "cards/jerry-stackhouse-det.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "dc452110eb23cf754e3b581207f0e5f4847fb920f3beb7c067f441525e4b99c7"
+    },
+    {
+      "id": 325,
+      "name": "Jaren Jackson Jr.",
+      "team": "UTA",
+      "approvedImageTitle": "Minimalist Purple Basketball Defender",
+      "approvedVersionSelector": "User-downloaded and approved latest image, 2026-09-19",
+      "repoPath": "cards/jaren-jackson-jr-uta.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "5437db3f8827add326a837d02633c84a28107c129e7b538552ef5a687cf8f1ea"
+    },
+    {
+      "id": 799,
+      "name": "Jalen Johnson",
+      "team": "ATL",
+      "approvedImageTitle": "Dynamic Basketball Player Vortex Poster",
+      "approvedVersionSelector": "User-downloaded and approved latest image, 2026-09-19",
+      "repoPath": "cards/jalen-johnson-atl.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "8283470bbac353253fc7195abb8cf5b6c53bf088bdc12d32470bf3cc08eb709f"
+    },
+    {
+      "id": 957,
+      "name": "Ron Harper",
+      "team": "LAC",
+      "approvedImageTitle": "Minimalist Moustached Basketball Dunk",
+      "approvedVersionSelector": "User-downloaded and approved latest image, 2026-09-19",
+      "repoPath": "cards/ron-harper-lac.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "c5436ee93c439196d112e223747cf06c74ab8b4c3cb375b9b3325ee2786179ff"
+    },
+    {
+      "id": 958,
+      "name": "Paul George",
+      "team": "LAC",
+      "approvedImageTitle": "Dynamic Basketball Follow-Through Poster",
+      "approvedVersionSelector": "User-downloaded and approved latest image, 2026-09-19",
+      "repoPath": "cards/paul-george-lac.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "40a6577214fdfececddd329fdd8602a6510dd9b3695e8c698b482f4c6ad51269"
+    },
+    {
+      "id": 236,
+      "name": "Ray Allen",
+      "team": "OKC",
+      "approvedImageTitle": "Dynamic Basketball Shooter Poster",
+      "approvedVersionSelector": "User-downloaded and approved latest image, 2026-09-19",
+      "repoPath": "cards/ray-allen-okc.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "2ff537a3f5a7ec2666b4cb99e2a72024c6962ab8737414952adbf45f40124f3d"
+    }
+  ]
+}
