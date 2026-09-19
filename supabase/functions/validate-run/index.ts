@@ -4,7 +4,7 @@ import {
   SUPPORTED_RULES_VERSIONS,
   isClassicRulesVersion,
   getEngineForRules
-} from "../_shared/atu-engine-v1.js";
+} from "../_shared/atu-engine-roster-20260919.js";
 
 type JsonRecord = Record<string, unknown>;
 

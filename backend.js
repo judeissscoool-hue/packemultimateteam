@@ -520,7 +520,7 @@
   async function loadEngine() {
     if (state.engine) return state.engine;
     if (!state.enginePromise) {
-      state.enginePromise = import("./supabase/functions/_shared/atu-engine-v1.js?gmm=20260918-history")
+      state.enginePromise = import("./supabase/functions/_shared/atu-engine-roster-20260919.js?roster=20260919")
         .then(function (engine) {
           state.engine = engine;
           return engine;
@@ -754,7 +754,7 @@
       const engine=await loadEngine();
       const rulesVersion=engine.rulesForPool(pool,mode);
       const previous=readGameRuns().runs?.draft;
-      const response=await state.client.functions.invoke("draft-history",{body:{action:"start",pool,
+      const response=await state.client.functions.invoke("draft-history",{body:{action:"start",pool,rulesVersion,
         ...(previous?{previous:{runId:previous.runId,runToken:previous.runToken,events:previous.events}}:{})}});
       if(response.error||!response.data?.ok)throw response.error||new Error(response.data?.error||"Could not start draft");
       if(state.session?.user.id!==ownerId)return null;

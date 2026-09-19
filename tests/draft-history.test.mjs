@@ -3,7 +3,7 @@ import {createHash,webcrypto} from 'node:crypto';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import {stripTypeScriptTypes} from 'node:module';
-import * as engine from '../supabase/functions/_shared/atu-engine-v1.js';
+import * as engine from '../supabase/functions/_shared/atu-engine-roster-20260919.js';
 import {draftExposure,cloneDraftFairness} from '../supabase/functions/_shared/draft-history.js';
 
 const seed=createHash('sha256').update('persistent-draft-history-tests').digest('hex');
@@ -53,6 +53,15 @@ const context=vm.createContext({...engine,draftExposure,console,Response,Request
 vm.runInContext(stripTypeScriptTypes(source),context);
 const request=(body,token='valid',origin='https://www.packemultimateteam.com')=>new Request('https://example.supabase.co/functions/v1/draft-history',{method:'POST',headers:{authorization:'Bearer '+token,origin,'content-type':'application/json'},body:JSON.stringify(body)});
 let res=await handler(request({action:'start',pool:'modern'}));assert.equal(res.status,200);let response=await res.json();assert.deepEqual(response.run.draft_fairness,fair);assert.equal(records.length,1);assert.equal(created,1);
+assert.equal(response.run.rules_version,'atu-classic-v4','Already-open old clients keep their matching rules');
+for(const pool of ['modern','history']){
+ const rulesVersion=engine.rulesForPool(pool,'draft');
+ const started=await handler(request({action:'start',pool,rulesVersion}));
+ assert.equal(started.status,200);assert.equal((await started.json()).run.rules_version,rulesVersion);
+}
+const createsBeforeInvalid=created;
+assert.equal((await handler(request({action:'start',pool:'modern',rulesVersion:'atu-history-draft-v3'}))).status,400);
+assert.equal(created,createsBeforeInvalid,'A pool/rules mismatch cannot create a run');
 const previous={runId,runToken,events:[]};
 res=await handler(request({action:'checkpoint',previous}));assert.equal(res.status,200);assert.deepEqual(records.at(-1).p_exposure,draftExposure(engine.createClassicSession(seed,[],engine.CLASSIC_RULES_VERSION,fair).draft));
 const recorded=records.length;

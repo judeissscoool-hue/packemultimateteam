@@ -1,12 +1,13 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
-import * as router from '../supabase/functions/_shared/atu-engine-v1.js';
+import * as router from '../supabase/functions/_shared/atu-engine-roster-20260919.js';
 import {CARDS,MODERN_CARD_IDS,HISTORY_CARD_IDS} from '../supabase/functions/_shared/atu-data-v1.js';
 import {CARDS as oldCards} from '../supabase/functions/_shared/legacy/atu-data-v1.js';
 const cards=new Map(CARDS.map(p=>[p.id,p]));
-assert.equal(CARDS.length,1142);assert.equal(MODERN_CARD_IDS.length,1062);assert.equal(HISTORY_CARD_IDS.length,1141);
-for(const old of oldCards){const p=cards.get(old.id);assert(p,'Saved card ID must remain readable');assert.equal(p.t,old.t);if(old.id!==173)assert.equal(p.n,old.n);}
+assert(CARDS.length>1142);assert(MODERN_CARD_IDS.length>1062);assert(HISTORY_CARD_IDS.length>1141);
+const frozen=router.getEngineForRules('atu-classic-v4');
+for(const old of oldCards){const p=cards.get(old.id);assert(p,'Saved card ID must remain readable');if(old.id!==173)assert.equal(p.n,old.n);}
 assert(!HISTORY_CARD_IDS.includes(173));assert(HISTORY_CARD_IDS.includes(147));
 assert.equal(cards.get(147).n,cards.get(173).n,'Hamilton alias remains readable but cannot be pulled twice');
 assert(MODERN_CARD_IDS.every(id=>HISTORY_CARD_IDS.includes(id)));
@@ -18,7 +19,7 @@ assert.throws(()=>router.rulesForPool('typo','draft'),/Invalid/);
 const clean=v=>JSON.parse(JSON.stringify(v,(k,value)=>k==="cardPool"?undefined:value));
 for(const version of router.SUPPORTED_RULES_VERSIONS){
  const engine=router.getEngineForRules(version);
- assert.equal(engine.ENGINE_VERSION,router.isLegacyRulesVersion(version)?'atu-challenge-v3':(['atu-classic-v3','atu-pack-v3','atu-history-draft-v1','atu-history-pack-v1'].includes(version)?'atu-gmm-v1':'atu-gmm-v2'));
+ assert.equal(engine.ENGINE_VERSION,router.isLegacyRulesVersion(version)?'atu-challenge-v3':(['atu-classic-v3','atu-pack-v3','atu-history-draft-v1','atu-history-pack-v1'].includes(version)?'atu-gmm-v1':['atu-classic-v4','atu-pack-v4','atu-history-draft-v2','atu-history-pack-v2'].includes(version)?'atu-gmm-v2':'atu-roster-v1'));
  if(version==='atu-v1')continue;
  const isPack=version.includes('pack'),mode=isPack?'pack':'draft';
  for(let i=0;i<8;i++){

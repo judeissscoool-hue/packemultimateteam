@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import {stripTypeScriptTypes} from 'node:module';
 import {webcrypto} from 'node:crypto';
-import * as engine from '../supabase/functions/_shared/atu-engine-v1.js';
+import * as engine from '../supabase/functions/_shared/atu-engine-roster-20260919.js';
 
 const source=fs.readFileSync(new URL('../supabase/functions/validate-run/index.ts',import.meta.url),'utf8').replace(/import[\s\S]*?from "[^"]+";\r?\n/g,'');
 let handler,finalized=0,lastDigest;

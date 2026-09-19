@@ -1,6 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2.112.2/cors";
-import { getEngineForRules, rulesForPool } from "../_shared/atu-engine-v1.js";
+import { getEngineForRules, rulesForPool } from "../_shared/atu-engine-roster-20260919.js";
 import { draftExposure } from "../_shared/draft-history.js";
 
 type JsonRecord = Record<string, unknown>;
@@ -115,7 +115,7 @@ Deno.serve(async (req: Request) => {
       const hash=[...new Uint8Array(digest)].map(x=>x.toString(16).padStart(2,'0')).join('');
       if(hash!==run.nonce_hash)throw new Error('Invalid run token');
       // Older rule versions keep their old behavior and cannot inject history.
-      if(!['atu-classic-v4','atu-history-draft-v2'].includes(run.rules_version))return;
+      if(!['atu-classic-v4','atu-history-draft-v2','atu-classic-v5','atu-history-draft-v3'].includes(run.rules_version))return;
       const engine=getEngineForRules(run.rules_version);
       const session=engine.createClassicSession(run.draft_seed,previous.events,run.draft_fairness);
       const result=await admin.rpc('record_draft_exposure',{p_run_id:run.id,p_user_id:userId,p_exposure:draftExposure(session.draft)});
@@ -129,7 +129,11 @@ Deno.serve(async (req: Request) => {
     if(body.pool!=='modern'&&body.pool!=='history')return json(origin,400,{error:'Invalid player pool'});
     // Flush the complete previous transcript before taking the next immutable snapshot.
     if(body.previous)await record(body.previous);
-    const version=rulesForPool(body.pool,'draft');
+    // Older open website tabs omit rulesVersion and must continue using their
+    // original roster. New clients explicitly request the new supported rules.
+    const previousVersion=body.pool==='history'?'atu-history-draft-v2':'atu-classic-v4';
+    const version=body.rulesVersion??previousVersion;
+    if(![previousVersion,rulesForPool(body.pool,'draft')].includes(version))return json(origin,400,{error:'Invalid draft rules'});
     const created=await userClient.rpc('create_ranked_run',{p_mode:'draft',p_rules_version:version});
     if(created.error)throw created.error;
     const run=Array.isArray(created.data)?created.data[0]:created.data;
