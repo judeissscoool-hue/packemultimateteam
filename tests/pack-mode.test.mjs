@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {createClassicPackSession,createClassicSession,validateTranscript,PACK_RULES_VERSION,CLASSIC_RULES_VERSION,ALL_SLOTS,publicCard} from '../supabase/functions/_shared/atu-engine-roster-20260919.js';
+import {createClassicPackSession,createClassicSession,validateTranscript,PACK_RULES_VERSION,CLASSIC_RULES_VERSION,ALL_SLOTS,publicCard} from '../supabase/functions/_shared/atu-engine-roster-20260920.js';
 const seed='0123456789abcdef'.repeat(4);
 const session=createClassicPackSession(seed),events=[];
 const apply=event=>{const result=session.apply(event);events.push(event);return result;};

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
-import * as router from '../supabase/functions/_shared/atu-engine-roster-20260919.js';
+import * as router from '../supabase/functions/_shared/atu-engine-roster-20260920.js';
 import {CARDS,MODERN_CARD_IDS,HISTORY_CARD_IDS} from '../supabase/functions/_shared/atu-data-v1.js';
 import {CARDS as oldCards} from '../supabase/functions/_shared/legacy/atu-data-v1.js';
 const cards=new Map(CARDS.map(p=>[p.id,p]));
@@ -19,7 +19,7 @@ assert.throws(()=>router.rulesForPool('typo','draft'),/Invalid/);
 const clean=v=>JSON.parse(JSON.stringify(v,(k,value)=>k==="cardPool"?undefined:value));
 for(const version of router.SUPPORTED_RULES_VERSIONS){
  const engine=router.getEngineForRules(version);
- assert.equal(engine.ENGINE_VERSION,router.isLegacyRulesVersion(version)?'atu-challenge-v3':(['atu-classic-v3','atu-pack-v3','atu-history-draft-v1','atu-history-pack-v1'].includes(version)?'atu-gmm-v1':['atu-classic-v4','atu-pack-v4','atu-history-draft-v2','atu-history-pack-v2'].includes(version)?'atu-gmm-v2':'atu-roster-v1'));
+ assert.equal(engine.ENGINE_VERSION,router.isLegacyRulesVersion(version)?'atu-challenge-v3':(['atu-classic-v3','atu-pack-v3','atu-history-draft-v1','atu-history-pack-v1'].includes(version)?'atu-gmm-v1':['atu-classic-v4','atu-pack-v4','atu-history-draft-v2','atu-history-pack-v2'].includes(version)?'atu-gmm-v2':['atu-classic-v5','atu-pack-v5','atu-history-draft-v3','atu-history-pack-v3'].includes(version)?'atu-roster-v1':'atu-roster-v2'));
  if(version==='atu-v1')continue;
  const isPack=version.includes('pack'),mode=isPack?'pack':'draft';
  for(let i=0;i<8;i++){

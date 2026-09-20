@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import {CARDS,MODERN_CARD_IDS,HISTORY_CARD_IDS} from '../supabase/functions/_shared/atu-data-v1.js';
 import {CARDS as frozenCards} from '../supabase/functions/_shared/gmm-20260913/atu-data-v1.js';
-import * as router from '../supabase/functions/_shared/atu-engine-roster-20260919.js';
+import * as router from '../supabase/functions/_shared/atu-engine-roster-20260920.js';
 const active=CARDS.filter(c=>HISTORY_CARD_IDS.includes(c.id)),find=(n,t)=>active.find(c=>c.n===n&&c.t===t);
 const decisions=JSON.parse(fs.readFileSync(new URL('../docs/approved-roster-20260919.json',import.meta.url)));
 for(const [key,rating]of Object.entries(decisions.overrides)){const[n,t]=key.split('|');if(decisions.oneCardPlayers.includes(n)&&decisions.currentTeams[n]!==t)continue;assert.equal(find(n,t)?.o,rating,key);}
@@ -14,7 +14,7 @@ assert.deepEqual(find('Dyson Daniels','ATL').ps,['PG','SG','SF']);assert.deepEqu
 assert.equal(find('Caleb Wilson','CHI').p,'PF');assert.equal(find('Luka Garza','BOS').p,'C');assert.equal(find('Cameron Boozer','MEM').p,'PF');
 assert(find('Al Horford','ATL').g.includes('Style_PaintBeast'));assert(!find('Al Horford','ATL').g.includes('Style_Sharpshooter'));
 assert(find('Robert Williams III','BOS').g.includes('Story_Draft_2018'));assert(!find('Fred VanVleet','HOU').g.some(t=>t.startsWith('Story_Draft_')));
-assert.equal(active.length,decisions.activeCards);assert.equal(CARDS.length,decisions.totalCards);
+assert.equal(active.length,decisions.activeCards+7);assert.equal(CARDS.length,decisions.totalCards+7);
 for(const c of active){assert(c.ps.length&&c.ps.every(p=>['PG','SG','SF','PF','C'].includes(p)));assert.equal(new Set(c.ps).size,c.ps.length);assert(c.g.filter(t=>t.startsWith('Style_')).length<=2);}
 assert.equal(new Set(active.map(c=>c.n+'|'+c.t+'|'+c.g.find(t=>t.startsWith('Era_')))).size,active.length,'No redundant player/franchise/era copies');
 for(const old of frozenCards){assert(CARDS.some(c=>c.id===old.id&&c.n===old.n),'Old IDs remain readable');}

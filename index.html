@@ -22,7 +22,7 @@
   integrity="sha384-OUpie84zd1LdwNlK9uJJQRwab0BLqo3eKYKFh7hSVL58FSk7wPp2l0kfUMIIoaQd"
   crossorigin="anonymous"></script>
 <script src="./supabase/functions/_shared/classic-draft.js"></script>
-<script src="./backend.js?v=account-load-fix-20260920"></script>
+<script src="./backend.js?v=roster-final-20260920"></script>
 <style>
 /* ============ TOKENS: arena at night ============ */
 :root{
@@ -1304,7 +1304,7 @@ const P=[
 ["Mitch Richmond","SG",94,"SAC","90s",["SG"],["Style_Sharpshooter"],1,true,true],
 ["LaMarcus Aldridge","PF",89,"POR","10s",["PF","C"],["Style_Sharpshooter","Style_PaintBeast"],1,true,true],
 ["Gilbert Arenas","PG",93,"WAS","00s",["PG","SG"],["Style_Sharpshooter","Style_AnkleBreaker"],1,true,true],
-["DeMar DeRozan","SG",89,"TOR","10s",["SG","SF"],["Style_Sharpshooter","Style_Slasher"],1,true,true],
+["DeMar DeRozan","SG",91,"TOR","10s",["SG","SF"],["Style_Sharpshooter","Style_Slasher"],1,true,true],
 ["Domantas Sabonis","C",91,"SAC","20s",["C","PF"],["Style_FloorGeneral","Style_PaintBeast"],1,true,true],
 ["Alperen Sengun","C",88,"HOU","20s",["C","PF"],["Style_FloorGeneral","Style_PaintBeast"],1,true,true],
 ["Tyrese Maxey","PG",93,"PHI","20s",["PG","SG"],["Style_Slasher","Style_Sharpshooter"],1,true,true],
@@ -1314,7 +1314,7 @@ const P=[
 ["Marc Gasol","C",93,"MEM","10s",["C","PF"],["Style_Lockdown","Style_PaintBeast"],1,true,true],
 ["Shawn Marion","SF",91,"PHX","00s",["SF","PF"],["Style_FlightClub","Style_Lockdown"],1,true,true],
 ["Mark Price","PG",93,"CLE","90s",["PG"],["Style_Sharpshooter","Style_FloorGeneral"],1,true,true],
-["John Wall","PG",89,"WAS","10s",["PG"],["Style_FlightClub","Style_FloorGeneral"],1,true,true],
+["John Wall","PG",90,"WAS","10s",["PG"],["Style_FlightClub","Style_FloorGeneral"],1,true,true],
 ["Jamal Murray","PG",91,"DEN","20s",["PG","SG"],["Style_Sharpshooter","Style_FloorGeneral"],1,true,true],
 ["Chet Holmgren","C",87,"OKC","20s",["C","PF"],["Style_Lockdown","Style_PaintBeast"],1,true,true],
 ["Dennis Johnson","PG",85,"BOS","80s",["PG","SG"],["Style_Lockdown","Style_FloorGeneral"],1,true,true],
@@ -1324,8 +1324,8 @@ const P=[
 ["Rajon Rondo","PG",90,"BOS","10s",["PG"],["Style_FloorGeneral","Style_Lockdown"],1,true,true],
 ["Jrue Holiday","PG",87,"MIL","20s",["PG","SG"],["Style_Lockdown","Style_FloorGeneral"],1,true,true],
 ["Glen Rice","SF",90,"CHA","90s",["SF","SG"],["Style_Sharpshooter"],1,true,true],
-["Kyle Lowry","PG",89,"TOR","10s",["PG"],["Style_Sharpshooter","Style_FloorGeneral"],1,true,true],
-["Blake Griffin","PF",88,"LAC","10s",["PF"],["Style_FlightClub","Style_PaintBeast"],1,true,true],
+["Kyle Lowry","PG",90,"TOR","10s",["PG"],["Style_Sharpshooter","Style_FloorGeneral"],1,true,true],
+["Blake Griffin","PF",89,"LAC","10s",["PF"],["Style_FlightClub","Style_PaintBeast"],1,true,true],
 ["Sam Jones","SG",90,"BOS","60s",["SG"],["Style_Sharpshooter"],1,true,false],
 ["Kevin Love","PF",87,"CLE","10s",["PF"],["Style_Sharpshooter","Style_PaintBeast"],1,true,true],
 ["Mike Conley","PG",88,"MEM","10s",["PG"],["Style_Lockdown","Style_FloorGeneral"],1,true,true],
@@ -1479,7 +1479,7 @@ const P=[
 ["Chris Kaman","C",87,"LAC","00s",["C"],["Style_PaintBeast"],0.7,true,true],
 ["D'Angelo Russell","PG",84,"MIN","20s",["PG","SG"],["Style_Sharpshooter"],1,true,true],
 ["Danny Granger","SF",88,"IND","00s",["SF"],["Style_Sharpshooter"],0.85,true,true],
-["David Lee","PF",84,"GSW","10s",["PF"],["Style_PaintBeast"],0.85,true,true],
+["David Lee","PF",86,"GSW","10s",["PF"],["Style_PaintBeast"],1,true,true],
 ["Deandre Ayton","C",86,"PHX","20s",["C"],["Style_PaintBeast"],1,true,true],
 ["Emeka Okafor","PF",84,"CHA","00s",["PF"],["Style_Lockdown"],0.7,true,true],
 ["Gerald Wallace","SF",84,"POR","10s",["SF"],["Style_Lockdown"],0.85,true,true],
@@ -1491,7 +1491,7 @@ const P=[
 ["Kirk Hinrich","PG",84,"CHI","00s",["PG"],["Style_FloorGeneral"],0.7,true,true],
 ["Luol Deng","SF",84,"CHI","00s",["SF"],["Style_Lockdown"],0.9,true,true],
 ["Mike James","PG",84,"MIN","00s",["PG"],["Style_Sharpshooter"],0.7,true,true],
-["Monta Ellis","SG",84,"GSW","10s",["SG","PG"],["Style_Slasher"],1,true,true],
+["Monta Ellis","SG",85,"GSW","10s",["SG","PG"],["Style_Slasher"],1,true,true],
 ["Myles Turner","C",85,"IND","10s",["C"],["Style_PaintBeast"],0.85,true,true],
 ["Ricky Davis","SG",84,"MIN","00s",["SG"],["Style_FlightClub"],0.7,true,true],
 ["Stephen Jackson","SG",84,"CHA","10s",["SG"],["Style_Lockdown"],0.85,true,true],
@@ -1506,7 +1506,7 @@ const P=[
 ["Corey Maggette","SF",86,"LAC","00s",["SF","SG"],["Style_Slasher"],0.85,true,true],
 ["Danilo Gallinari","SF",83,"ATL","20s",["SF"],["Style_FlightClub"],0.95,true,true],
 ["Devin Harris","PG",83,"BKN","10s",["PG"],["Style_Slasher"],1,true,true],
-["Eric Bledsoe","PG",83,"PHX","10s",["PG","SG"],["Style_Lockdown"],1,true,true],
+["Eric Bledsoe","PG",85,"PHX","10s",["PG","SG"],["Style_Lockdown"],1,true,true],
 ["Erick Dampier","C",83,"GSW","00s",["C"],["Style_PaintBeast"],0.65,true,true],
 ["Jamal Crawford","SG",83,"NYK","00s",["SG"],["Style_Sharpshooter"],0.65,true,true],
 ["Jaren Jackson Jr.","PF",89,"UTA","20s",["PF","C"],["Style_Sharpshooter","Style_Lockdown"],1,true,true],
@@ -1544,7 +1544,7 @@ const P=[
 ["Steven Adams","C",82,"NOP","20s",["C"],["Style_PaintBeast"],0.9,true,true],
 ["Terry Rozier","PG",82,"CHA","20s",["PG"],["Style_FloorGeneral"],0.9,true,true],
 ["Ty Lawson","PG",82,"DEN","10s",["PG"],["Style_FloorGeneral"],0.95,true,true],
-["Tyreke Evans","SG",82,"SAC","10s",["SG"],["Style_FlightClub"],0.75,true,true],
+["Tyreke Evans","SG",85,"SAC","10s",["SG"],["Style_FlightClub"],1,true,true],
 ["Andris Biedrins","C",81,"GSW","00s",["C"],["Style_PaintBeast"],0.55,true,true],
 ["Bojan Bogdanovic","SF",82,"UTA","20s",["SF"],["Style_FlightClub"],0.85,true,true],
 ["Buddy Hield","SG",83,"SAC","20s",["SG"],["Style_Sharpshooter"],0.85,true,true],
@@ -2179,7 +2179,7 @@ const P=[
 ["Dell Curry","SG",85,"CHA","90s",["SG","SF"],["Style_Sharpshooter"],1,true,true],
 ["Kendall Gill","SG",85,"CHA","90s",["SG","SF"],["Style_Slasher"],1,true,true],
 ["Baron Davis","PG",85,"CHA","00s",["PG"],["Style_FlightClub","Style_FloorGeneral"],1,true,true],
-["Gerald Wallace","SF",84,"CHA","10s",["SF"],["Style_Lockdown"],0.85,true,true],
+["Gerald Wallace","SF",85,"CHA","10s",["SF"],["Style_Lockdown"],1,true,true],
 ["Mark Eaton","C",89,"UTA","80s",["C"],["Style_Lockdown"],1,true,true],
 ["Donovan Mitchell","SG",88,"UTA","20s",["SG","PG"],["Style_Sharpshooter","Style_Slasher"],1,true,true],
 ["Darrell Griffith","SG",87,"UTA","80s",["SG","SF"],["Style_Sharpshooter","Style_FlightClub"],1,true,true],
@@ -2489,7 +2489,14 @@ const P=[
 ["Alex Caruso","SF",80,"LAL","20s",["SF","PG"],["Style_Lockdown"],0.5,true,true],
 ["Jrue Holiday","PG",87,"BOS","20s",["PG","SG"],["Style_Lockdown","Style_FloorGeneral"],1,true,true],
 ["Al Horford","C",86,"BOS","10s",["C","PF"],["Style_Lockdown","Style_Sharpshooter"],1,true,true],
-["Kristaps Porzingis","C",87,"BOS","20s",["C","PF"],["Style_Sharpshooter","Style_Lockdown"],1,true,true]
+["Kristaps Porzingis","C",87,"BOS","20s",["C","PF"],["Style_Sharpshooter","Style_Lockdown"],1,true,true],
+["Goran Dragic","PG",85,"MIA","10s",["PG"],["Style_Slasher","Style_FloorGeneral"],1,true,true],
+["Carlos Boozer","PF",86,"CHI","10s",["PF","C"],["Style_PaintBeast"],1,true,true],
+["Kevin Martin","SG",85,"HOU","10s",["SG"],["Style_Sharpshooter"],1,true,true],
+["Brandon Jennings","PG",85,"MIL","10s",["PG"],["Style_AnkleBreaker","Style_FloorGeneral"],1,true,true],
+["Al Jefferson","C",87,"UTA","10s",["C","PF"],["Style_PaintBeast"],1,true,true],
+["Antoine Walker","PF",86,"BOS","00s",["PF","SF"],["Style_Sharpshooter","Style_FloorGeneral"],1,true,true],
+["Stephon Marbury","PG",86,"PHX","00s",["PG"],["Style_FloorGeneral","Style_AnkleBreaker"],1,true,true]
 ];
 
 const TIER_ORDER=["Bronze","Silver","Gold","Elite","Icon"];

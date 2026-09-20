@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
-import * as router from '../supabase/functions/_shared/atu-engine-roster-20260919.js';
+import * as router from '../supabase/functions/_shared/atu-engine-roster-20260920.js';
 
 const logic=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8').match(/<script>\s*\/\/<LOGIC>([\s\S]*?)\/\/<\/LOGIC>/)[1];
 let version=null;
@@ -36,6 +36,6 @@ for(const v of ['atu-classic-v3','atu-pack-v3','atu-history-draft-v1','atu-histo
  for(let i=0;i<=5000;i++)assert.equal(ui.curve(60+i/100).wins,old(60+i/100),'In-progress GMM-v1 preview stays frozen');
  const engine=router.getEngineForRules(v);assert.equal(engine.ENGINE_VERSION,'atu-gmm-v1');
 }
-assert.equal(router.rulesForPool('modern','draft'),'atu-classic-v5');
-assert.equal(router.rulesForPool('history','pack'),'atu-history-pack-v3');
+assert.equal(router.rulesForPool('modern','draft'),'atu-classic-v6');
+assert.equal(router.rulesForPool('history','pack'),'atu-history-pack-v4');
 console.log(`Win curve: 150001 client/server grid checks, same 82 boundary, unchanged anchors, old previews preserved; maximum grid change ${maxChange} wins`);
