@@ -4339,6 +4339,7 @@ function efxOwnedIndex(){
   return m;
 }
 function cardsWithEfx(efxId){
+  if(EFX_BY_ID[efxId]?.k==='skin')return DB.filter(p=>p&&ownsEfx(p.id,efxId));
   const out=[],seen={};
   for(const k in EFX.owned){
     const i=k.indexOf("|"); if(i<0||k.slice(i+1)!==efxId)continue;
@@ -4349,7 +4350,7 @@ function cardsWithEfx(efxId){
 }
 function collEfxOptions(){
   const idx=efxOwnedIndex();
-  const kinds=["frame","aura","sheen","energy","overlay"];
+  const kinds=["frame","aura","sheen","energy","overlay","skin"];
   let body="";
   kinds.forEach(k=>{
     const list=EFFECTS.filter(e=>e.k===k&&idx[e.id]);
@@ -4436,13 +4437,14 @@ function collectionHTML(){
 const EFX_KEY="atu-efx-v1";
 const EFX_TIERS=["Common","Uncommon","Rare","Mythic"];
 const EFX_TIER_COLOR={Common:"#9aa4b2",Uncommon:"#3ddc84",Rare:"#35d6ff",Mythic:"#ff7ac8"};
-/* pack odds — mythic sits at 2%, in Black Ice territory once split across the pool */
-const EFX_ODDS={Common:62,Uncommon:26,Rare:10,Mythic:2};
+/* Downgraded pools: combine former Common + Uncommon odds. Mythic is reserved for skins. */
+const EFX_ODDS={Common:86,Uncommon:10,Rare:2,Mythic:2};
 const PACK_COST=400, PITY_AT=45;
 /* refund when you pull something you already own for that card */
 const EFX_REFUND={Common:40,Uncommon:90,Rare:220,Mythic:900};
 
 const EFFECTS=[
+  {id:"skin-lebron-king",n:"The King",k:"skin",t:"Mythic",player:"LeBron James",slug:"skins/lebron-king"},
   /* --- border sheens: all common --- */
   {id:"s-sweep", n:"Sweep",     k:"sheen", t:"Common"},
   {id:"s-glint", n:"Glint",     k:"sheen", t:"Common"},
@@ -4453,48 +4455,48 @@ const EFFECTS=[
   /* --- frames --- */
   {id:"f-blade", n:"Blade",     k:"frame", t:"Common"},
   {id:"f-chamf", n:"Chamfer",   k:"frame", t:"Common"},
-  {id:"f-notch", n:"Notch",     k:"frame", t:"Uncommon"},
-  {id:"f-vault", n:"Vault",     k:"frame", t:"Uncommon"},
-  {id:"f-rune",  n:"Rune",      k:"frame", t:"Rare"},
-  {id:"f-shield",n:"Shield",    k:"frame", t:"Rare"},
-  {id:"f-deco",  n:"Deco",      k:"frame", t:"Rare"},
-  {id:"f-crown", n:"Crown",     k:"frame", t:"Rare"},
-  {id:"f-obel",  n:"Obelisk",   k:"frame", t:"Rare"},
-  /* --- auras: only Blood, Void and Cosmic remain Mythic --- */
-  {id:"a-halo",  n:"Halo",      k:"aura", t:"Uncommon"},
-  {id:"a-solar", n:"Solar",     k:"aura", t:"Uncommon"},
-  {id:"a-frost", n:"Frost",     k:"aura", t:"Uncommon"},
-  {id:"a-magma", n:"Magma",     k:"aura", t:"Rare"},
-  {id:"a-toxic", n:"Toxic",     k:"aura", t:"Rare"},
-  {id:"a-candy", n:"Candy",     k:"aura", t:"Rare"},
-  {id:"a-prism", n:"Prism",     k:"aura", t:"Rare"},
-  {id:"a-sunset",n:"Sunset",    k:"aura", t:"Rare"},
-  {id:"a-ember", n:"Ember",     k:"aura", t:"Rare"},
-  {id:"a-volt",  n:"Volt",      k:"aura", t:"Rare"},
-  {id:"a-blood", n:"Blood",     k:"aura", t:"Mythic"},
-  {id:"a-void",  n:"Void",      k:"aura", t:"Mythic"},
-  {id:"a-aurora",n:"Aurora",    k:"aura", t:"Rare"},
-  {id:"a-venom", n:"Venom",     k:"aura", t:"Rare"},
-  {id:"a-nebula",n:"Nebula",    k:"aura", t:"Rare"},
-  {id:"a-cosmic",n:"Cosmic",    k:"aura", t:"Mythic"},
-  {id:"a-oil",   n:"Oil Slick", k:"aura", t:"Rare"},
-  {id:"a-spect", n:"Spectrum",  k:"aura", t:"Rare"},
-  /* --- energy sheens: all Rare --- */
-  {id:"e-volt",  n:"Volt",      k:"energy", t:"Rare"},
-  {id:"e-tox",   n:"Toxic",     k:"energy", t:"Rare"},
-  {id:"e-fire",  n:"Inferno",   k:"energy", t:"Rare"},
-  {id:"e-cryo",  n:"Cryogen",   k:"energy", t:"Rare"},
-  {id:"e-molt",  n:"Molten",    k:"energy", t:"Rare"},
-  {id:"e-spec",  n:"Spectral",  k:"energy", t:"Rare"},
+  {id:"f-notch", n:"Notch",     k:"frame", t:"Common"},
+  {id:"f-vault", n:"Vault",     k:"frame", t:"Common"},
+  {id:"f-rune",  n:"Rune",      k:"frame", t:"Uncommon"},
+  {id:"f-shield",n:"Shield",    k:"frame", t:"Uncommon"},
+  {id:"f-deco",  n:"Deco",      k:"frame", t:"Uncommon"},
+  {id:"f-crown", n:"Crown",     k:"frame", t:"Uncommon"},
+  {id:"f-obel",  n:"Obelisk",   k:"frame", t:"Uncommon"},
+  /* --- auras: Blood, Void and Cosmic are Rare --- */
+  {id:"a-halo",  n:"Halo",      k:"aura", t:"Common"},
+  {id:"a-solar", n:"Solar",     k:"aura", t:"Common"},
+  {id:"a-frost", n:"Frost",     k:"aura", t:"Common"},
+  {id:"a-magma", n:"Magma",     k:"aura", t:"Uncommon"},
+  {id:"a-toxic", n:"Toxic",     k:"aura", t:"Uncommon"},
+  {id:"a-candy", n:"Candy",     k:"aura", t:"Uncommon"},
+  {id:"a-prism", n:"Prism",     k:"aura", t:"Uncommon"},
+  {id:"a-sunset",n:"Sunset",    k:"aura", t:"Uncommon"},
+  {id:"a-ember", n:"Ember",     k:"aura", t:"Uncommon"},
+  {id:"a-volt",  n:"Volt",      k:"aura", t:"Uncommon"},
+  {id:"a-blood", n:"Blood",     k:"aura", t:"Rare"},
+  {id:"a-void",  n:"Void",      k:"aura", t:"Rare"},
+  {id:"a-aurora",n:"Aurora",    k:"aura", t:"Uncommon"},
+  {id:"a-venom", n:"Venom",     k:"aura", t:"Uncommon"},
+  {id:"a-nebula",n:"Nebula",    k:"aura", t:"Uncommon"},
+  {id:"a-cosmic",n:"Cosmic",    k:"aura", t:"Rare"},
+  {id:"a-oil",   n:"Oil Slick", k:"aura", t:"Uncommon"},
+  {id:"a-spect", n:"Spectrum",  k:"aura", t:"Uncommon"},
+  /* --- energy sheens: all Uncommon --- */
+  {id:"e-volt",  n:"Volt",      k:"energy", t:"Uncommon"},
+  {id:"e-tox",   n:"Toxic",     k:"energy", t:"Uncommon"},
+  {id:"e-fire",  n:"Inferno",   k:"energy", t:"Uncommon"},
+  {id:"e-cryo",  n:"Cryogen",   k:"energy", t:"Uncommon"},
+  {id:"e-molt",  n:"Molten",    k:"energy", t:"Uncommon"},
+  {id:"e-spec",  n:"Spectral",  k:"energy", t:"Uncommon"},
   /* --- card-face overlays: the four true chases --- */
-  {id:"o-frost", n:"Glacier Freeze", k:"overlay", t:"Mythic"},
-  {id:"o-bolt",  n:"Volt Lightning", k:"overlay", t:"Mythic"},
-  {id:"o-sparks",n:"Sparks",         k:"overlay", t:"Mythic"},
-  {id:"o-holo",  n:"Diamond Holo",   k:"overlay", t:"Mythic"},
+  {id:"o-frost", n:"Glacier Freeze", k:"overlay", t:"Rare"},
+  {id:"o-bolt",  n:"Volt Lightning", k:"overlay", t:"Rare"},
+  {id:"o-sparks",n:"Sparks",         k:"overlay", t:"Rare"},
+  {id:"o-holo",  n:"Diamond Holo",   k:"overlay", t:"Rare"},
 ];
 const EFX_BY_ID={}; EFFECTS.forEach(e=>EFX_BY_ID[e.id]=e);
-const EFX_SLOT={frame:"frame",aura:"aura",sheen:"sheen",energy:"energy",overlay:"overlay"};
-const EFX_SLOT_LABEL={frame:"Frame",aura:"Aura",sheen:"Sheen",energy:"Energy",overlay:"Overlay"};
+const EFX_SLOT={frame:"frame",aura:"aura",sheen:"sheen",energy:"energy",overlay:"overlay",skin:"skin"};
+const EFX_SLOT_LABEL={frame:"Frame",aura:"Aura",sheen:"Sheen",energy:"Energy",overlay:"Overlay",skin:"Skin"};
 
 function emptyEfx(){return {owned:{},equip:{},packs:0,sincePity:0,log:[]};}
 let EFX=sGet(EFX_KEY)||emptyEfx();
@@ -4508,10 +4510,23 @@ if(!Array.isArray(EFX.log))EFX.log=[];
 function saveEfx(){sSet(EFX_KEY,EFX);}
 
 /* ---- ownership ---- */
-const efxKey=(cardId,efxId)=>cardId+"|"+efxId;
-function ownsEfx(cardId,efxId){return !!EFX.owned[efxKey(cardId,efxId)];}
+function efxKey(cardId,efxId){
+  const e=EFX_BY_ID[efxId];
+  if(e?.k==='skin'&&DB[cardId]?.name===e.player)cardId=DB.find(p=>p&&p.name===e.player).id;
+  return cardId+"|"+efxId;
+}
+function skinFor(p){
+  const e=EFX_BY_ID[equippedFor(p?.id).skin];
+  return e?.k==='skin'&&e.player===p?.name&&ownsEfx(p.id,e.id)?e:null;
+}
+function ownsEfx(cardId,efxId){
+  const e=EFX_BY_ID[efxId];
+  if(e?.k==='skin'&&DB[cardId]?.name!==e.player)return false;
+  return !!EFX.owned[efxKey(cardId,efxId)];
+}
 function grantEfx(cardId,efxId){
   if(!efxEligible(DB[cardId])||!EFX_BY_ID[efxId])return false;
+  if(EFX_BY_ID[efxId].k==="skin"&&DB[cardId].name!==EFX_BY_ID[efxId].player)return false;
   const k=efxKey(cardId,efxId);
   const dupe=!!EFX.owned[k];
   EFX.owned[k]=(EFX.owned[k]||0)+1;
@@ -4533,11 +4548,11 @@ function efxCardPool(){return DB.filter(efxEligible);}
 
 /* ---- rolling ---- */
 function rollEfxTier(force){
-  if(force)return force;
-  /* pity: guarantee a mythic once the counter hits the threshold */
+  if(force&&EFFECTS.some(e=>e.t===force))return force;
+  /* Guarantee the highest available cosmetic rarity; preserve existing progress. */
   if(EFX.sincePity>=PITY_AT-1)return "Mythic";
   const r=Math.random()*100; let acc=0;
-  for(const t of EFX_TIERS){acc+=EFX_ODDS[t]; if(r<=acc)return t;}
+  for(const t of EFX_TIERS){acc+=EFX_ODDS[t]; if(EFX_ODDS[t]>0&&r<acc)return t;}
   return "Common";
 }
 function rollEfxOfTier(t){
@@ -4545,8 +4560,8 @@ function rollEfxOfTier(t){
   return pool[Math.floor(Math.random()*pool.length)];
 }
 /* SPOTLIGHT-weighted card roll so recognisable names dominate the pulls */
-function rollEfxCard(){
-  const pool=efxCardPool();
+function rollEfxCard(effect){
+  const pool=efxCardPool().filter(p=>!effect?.player||p.name===effect.player);
   const w=pool.map(p=>Math.pow(SPOTLIGHT[p.name]??1,1.35)+0.05);
   let total=0; w.forEach(x=>total+=x);
   let r=Math.random()*total;
@@ -4557,7 +4572,7 @@ function rollEfxCard(){
 function openRaftersPack(force){
   const tier=rollEfxTier(force);
   const efx=rollEfxOfTier(tier);
-  const card=rollEfxCard();
+  const card=rollEfxCard(efx);
   const dupe=grantEfx(card.id,efx.id);
   let refund=0;
   if(dupe){refund=EFX_REFUND[tier]||0;
@@ -4734,7 +4749,7 @@ function raftersHTML(){
   <div class="rfhero">
     <div><h2>The Rafters</h2>
       <p>Where the jerseys hang. Every pack holds one cosmetic for one specific card \u2014
-      frames, auras, border light and card-face effects. Mythics are the chase.</p></div>
+      frames, auras, border light and card-face effects. Mythic skins are the chase.</p></div>
     <div class="rfbal" id="rfbal">${CR.bal.toLocaleString()}<small>CREDITS</small></div>
   </div>
 
@@ -4771,7 +4786,7 @@ function raftersHTML(){
   <div class="rfbuy">
     <div id="rfcost">${rfCostHTML()}</div>
     <div class="rfnote">Pull the zipper to open a pack \u2014 credits are spent the moment it moves.
-    Duplicates refund automatically, and a mythic is guaranteed at least every ${PITY_AT} packs.</div>
+    Duplicates refund automatically, and a Mythic skin is guaranteed at least every ${PITY_AT} packs.</div>
   </div>
   <div class="notice" id="notice"></div>`;
 }
@@ -5039,7 +5054,7 @@ function equipHTML(){
   const p=DB[EQ_CARD]; if(!p)return "";
   const owned=efxOwnedFor(p.id);
   const eq=equippedFor(p.id);
-  const slots=["frame","aura","sheen","energy","overlay"];
+  const slots=["frame","aura","sheen","energy","overlay","skin"];
   return `
   <div class="eqwrap" id="eqwrap">
     <div class="eqhead">
@@ -5063,7 +5078,7 @@ function equipHTML(){
                   </button>`).join("")}
               </div></div>`;}).join("")}
           </div>
-          <div class="rfnote">Tap an equipped effect again to take it off.</div>`
+          <div class="rfnote">Skins unlock for every team version of that player. Equip each card here. Tap an equipped item again to take it off.</div>`
           :`<div class="eqempty">No effects unlocked for this card yet \u2014 pull some from
              <b style="color:var(--gold)">The Rafters</b>.</div>`}
       </div>
@@ -5086,6 +5101,7 @@ const CARD_ART_BASE="cards/"; /* relative to the deployed site root (Vercel /pub
    CARD_ART.add("dwyane-wade"). Kept explicit so the game never fires a request
    (and never shows a broken image) for art that isn't there yet. */
 const CARD_ART=new Set([
+  "skins/lebron-king",
   "kareem-abdul-jabbar-lal",
   "ray-allen-bos",
   "wilt-chamberlain-phi",
@@ -6207,6 +6223,7 @@ const CARD_ART_TEAMS=Object.freeze({
 const MULTI_CARD_NAMES=(()=>{const c={},s=new Set();DB.forEach(p=>{c[p.name]=(c[p.name]||0)+1;});
   Object.keys(c).forEach(n=>{if(c[n]>1)s.add(n);});return s;})();
 function cardSlugFor(p){
+  const skin=typeof skinFor==="function"?skinFor(p):null;if(skin)return skin.slug;
   /* Base tiers share approved artwork, including future players and alternate eras. */
   if(p.tier==="Bronze")return "tier-bronze";
   if(p.tier==="Silver")return "tier-silver";
@@ -6219,7 +6236,7 @@ function cardSlugFor(p){
   }
   return MULTI_CARD_NAMES.has(p.name)?c:n;
 }
-function cardArtVariants(p){const s=cardSlugFor(p);return CARD_ART_EXTS.map(e=>CARD_ART_BASE+s+e);}
+function cardArtVariants(p){const s=cardSlugFor(p);if(s.startsWith("skins/"))return [CARD_ART_BASE+s+".jpg"];return CARD_ART_EXTS.map(e=>CARD_ART_BASE+s+e);}
 /* fallback attributes for an art <img>: walks CARD_ART_EXTS until one loads */
 function cardArtFallbackAttr(p){
   return `onerror="collArtFail(this)" data-v="0" data-slug="${cardSlugFor(p)}"`;
@@ -6242,7 +6259,7 @@ function cardArtFail(img){
       card.insertBefore(ini,nm);}}
   img.remove();
 }
-function cardArtURL(p){const s=cardSlugFor(p);return CARD_ART.has(s)?CARD_ART_BASE+s+".png":null;}
+function cardArtURL(p){const s=cardSlugFor(p);return CARD_ART.has(s)?CARD_ART_BASE+s+(s.startsWith("skins/")?".jpg":".png"):null;}
 /* Dev helper: run artStatus() in the console to see coverage + copy-paste slugs.
    Lists how many players have art and prints the slug for any name you pass. */
 function artStatus(filter){
@@ -7126,7 +7143,7 @@ function landingHTML(){
     <div class="modecard" onclick="setScreen('challenge')"><h3>⚔ Challenge a Friend</h3><p>Build your squad. Send the link. Your friend gets the same draft. Who drafted better?</p><div class="modebest">FORMAT <b>YOU VS THEM</b></div><button class="btn primary">START A 1V1</button></div>
     <div class="modecard" onclick="setScreen('friends')"><h3>Friends</h3><p>Add your people. See who’s online. Get a Draft Duel going.</p><button class="btn primary">OPEN FRIENDS</button></div>
     <div class="modecard" onclick="setScreen('rankings')"><h3>🏆 The 82-0 Club</h3><p>Chase the best record. Own today, climb the weekly table, or become an all-time legend.</p><div class="modebest">GOAL <b>CAN YOU GO 82-0?</b></div><button class="btn">VIEW LEADERBOARD</button></div>
-    <div class="modecard" onclick="setScreen('rafters')"><h3>🎫 The Rafters</h3><p>Open packs for card cosmetics — frames, auras, border light and card-face effects. Mythics are the chase.</p><div class="modebest">PACKS <b>${packsAvailable()} free</b></div><button class="btn gold">OPEN PACKS</button></div>
+    <div class="modecard" onclick="setScreen('rafters')"><h3>🎫 The Rafters</h3><p>Open packs for card cosmetics — frames, auras, border light and card-face effects. Mythic skins are the chase.</p><div class="modebest">PACKS <b>${packsAvailable()} free</b></div><button class="btn gold">OPEN PACKS</button></div>
     <div class="modecard" onclick="setScreen('collection')"><h3>🗃 Collection</h3><p>Every card in the game — see what you've discovered and what's still out there. Discover cards through play. Rare Pull is a separate sandbox.</p><div class="modebest">FOUND <b>${collectionStats().seen}/${collectionStats().total}</b></div><button class="btn">VIEW COLLECTION</button></div>
     <div class="modecard" onclick="setScreen('trophies')"><h3>🏆 Trophy Case</h3><p>Permanent collection progression, franchise and era archives, iconic chemistry discoveries, What If timelines, historic teams, records and hidden challenges.</p><div class="modebest">PROGRESS <b>${trophySummary().done}/${trophySummary().total}</b></div><button class="btn gold">OPEN TROPHY CASE</button></div>
     <div class="modecard" onclick="setScreen('account')"><h3>☁️ Save Your Progress</h3><p>Keep your cards, trophies and records safe—even when you switch devices.</p><div class="modebest">STATUS <b>${ATUBackend.isSignedIn()?"SAFE &amp; SYNCED":"DEVICE SAVE"}</b></div><button class="btn primary">${ATUBackend.isSignedIn()?"OPEN MY SAVE":"SAVE MY GAME"}</button></div>
@@ -7247,7 +7264,7 @@ function preloadRosterArt(roster){
       const im=new Image();im.crossOrigin="anonymous"; /* keeps the canvas exportable */
       im.onload=()=>{IMG_ART[s]=im;done();};
       im.onerror=()=>{i++;tryNext();};
-      im.src=CARD_ART_BASE+s+CARD_ART_EXTS[i];
+      im.src=CARD_ART_BASE+s+(s.startsWith("skins/")?".jpg":CARD_ART_EXTS[i]);
     };
     tryNext();
   })));

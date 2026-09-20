@@ -4,7 +4,7 @@ const logic=source.match(/<script>\s*\/\/<LOGIC>([\s\S]*?)\/\/<\/LOGIC>/)[1];
 const context=vm.createContext({console,saveEfx(){},EFX:{owned:{},equip:{}},EFX_BY_ID:{test:{k:'frame'}},EFX_SLOT:{frame:'frame'},S:{main:{coll:{},roster:{}},rare:{coll:{},roster:{}},classic:{coll:{},roster:{}}}});
 vm.runInContext(logic,context);
 const run=s=>vm.runInContext(s,context);
-vm.runInContext(source.slice(source.indexOf('const efxKey='),source.indexOf('/* ---- rolling ---- */')),context);
+vm.runInContext(source.slice(source.indexOf('function efxKey('),source.indexOf('/* ---- rolling ---- */')),context);
 vm.runInContext(source.slice(source.indexOf('function equipEfx('),source.indexOf('/* the class string')),context);
 assert.ok(run('efxCardPool().every(p=>["Gold","Elite","Icon"].includes(p.tier))'));
 const low=run('DB.find(p=>p.tier==="Silver").id'),gold=run('efxCardPool()[0].id');
