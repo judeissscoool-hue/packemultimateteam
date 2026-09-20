@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import {CARDS,MODERN_CARD_IDS,HISTORY_CARD_IDS} from '../supabase/functions/_shared/atu-data-v1.js';
 import {CARDS as frozenCards} from '../supabase/functions/_shared/gmm-20260913/atu-data-v1.js';
-import * as router from '../supabase/functions/_shared/atu-engine-pool-20260920.js';
+import * as router from '../supabase/functions/_shared/atu-engine-ratings-20260920.js';
 const active=CARDS.filter(c=>HISTORY_CARD_IDS.includes(c.id)),find=(n,t)=>active.find(c=>c.n===n&&c.t===t);
 const decisions=JSON.parse(fs.readFileSync(new URL('../docs/approved-roster-20260919.json',import.meta.url)));
 for(const [key,rating]of Object.entries(decisions.overrides)){const[n,t]=key.split('|');if(decisions.oneCardPlayers.includes(n)&&decisions.currentTeams[n]!==t)continue;assert.equal(find(n,t)?.o,rating,key);}

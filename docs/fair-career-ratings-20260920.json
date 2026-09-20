@@ -1,0 +1,68 @@
+[
+  {
+    "name": "John Paxson",
+    "team": "CHI",
+    "before": 68,
+    "after": 77
+  },
+  {
+    "name": "Spud Webb",
+    "team": "ATL",
+    "before": 68,
+    "after": 78
+  },
+  {
+    "name": "Patty Mills",
+    "team": "SAS",
+    "before": 68,
+    "after": 80
+  },
+  {
+    "name": "Shaun Livingston",
+    "team": "GSW",
+    "before": 66,
+    "after": 80
+  },
+  {
+    "name": "Kendrick Perkins",
+    "team": "BOS",
+    "before": 62,
+    "after": 80
+  },
+  {
+    "name": "Kurt Rambis",
+    "team": "LAL",
+    "before": 60,
+    "after": 76
+  },
+  {
+    "name": "Shawn Bradley",
+    "team": "DAL",
+    "before": 60,
+    "after": 79
+  },
+  {
+    "name": "Manute Bol",
+    "team": "WAS",
+    "before": 58,
+    "after": 80
+  },
+  {
+    "name": "Matt Bonner",
+    "team": "SAS",
+    "before": 55,
+    "after": 75
+  },
+  {
+    "name": "Brian Scalabrine",
+    "team": "BOS",
+    "before": 45,
+    "after": 70
+  },
+  {
+    "name": "Mark Madsen",
+    "team": "LAL",
+    "before": 44,
+    "after": 70
+  }
+]

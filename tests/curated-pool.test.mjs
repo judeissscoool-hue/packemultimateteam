@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {CARDS,MODERN_CARD_IDS,HISTORY_CARD_IDS} from '../supabase/functions/_shared/atu-data-v1.js';
+import {CARDS,MODERN_CARD_IDS,HISTORY_CARD_IDS} from '../supabase/functions/_shared/pool-20260920/atu-data-v1.js';
 import * as old from '../supabase/functions/_shared/roster-20260920/atu-data-v1.js';
-import * as router from '../supabase/functions/_shared/atu-engine-pool-20260920.js';
+import * as router from '../supabase/functions/_shared/atu-engine-ratings-20260920.js';
 const approved=new Set(JSON.parse(fs.readFileSync(new URL('../docs/pre-2000-pool-20260920.json',import.meta.url))).approvedNames);
 assert.deepEqual(CARDS,old.CARDS,'Pool changes must not alter any cards');
 assert.deepEqual(HISTORY_CARD_IDS,old.HISTORY_CARD_IDS,'Historical pool unchanged');

@@ -3,7 +3,7 @@ import {createHash,webcrypto} from 'node:crypto';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import {stripTypeScriptTypes} from 'node:module';
-import * as engine from '../supabase/functions/_shared/atu-engine-pool-20260920.js';
+import * as engine from '../supabase/functions/_shared/atu-engine-ratings-20260920.js';
 import {draftExposure,cloneDraftFairness} from '../supabase/functions/_shared/draft-history.js';
 
 const seed=createHash('sha256').update('persistent-draft-history-tests').digest('hex');
