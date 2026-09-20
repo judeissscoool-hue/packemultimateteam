@@ -184,8 +184,10 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .slot .postag{font-family:var(--disp);font-size:18px;letter-spacing:.1em;color:#4a4a52}
 .slot.eligible{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 14px rgba(53,214,255,.35);animation:pulse 1s infinite}
 .blocked{opacity:.35}
-.draft-drag-handle{position:absolute;right:0;top:28px;min-width:44px;min-height:44px;border:1px solid var(--cyan);border-radius:10px;background:#10272eee;color:var(--cyan);font-size:24px;z-index:5;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:grab}
-.draft-drag-handle:active{cursor:grabbing}
+.draft-hold-card{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:grab}
+.draft-hold-card img{-webkit-user-drag:none}
+.draft-drag-ghost{position:fixed;pointer-events:none;z-index:10000;opacity:.88;transform:scale(1.04);filter:drop-shadow(0 8px 12px #0009)}
+.draft-drag-source{opacity:.35}
 .draft-drop-ready{outline:2px dashed var(--cyan);outline-offset:3px;border-radius:14px}
 .draft-drop-over{outline:3px solid var(--gold);box-shadow:0 0 20px #ffd16688}
 .droptarget{outline:2px dashed var(--cyan);outline-offset:3px;border-radius:14px}
@@ -6914,19 +6916,55 @@ function openDraftSwap(slot){
   $("#sheet").classList.add("show");
   $("#sheet").onclick=e=>{if(e.target.id==="sheet")closeSheet();};
 }
-let DRAFT_DRAG=null,DRAFT_DRAG_CLICK_UNTIL=0;
+let DRAFT_DRAG=null,DRAFT_HOLD=null,DRAFT_DRAG_CLICK_UNTIL=0;
 function canDraftSwap(a,b){
   const D=activeDraft();
   if(D.stage!=="picking"||a===b||!ALL_SLOTS.includes(a)||!ALL_SLOTS.includes(b))return false;
   const pa=DB[D.roster[a]],pb=DB[D.roster[b]];
   return !!pa&&!!pb&&eligible(pa,b)&&eligible(pb,a);
 }
+function draftHoldCancel(){
+  if(DRAFT_HOLD)clearTimeout(DRAFT_HOLD.timer);
+  DRAFT_HOLD=null;
+}
+function draftHoldStart(e,slot){
+  if(e.pointerType==="touch"||e.button!==0||e.isPrimary===false||e.target.closest('.infobtn'))return;
+  draftHoldCancel();
+  const start={button:e.button,isPrimary:e.isPrimary,pointerId:e.pointerId,currentTarget:e.currentTarget,clientX:e.clientX,clientY:e.clientY,touch:e.touch};
+  const hold={slot,x:e.clientX,y:e.clientY};
+  DRAFT_HOLD=hold;
+  hold.timer=setTimeout(()=>{if(DRAFT_HOLD===hold){DRAFT_HOLD=null;draftDragStart(start,slot);}},350);
+}
+function draftHoldMove(e){
+  if(e.pointerType==="touch")return;
+  if(DRAFT_HOLD&&Math.hypot(e.clientX-DRAFT_HOLD.x,e.clientY-DRAFT_HOLD.y)>10)draftHoldCancel();
+  draftDragMove(e);
+}
+function draftHoldEnd(e,cancelled=false){
+  if(e.pointerType==="touch")return;
+  draftHoldCancel();draftDragEnd(e,cancelled);
+}
+function draftTouch(e,slot,phase){
+  if(phase==='start'&&e.touches.length!==1){draftHoldCancel();draftDragClear();return;}
+  const t=Array.from(e.changedTouches).find(t=>!DRAFT_DRAG||t.identifier===DRAFT_DRAG.id);
+  if(!t)return;
+  const ev={button:0,isPrimary:true,pointerId:t.identifier,currentTarget:e.currentTarget,target:e.target,clientX:t.clientX,clientY:t.clientY,touch:true,preventDefault:()=>{if(e.cancelable)e.preventDefault();},stopPropagation:()=>e.stopPropagation()};
+  if(phase==='start')draftHoldStart(ev,slot);
+  else if(phase==='move')draftHoldMove(ev);
+  else draftHoldEnd(ev,phase==='cancel');
+}
 function draftDragStart(e,slot){
-  if(e.button!==0||!e.isPrimary)return;
-  e.preventDefault();e.stopPropagation();
+  if(e.button!==0||e.isPrimary===false)return;
   draftDragClear();
-  DRAFT_DRAG={from:slot,id:e.pointerId,button:e.currentTarget,draft:activeDraft(),player:activeDraft().roster[slot],to:null};
-  e.currentTarget.setPointerCapture(e.pointerId);
+  const el=e.currentTarget,rect=el.getBoundingClientRect();
+  const ghost=el.cloneNode(true);
+  ghost.removeAttribute('data-draft-slot');ghost.classList.add('draft-drag-ghost');
+  ghost.style.width=rect.width+'px';ghost.style.height=rect.height+'px';
+  ghost.style.left=rect.left+'px';ghost.style.top=rect.top+'px';
+  ghost.setAttribute('aria-hidden','true');document.body.appendChild(ghost);
+  el.classList.add('draft-drag-source');
+  DRAFT_DRAG={from:slot,id:e.pointerId,button:el,draft:activeDraft(),player:activeDraft().roster[slot],to:null,ghost,offsetX:e.clientX-rect.left,offsetY:e.clientY-rect.top};
+  if(!e.touch)el.setPointerCapture(e.pointerId);
   document.querySelectorAll('[data-draft-slot]').forEach(el=>{
     if(canDraftSwap(slot,el.dataset.draftSlot))el.classList.add('draft-drop-ready');
   });
@@ -6934,12 +6972,16 @@ function draftDragStart(e,slot){
 function draftDragMove(e){
   if(!DRAFT_DRAG||e.pointerId!==DRAFT_DRAG.id)return;
   e.preventDefault();e.stopPropagation();
+  DRAFT_DRAG.ghost.style.left=(e.clientX-DRAFT_DRAG.offsetX)+'px';
+  DRAFT_DRAG.ghost.style.top=(e.clientY-DRAFT_DRAG.offsetY)+'px';
   const target=document.elementFromPoint(e.clientX,e.clientY)?.closest('[data-draft-slot]');
   DRAFT_DRAG.to=target&&canDraftSwap(DRAFT_DRAG.from,target.dataset.draftSlot)?target.dataset.draftSlot:null;
   document.querySelectorAll('[data-draft-slot]').forEach(el=>el.classList.toggle('draft-drop-over',el.dataset.draftSlot===DRAFT_DRAG.to));
 }
 function draftDragClear(){
   const drag=DRAFT_DRAG;DRAFT_DRAG=null;
+  drag?.ghost.remove();
+  drag?.button.classList.remove('draft-drag-source');
   if(drag?.button.hasPointerCapture(drag.id))drag.button.releasePointerCapture(drag.id);
   document.querySelectorAll('.draft-drop-ready,.draft-drop-over').forEach(el=>el.classList.remove('draft-drop-ready','draft-drop-over'));
 }
@@ -6978,7 +7020,7 @@ function draftSlotHTML(slot){
     <div class="postag">${p==="B"?"BN":p}</div><div>${SLOT_LABEL[slot]}</div>
     <div style="font-size:8px;color:${locked?"var(--dim)":"var(--cyan)"}">${locked?"🔒 LOCKED":"TAP TO DRAFT"}</div></button>`;}
   const tappable=D.stage==="picking"; /* picked cards can be swapped throughout the draft */
-  return `<div data-draft-slot="${slot}" class="slot-${slot}" style="position:relative${tappable?";cursor:pointer":""}" ${tappable?`onclick="draftSlotTap('${slot}')"`:""}><div class="${D.lastSlot===slot?"snapin":""}">${cardHTML(DB[pid])}</div>${tappable?`<button class="draft-drag-handle" aria-label="Drag to swap ${esc(DB[pid].name)}" onpointerdown="draftDragStart(event,'${slot}')" onpointermove="draftDragMove(event)" onpointerup="draftDragEnd(event)" onpointercancel="draftDragEnd(event,true)" onlostpointercapture="draftDragEnd(event,true)" onclick="event.stopPropagation();if(Date.now()>DRAFT_DRAG_CLICK_UNTIL)openDraftSwap('${slot}')" oncontextmenu="event.preventDefault()">↔</button>`:""}${tappable?`<div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:8px;letter-spacing:.15em;color:var(--cyan);pointer-events:none">TAP TO MOVE</div>`:""}</div>`;
+  return `<div data-draft-slot="${slot}" class="slot-${slot}${tappable?' draft-hold-card':''}" style="position:relative" ${tappable?`onclick="if(Date.now()>DRAFT_DRAG_CLICK_UNTIL)draftSlotTap('${slot}')" onpointerdown="draftHoldStart(event,'${slot}')" onpointermove="draftHoldMove(event)" onpointerup="draftHoldEnd(event)" onpointercancel="draftHoldEnd(event,true)" onpointerleave="draftHoldCancel()" onlostpointercapture="draftHoldEnd(event,true)" ontouchstart="draftTouch(event,'${slot}','start')" ontouchmove="draftTouch(event,'${slot}','move')" ontouchend="draftTouch(event,'${slot}','end')" ontouchcancel="draftTouch(event,'${slot}','cancel')" oncontextmenu="event.preventDefault()" ondragstart="event.preventDefault()"`:""}><div class="${D.lastSlot===slot?"snapin":""}">${cardHTML(DB[pid])}</div></div>`;
 }
 /* Shared Classic Draft court for online drafts and completed duels. */
 function challengeCourtHTML(roster={},options={}){
