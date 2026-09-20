@@ -38,23 +38,25 @@
       "id": 86,
       "name": "Dennis Rodman",
       "team": "DET",
-      "approvedImageTitle": "ChatGPT Image Sep 19, 2026, 03_52_08 PM",
+      "approvedImageTitle": "ChatGPT Image Sep 19, 2026, 03_53_26 PM",
       "approvedVersionSelector": "User-downloaded and approved latest image, 2026-09-19",
       "repoPath": "cards/dennis-rodman-det.png",
       "width": 1024,
       "height": 1536,
-      "sha256": "85554e4fe70b6a08f4ad3031b2c68cfa464443f7a82d8d3a32c00f8f834898d2"
+      "sha256": "df65ec6a7f5074b3654c8584554d9195c8c1fce6730a36dfda3eef2c8cd1b168",
+      "assignmentCorrection": "2026-09-20: artwork swapped with paired player at user request"
     },
     {
       "id": 137,
       "name": "Rajon Rondo",
       "team": "BOS",
-      "approvedImageTitle": "Celtics-Style Player in Ready Stance",
+      "approvedImageTitle": "Dynamic Celtics-Inspired Basketball Poster",
       "approvedVersionSelector": "User-downloaded and approved latest image, 2026-09-19",
       "repoPath": "cards/rajon-rondo-bos.png",
       "width": 1024,
       "height": 1536,
-      "sha256": "31708dcfa69b0d895eb76db5db76749c7c2798ff208e06ba234e079913498a68"
+      "sha256": "d09fa8b8ff5d3d021df37fa155d94c0b4e2caad0bb6bd76d466c43f3db0011a8",
+      "assignmentCorrection": "2026-09-20: artwork swapped with paired player at user request"
     },
     {
       "id": 237,
@@ -82,12 +84,13 @@
       "id": 147,
       "name": "Richard Hamilton",
       "team": "DET",
-      "approvedImageTitle": "ChatGPT Image Sep 19, 2026, 03_53_26 PM",
+      "approvedImageTitle": "ChatGPT Image Sep 19, 2026, 03_52_08 PM",
       "approvedVersionSelector": "User-downloaded and approved latest image, 2026-09-19",
       "repoPath": "cards/richard-hamilton-det.png",
       "width": 1024,
       "height": 1536,
-      "sha256": "df65ec6a7f5074b3654c8584554d9195c8c1fce6730a36dfda3eef2c8cd1b168"
+      "sha256": "85554e4fe70b6a08f4ad3031b2c68cfa464443f7a82d8d3a32c00f8f834898d2",
+      "assignmentCorrection": "2026-09-20: artwork swapped with paired player at user request"
     },
     {
       "id": 160,
@@ -148,12 +151,13 @@
       "id": 255,
       "name": "Isaiah Thomas",
       "team": "BOS",
-      "approvedImageTitle": "Dynamic Celtics-Inspired Basketball Poster",
+      "approvedImageTitle": "Celtics-Style Player in Ready Stance",
       "approvedVersionSelector": "User-downloaded and approved latest image, 2026-09-19",
       "repoPath": "cards/isaiah-thomas-bos.png",
       "width": 1024,
       "height": 1536,
-      "sha256": "d09fa8b8ff5d3d021df37fa155d94c0b4e2caad0bb6bd76d466c43f3db0011a8"
+      "sha256": "31708dcfa69b0d895eb76db5db76749c7c2798ff208e06ba234e079913498a68",
+      "assignmentCorrection": "2026-09-20: artwork swapped with paired player at user request"
     },
     {
       "id": 259,
