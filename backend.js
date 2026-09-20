@@ -337,7 +337,11 @@
     if (state.session?.user.id !== ownerId) return null;
     if (result.error) throw result.error;
     state.profile = firstRow(result.data);
-    const availability = await state.client.rpc("get_my_username_change_available").catch(() => null);
+    // Supabase RPC builders are thenables, not native Promises (.catch is absent).
+    // An optional handle-status failure must never interrupt account/cloud loading.
+    let availability = null;
+    try { availability = await state.client.rpc("get_my_username_change_available"); }
+    catch (_) { /* Keep the handle locked until a successful status check. */ }
     if (state.session?.user.id !== ownerId) return null;
     if (state.profile) state.profile.username_change_available = !availability?.error && typeof availability?.data === "boolean" ? availability.data : null;
     return state.profile;

@@ -24,9 +24,13 @@ function makeContext({ session = null, rpc, storageSeed = {}, withClient = true,
       async getSession() { return { data: { session }, error: null }; },
       ...auth
     },
-    async rpc(name, args) {
+    rpc(name, args) {
       calls.push({ name, args });
-      return rpc ? rpc(name, args, calls) : { data: [], error: null };
+      // Match the SDK's PromiseLike builder: await works, but .catch does not.
+      let result;
+      try { result = Promise.resolve(rpc ? rpc(name, args, calls) : { data: [], error: null }); }
+      catch (error) { result = Promise.reject(error); }
+      return { then(resolve, reject) { return result.then(resolve, reject); } };
     }
   };
   const parsedLocation = new URL(href);
