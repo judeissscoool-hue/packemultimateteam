@@ -337,6 +337,9 @@
     if (state.session?.user.id !== ownerId) return null;
     if (result.error) throw result.error;
     state.profile = firstRow(result.data);
+    const availability = await state.client.rpc("get_my_username_change_available").catch(() => null);
+    if (state.session?.user.id !== ownerId) return null;
+    if (state.profile) state.profile.username_change_available = !availability?.error && typeof availability?.data === "boolean" ? availability.data : null;
     return state.profile;
   }
 
@@ -1659,6 +1662,14 @@
       rerender();
       return;
     }
+    if (state.profile?.username && username !== state.profile.username) {
+      if (state.profile.username_change_available !== true) {
+        setMessage(state.profile.username_change_available === false ? "Your handle can only be changed once." : "Could not check your handle change. Refresh and try again.", "error");
+        rerender();
+        return;
+      }
+      if (!global.confirm("Change your handle to @" + username + "? You can only change it once.")) return;
+    }
     setBusy(true);
     try {
       if (!state.profile || username !== String(state.profile.username || "")) {
@@ -1990,13 +2001,14 @@
   function signedInHTML() {
     const user = state.session.user;
     const profile = state.profile || {};
+    const handleLocked = !!profile.username && profile.username_change_available !== true;
     return '<section class="accountwrap"><div class="accountintro"><div><span class="eyebrow">SIGNED IN</span><h2>'
       + html(profile.username ? "@" + profile.username : "Finish your profile")
       + '</h2><p>' + html(user.email || "Google account") + '</p></div>' + cloudStatusHTML() + '</div>'
       + statusMessageHTML()
       + accountJourneyHTML()
       + '<div class="accountgrid"><div class="accountcard"><h3>Your player</h3><p class="accountsub">This is the name friends will see in Draft Duels and The 82-0 Club.</p>'
-      + '<form onsubmit="ATUBackend.saveProfile(event)"><label>Username<input id="atu-profile-username" value="' + html(profile.username || "") + '" autocomplete="username" maxlength="20" pattern="[A-Za-z0-9_]{3,20}" placeholder="3–20 letters, numbers or _" required></label>'
+      + '<form onsubmit="ATUBackend.saveProfile(event)"><label>Username<input id="atu-profile-username" value="' + html(profile.username || "") + '" autocomplete="username" maxlength="20" pattern="[A-Za-z0-9_]{3,20}" placeholder="3–20 letters, numbers or _" ' + (handleLocked ? 'readonly aria-readonly="true" ' : '') + 'required></label><p class="accountsub">' + (handleLocked ? (profile.username_change_available === false ? 'Your handle change has been used. This handle is now permanent.' : 'Could not check your handle change. Refresh to try again.') : 'Choose your handle carefully. You can change it once after setting it.') + '</p>'
       + '<button class="btn primary accountsubmit" type="submit" ' + (state.busy ? "disabled" : "") + '>SAVE PROFILE</button></form></div>'
       + '<div class="accountcard"><h3>Your account</h3><div class="accountfacts"><div><span>Email</span><b>' + html(user.email || "Provided by Google") + '</b></div><div><span>Email ready</span><b>' + (user.email_confirmed_at ? "Yes" : "Not yet") + '</b></div><div><span>Online save</span><b>' + (state.cloudRevision ? "Ready" : "Not saved yet") + '</b></div></div><button class="btn" onclick="ATUBackend.signOut()" ' + (state.busy ? "disabled" : "") + '>Sign out on this device</button></div></div></section>';
   }

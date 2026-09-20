@@ -89,6 +89,23 @@ function makeContext({ session = null, rpc, storageSeed = {}, withClient = true,
 }
 
 async function run() {
+  for (const available of [true,false]) {
+    let username='Original';
+    const test=makeContext({session:{user:{id:'handle-test'}},rpc(name,args){
+      if(name==='get_my_profile')return {data:[{username}]};
+      if(name==='get_my_username_change_available')return {data:available};
+      if(name==='set_username'){username=args.p_username;return {data:[]};}
+      return {data:[]};
+    }});
+    await test.api.init();
+    const page=test.api.accountHTML();
+    assert.equal(page.includes('readonly aria-readonly="true"'),!available);
+    test.window.confirm=()=>true;
+    test.window.document.getElementById=id=>id==='atu-profile-username'?{value:'Changed'}:null;
+    await test.api.saveProfile();
+    assert.equal(test.calls.some(c=>c.name==='set_username'),available,'Locked handles cannot submit a rename');
+  }
+
   {
     const rows = [1,2,3,10,50,100,101].map(rank => ({rank, username: rank === 1 ? '<unsafe>' : 'Player', profile_id: 'public-'+rank, games:5, points:5102.95, best_team_ovr:102.95}));
     const test = makeContext({session:{user:{id:'season-user'}},rpc(name) {
