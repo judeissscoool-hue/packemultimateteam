@@ -1,0 +1,647 @@
+{
+  "approvedNames": [
+    "Alex English",
+    "Alonzo Mourning",
+    "Arvydas Sabonis",
+    "Bernard King",
+    "Bill Laimbeer",
+    "Bill Russell",
+    "Bill Walton",
+    "Bob Cousy",
+    "Charles Barkley",
+    "Chris Mullin",
+    "Clyde Drexler",
+    "David Robinson",
+    "Dennis Rodman",
+    "Dikembe Mutombo",
+    "Dominique Wilkins",
+    "Eddie Jones",
+    "Elgin Baylor",
+    "Gary Payton",
+    "George Gervin",
+    "George Mikan",
+    "Glen Rice",
+    "Grant Hill",
+    "Hakeem Olajuwon",
+    "Horace Grant",
+    "Isiah Thomas",
+    "James Worthy",
+    "Jason Kidd",
+    "Jerry West",
+    "Joe Dumars",
+    "John Starks",
+    "John Stockton",
+    "Julius Erving",
+    "Kareem Abdul-Jabbar",
+    "Karl Malone",
+    "Kevin McHale",
+    "Larry Bird",
+    "Magic Johnson",
+    "Mahmoud Abdul-Rauf",
+    "Manute Bol",
+    "Mark Eaton",
+    "Mark Price",
+    "Michael Jordan",
+    "Mitch Richmond",
+    "Moses Malone",
+    "Muggsy Bogues",
+    "Oscar Robertson",
+    "Patrick Ewing",
+    "Penny Hardaway",
+    "Pete Maravich",
+    "Reggie Miller",
+    "Rick Barry",
+    "Robert Parish",
+    "Sam Cassell",
+    "Scottie Pippen",
+    "Shaquille O'Neal",
+    "Shawn Kemp",
+    "Sidney Moncrief",
+    "Spud Webb",
+    "Stephon Marbury",
+    "Steve Kerr",
+    "Tim Hardaway",
+    "Toni Kukoc",
+    "Walt Frazier",
+    "Wilt Chamberlain"
+  ],
+  "changes": [
+    {
+      "name": "Adrian Dantley",
+      "team": "UTA",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Kevin Johnson",
+      "team": "PHX",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Dennis Johnson",
+      "team": "BOS",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Glenn Robinson",
+      "team": "MIL",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Maurice Cheeks",
+      "team": "PHI",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Jamaal Wilkes",
+      "team": "LAL",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Larry Johnson",
+      "team": "CHA",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Latrell Sprewell",
+      "team": "NYK",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Jeff Hornacek",
+      "team": "UTA",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Byron Scott",
+      "team": "LAL",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Charles Oakley",
+      "team": "NYK",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Michael Cooper",
+      "team": "LAL",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "John Paxson",
+      "team": "CHI",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Kurt Rambis",
+      "team": "LAL",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Shawn Bradley",
+      "team": "DAL",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Bobby Jones",
+      "team": "PHI",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Hersey Hawkins",
+      "team": "PHI",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Marques Johnson",
+      "team": "MIL",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Vin Baker",
+      "team": "MIL",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Terry Cummings",
+      "team": "MIL",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Bob Lanier",
+      "team": "MIL",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Paul Pressey",
+      "team": "MIL",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "B.J. Armstrong",
+      "team": "CHI",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Reggie Theus",
+      "team": "CHI",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Brad Daugherty",
+      "team": "CLE",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Larry Nance",
+      "team": "CLE",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Terrell Brandon",
+      "team": "CLE",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Ron Harper",
+      "team": "LAC",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Danny Manning",
+      "team": "LAC",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Norm Nixon",
+      "team": "LAC",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Swen Nater",
+      "team": "LAC",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Shareef Abdur-Rahim",
+      "team": "MEM",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Bryant Reeves",
+      "team": "MEM",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Kevin Willis",
+      "team": "ATL",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Mookie Blaylock",
+      "team": "ATL",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Dan Roundfield",
+      "team": "ATL",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Rony Seikaly",
+      "team": "MIA",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Steve Smith",
+      "team": "MIA",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Anthony Mason",
+      "team": "CHA",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Dell Curry",
+      "team": "CHA",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Kendall Gill",
+      "team": "CHA",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Darrell Griffith",
+      "team": "UTA",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Thurl Bailey",
+      "team": "UTA",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Otis Birdsong",
+      "team": "SAC",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Eddie Johnson",
+      "team": "SAC",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Nick Anderson",
+      "team": "ORL",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Scott Skiles",
+      "team": "ORL",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Dennis Scott",
+      "team": "ORL",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Darrell Armstrong",
+      "team": "ORL",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Derek Harper",
+      "team": "DAL",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Rolando Blackman",
+      "team": "DAL",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Mark Aguirre",
+      "team": "DAL",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Jim Jackson",
+      "team": "DAL",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Jamal Mashburn",
+      "team": "DAL",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "James Donaldson",
+      "team": "DAL",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Brad Davis",
+      "team": "DAL",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Drazen Petrovic",
+      "team": "BKN",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Buck Williams",
+      "team": "BKN",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Derrick Coleman",
+      "team": "BKN",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Kenny Anderson",
+      "team": "BKN",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Otis Birdsong",
+      "team": "BKN",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Keith Van Horn",
+      "team": "BKN",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Fat Lever",
+      "team": "DEN",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Dan Issel",
+      "team": "DEN",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Kiki VanDeWeghe",
+      "team": "DEN",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Rik Smits",
+      "team": "IND",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Chuck Person",
+      "team": "IND",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Kelly Tripucka",
+      "team": "DET",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Damon Stoudamire",
+      "team": "TOR",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Doug Christie",
+      "team": "TOR",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Ralph Sampson",
+      "team": "HOU",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Kenny Smith",
+      "team": "HOU",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Otis Thorpe",
+      "team": "HOU",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Vernon Maxwell",
+      "team": "HOU",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Sean Elliott",
+      "team": "SAS",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Mike Mitchell",
+      "team": "SAS",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Johnny Moore",
+      "team": "SAS",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Dennis Johnson",
+      "team": "PHX",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Walter Davis",
+      "team": "PHX",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Tom Chambers",
+      "team": "PHX",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Dan Majerle",
+      "team": "PHX",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Gus Williams",
+      "team": "OKC",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Jack Sikma",
+      "team": "OKC",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Detlef Schrempf",
+      "team": "OKC",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Tom Gugliotta",
+      "team": "MIN",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Doug West",
+      "team": "MIN",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Christian Laettner",
+      "team": "MIN",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Jerome Kersey",
+      "team": "POR",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Terry Porter",
+      "team": "POR",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Kiki VanDeWeghe",
+      "team": "POR",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Jim Paxson",
+      "team": "POR",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Kevin Duckworth",
+      "team": "POR",
+      "era": "90s",
+      "modern": false
+    },
+    {
+      "name": "Sleepy Floyd",
+      "team": "GSW",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Purvis Short",
+      "team": "GSW",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Jeff Ruland",
+      "team": "WAS",
+      "era": "80s",
+      "modern": false
+    },
+    {
+      "name": "Jeff Malone",
+      "team": "WAS",
+      "era": "80s",
+      "modern": false
+    }
+  ],
+  "scope": "Modern & Nostalgia only; 2000s onward unchanged; History and saved IDs preserved."
+}

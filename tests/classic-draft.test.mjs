@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
-import {createClassicSession,validateTranscript,CLASSIC_RULES_VERSION,ALL_SLOTS,publicCard} from '../supabase/functions/_shared/atu-engine-roster-20260920.js';
+import {createClassicSession,validateTranscript,CLASSIC_RULES_VERSION,ALL_SLOTS,publicCard} from '../supabase/functions/_shared/atu-engine-pool-20260920.js';
 
 const html=fs.readFileSync(new URL('../index.html',import.meta.url),'utf8');
 const logic=html.match(/<script>\s*\/\/<LOGIC>([\s\S]*?)\/\/<\/LOGIC>/)[1];
