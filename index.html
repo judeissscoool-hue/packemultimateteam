@@ -184,6 +184,10 @@ nav.tabs button.on{color:#0c0c0c;background:var(--cyan);border-color:var(--cyan)
 .slot .postag{font-family:var(--disp);font-size:18px;letter-spacing:.1em;color:#4a4a52}
 .slot.eligible{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 14px rgba(53,214,255,.35);animation:pulse 1s infinite}
 .blocked{opacity:.35}
+.draft-drag-handle{position:absolute;right:0;top:28px;min-width:44px;min-height:44px;border:1px solid var(--cyan);border-radius:10px;background:#10272eee;color:var(--cyan);font-size:24px;z-index:5;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:grab}
+.draft-drag-handle:active{cursor:grabbing}
+.draft-drop-ready{outline:2px dashed var(--cyan);outline-offset:3px;border-radius:14px}
+.draft-drop-over{outline:3px solid var(--gold);box-shadow:0 0 20px #ffd16688}
 .droptarget{outline:2px dashed var(--cyan);outline-offset:3px;border-radius:14px}
 .dragsrc{opacity:.45}
 .fromtag{position:absolute;top:5px;left:6px;font-size:8px;background:var(--amber);color:#0c0c0c;font-weight:800;border-radius:8px;padding:1px 5px;letter-spacing:.05em}
@@ -6910,7 +6914,46 @@ function openDraftSwap(slot){
   $("#sheet").classList.add("show");
   $("#sheet").onclick=e=>{if(e.target.id==="sheet")closeSheet();};
 }
+let DRAFT_DRAG=null,DRAFT_DRAG_CLICK_UNTIL=0;
+function canDraftSwap(a,b){
+  const D=activeDraft();
+  if(D.stage!=="picking"||a===b||!ALL_SLOTS.includes(a)||!ALL_SLOTS.includes(b))return false;
+  const pa=DB[D.roster[a]],pb=DB[D.roster[b]];
+  return !!pa&&!!pb&&eligible(pa,b)&&eligible(pb,a);
+}
+function draftDragStart(e,slot){
+  if(e.button!==0||!e.isPrimary)return;
+  e.preventDefault();e.stopPropagation();
+  draftDragClear();
+  DRAFT_DRAG={from:slot,id:e.pointerId,button:e.currentTarget,draft:activeDraft(),player:activeDraft().roster[slot],to:null};
+  e.currentTarget.setPointerCapture(e.pointerId);
+  document.querySelectorAll('[data-draft-slot]').forEach(el=>{
+    if(canDraftSwap(slot,el.dataset.draftSlot))el.classList.add('draft-drop-ready');
+  });
+}
+function draftDragMove(e){
+  if(!DRAFT_DRAG||e.pointerId!==DRAFT_DRAG.id)return;
+  e.preventDefault();e.stopPropagation();
+  const target=document.elementFromPoint(e.clientX,e.clientY)?.closest('[data-draft-slot]');
+  DRAFT_DRAG.to=target&&canDraftSwap(DRAFT_DRAG.from,target.dataset.draftSlot)?target.dataset.draftSlot:null;
+  document.querySelectorAll('[data-draft-slot]').forEach(el=>el.classList.toggle('draft-drop-over',el.dataset.draftSlot===DRAFT_DRAG.to));
+}
+function draftDragClear(){
+  const drag=DRAFT_DRAG;DRAFT_DRAG=null;
+  if(drag?.button.hasPointerCapture(drag.id))drag.button.releasePointerCapture(drag.id);
+  document.querySelectorAll('.draft-drop-ready,.draft-drop-over').forEach(el=>el.classList.remove('draft-drop-ready','draft-drop-over'));
+}
+function draftDragEnd(e,cancelled=false){
+  if(!DRAFT_DRAG||e.pointerId!==DRAFT_DRAG.id)return;
+  e.preventDefault();e.stopPropagation();
+  if(!cancelled)draftDragMove(e);
+  const drag=DRAFT_DRAG;
+  DRAFT_DRAG_CLICK_UNTIL=Date.now()+450;
+  draftDragClear();
+  if(!cancelled&&drag.draft===activeDraft()&&activeDraft().roster[drag.from]===drag.player&&canDraftSwap(drag.from,drag.to))doDraftSwap(drag.from,drag.to);
+}
 function doDraftSwap(a,b){
+  if(!canDraftSwap(a,b))return;
   const D=activeDraft();
   const pa=DB[D.roster[a]],pb=DB[D.roster[b]];
   /* legal if the moving player fits the destination and the displaced player fits
@@ -6935,7 +6978,7 @@ function draftSlotHTML(slot){
     <div class="postag">${p==="B"?"BN":p}</div><div>${SLOT_LABEL[slot]}</div>
     <div style="font-size:8px;color:${locked?"var(--dim)":"var(--cyan)"}">${locked?"🔒 LOCKED":"TAP TO DRAFT"}</div></button>`;}
   const tappable=D.stage==="picking"; /* picked cards can be swapped throughout the draft */
-  return `<div class="slot-${slot}" style="position:relative${tappable?";cursor:pointer":""}" ${tappable?`onclick="draftSlotTap('${slot}')"`:""}><div class="${D.lastSlot===slot?"snapin":""}">${cardHTML(DB[pid])}</div>${tappable?`<div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:8px;letter-spacing:.15em;color:var(--cyan);pointer-events:none">TAP TO MOVE</div>`:""}</div>`;
+  return `<div data-draft-slot="${slot}" class="slot-${slot}" style="position:relative${tappable?";cursor:pointer":""}" ${tappable?`onclick="draftSlotTap('${slot}')"`:""}><div class="${D.lastSlot===slot?"snapin":""}">${cardHTML(DB[pid])}</div>${tappable?`<button class="draft-drag-handle" aria-label="Drag to swap ${esc(DB[pid].name)}" onpointerdown="draftDragStart(event,'${slot}')" onpointermove="draftDragMove(event)" onpointerup="draftDragEnd(event)" onpointercancel="draftDragEnd(event,true)" onlostpointercapture="draftDragEnd(event,true)" onclick="event.stopPropagation();if(Date.now()>DRAFT_DRAG_CLICK_UNTIL)openDraftSwap('${slot}')" oncontextmenu="event.preventDefault()">↔</button>`:""}${tappable?`<div style="position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:8px;letter-spacing:.15em;color:var(--cyan);pointer-events:none">TAP TO MOVE</div>`:""}</div>`;
 }
 /* Shared Classic Draft court for online drafts and completed duels. */
 function challengeCourtHTML(roster={},options={}){

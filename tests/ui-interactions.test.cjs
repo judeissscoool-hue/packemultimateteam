@@ -92,3 +92,26 @@ for (const match of source.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)) {
   assert.equal(sheet.classList.value,'show','Guest drafts still restart');
 }
 console.log('UI interaction tests passed');
+
+// Pointer gestures use the same two-way eligibility rules on touch and mouse.
+{
+ const draft={stage:'picking',roster:{PG:0,SG:1,C:2,B1:3}};
+ const cards=[{positions:['PG','SG']},{positions:['PG','SG']},{positions:['C']},{positions:['C']}];
+ const swaps=[], nodes=['PG','SG','C','B1'].map(slot=>({dataset:{draftSlot:slot},classList:{add(){},remove(){},toggle(){}}}));
+ let hit=nodes[1];
+ const button={setPointerCapture(){},hasPointerCapture(){return true;},releasePointerCapture(){}};
+ const context=vm.createContext({Date,DB:cards,ALL_SLOTS:['PG','SG','SF','PF','C','B1'],activeDraft:()=>draft,eligible:(p,s)=>s==='B1'||p.positions.includes(s),document:{querySelectorAll:()=>nodes,elementFromPoint:()=>({closest:()=>hit})},doDraftSwap:(a,b)=>swaps.push([a,b])});
+ vm.runInContext(source.slice(source.indexOf('let DRAFT_DRAG='),source.indexOf('function doDraftSwap(a,b){')),context);
+ const event={button:0,isPrimary:true,pointerId:1,currentTarget:button,preventDefault(){},stopPropagation(){},clientX:10,clientY:20};
+ assert.equal(context.canDraftSwap('PG','SG'),true);
+ assert.equal(context.canDraftSwap('PG','C'),false);
+ assert.equal(context.canDraftSwap('PG','SF'),false,'Empty slots never qualify');
+ assert.equal(context.canDraftSwap('C','B1'),true);
+ context.draftDragStart(event,'PG');context.draftDragEnd(event);
+ assert.deepEqual(swaps,[['PG','SG']]);
+ hit=nodes[2];context.draftDragStart(event,'PG');context.draftDragEnd(event);
+ assert.equal(swaps.length,1,'Invalid touch release cannot swap');
+ hit=nodes[1];context.draftDragStart(event,'PG');context.draftDragEnd(event,true);
+ assert.equal(swaps.length,1,'Cancelled touch cannot swap');
+ draft.stage='captain';assert.equal(context.canDraftSwap('PG','SG'),false);
+}
