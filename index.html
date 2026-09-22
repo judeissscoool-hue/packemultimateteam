@@ -7698,5 +7698,10 @@ render();
 if(new URLSearchParams(location.search).get("privacy")==="1")
   (window.requestAnimationFrame||setTimeout)(()=>showPrivacy());
 </script>
+<!-- Vercel Web Analytics: record visits in the connected project's dashboard. -->
+<script>
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>
