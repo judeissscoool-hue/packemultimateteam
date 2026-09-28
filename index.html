@@ -22,7 +22,8 @@
   integrity="sha384-OUpie84zd1LdwNlK9uJJQRwab0BLqo3eKYKFh7hSVL58FSk7wPp2l0kfUMIIoaQd"
   crossorigin="anonymous"></script>
 <script src="./supabase/functions/_shared/classic-draft.js"></script>
-<script src="./backend.js?v=fair-ratings-20260920"></script>
+<script src="./supabase/functions/_shared/uniform-draft.js"></script>
+<script src="./backend.js?v=uniform-draft-20260928"></script>
 <style>
 /* ============ TOKENS: arena at night ============ */
 :root{
@@ -6810,7 +6811,7 @@ function confetti(n,palette){
    in D.taken while losing their slot assignment. Rebuild those orphan selections
    into legal empty slots before rendering, then derive completion from the court. */
 function activeDraft(){return screen==="challenge"&&ATUBackend.classicDraftState()||(!DRAFT_ERA&&ATUBackend.getGameSession("draft")?.draft)||D;}
-function localDraftRules(){return ATUDraftRules.create({cards:DB,weights:SPOTLIGHT,pool:eraPool,
+function localDraftRules(){if(D.uniformDraft)return ATUUniformDraftRules.create({cards:DB,pool:eraPool});return ATUDraftRules.create({cards:DB,weights:SPOTLIGHT,pool:eraPool,
   fair:{shown:DRAFT_NAME_SHOWN,last:DRAFT_NAME_LAST,cards:DRAFT_CARD_SHOWN,session:DRAFT_FAIR_SESSION}});}
 function applyDraftAction(event){
   if(screen==="challenge"&&ATUBackend.classicDraftState())return ATUBackend.applyClassicDraftAction(event);
@@ -6863,8 +6864,7 @@ async function startDraft(era){
     finally{startingNormalRun=false;}
     return;
   }
-  beginDraftFairSession();
-  D={cardPool:ROSTER_POOL};D={...localDraftRules().start(),cardPool:ROSTER_POOL};persistDraftFair();
+  D={cardPool:ROSTER_POOL,uniformDraft:true};D={...localDraftRules().start(),cardPool:ROSTER_POOL,uniformDraft:true};
   render();
 }
 function pickCaptain(pid){

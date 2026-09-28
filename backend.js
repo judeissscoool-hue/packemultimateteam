@@ -527,7 +527,7 @@
   async function loadEngine() {
     if (state.engine) return state.engine;
     if (!state.enginePromise) {
-      state.enginePromise = import("./supabase/functions/_shared/atu-engine-ratings-20260920.js?roster=20260920")
+      state.enginePromise = import("./supabase/functions/_shared/atu-engine-uniform-20260928.js?draft=20260928")
         .then(function (engine) {
           state.engine = engine;
           return engine;
@@ -765,7 +765,7 @@
         ...(previous?{previous:{runId:previous.runId,runToken:previous.runToken,events:previous.events}}:{})}});
       if(response.error||!response.data?.ok)throw response.error||new Error(response.data?.error||"Could not start draft");
       if(state.session?.user.id!==ownerId)return null;
-      const row=response.data.run;if(!row||!row.draft_fairness)throw new Error("Could not load draft history.");
+      const row=response.data.run;if(!row||(engine.usesDraftHistory(rulesVersion)&&!row.draft_fairness))throw new Error("Could not load draft history.");
       const run={runId:row.run_id,runToken:row.run_token,seed:row.draft_seed,rulesVersion,fairness:row.draft_fairness,expiresAt:row.expires_at,events:[],status:"playing"};
       saveGameRun(mode,run);
       return gameSession(mode,run);

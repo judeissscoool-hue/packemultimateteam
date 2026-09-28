@@ -1,0 +1,13 @@
+# Independent per-card drafts
+
+New Classic Drafts use `atu-classic-v9` (Modern & Nostalgia) or `atu-history-draft-v7` (True History). Each eligible card has one ticket after the rarity roll. The selector ignores spotlight weights, historical exposures, recency and least-seen versions. All approved pool cards are eligible, including cards previously removed by the depth-only filter. Names remain unique on an individual offer board and in the drafted squad. Unpicked names can recur on subsequent boards or drafts.
+
+Base board odds remain Bronze 14%, Silver 40%, Gold 40%, Elite 4%, Icon 2%. Captain tier selection remains evenly split between available Icon/Elite tiers with the existing era fallback. Position restrictions, roster caps and unavailable-tier retries still apply. These constraints mean overall card frequencies need not be equal across positions or rarities, and random streaks remain possible.
+
+The browser and server use the same `uniform-draft.js` selector. Local/new era drafts opt into it with `uniformDraft`. Existing rules, saved account drafts and old challenge replays remain frozen. Pack and Daily Challenge rules are unchanged.
+
+The new router delegates previous rules to the old router. New account starts return `draft_fairness: null` and bypass account exposure reads/writes; the history endpoint continues supporting older clients. Server deployments: draft-history version 6 and validate-run version 15, JWT verification retained. Migration `20260928070438_uniform_card_drafts` registers the new rules and extends only the existing create/finalize version allowlists without changing auth, grants or ranking requirements.
+
+Validation: full repository suite passed; 2,000 complete drafts per pool offered all 1,126 Modern & Nostalgia cards and 1,301 True History cards; 100,000 controlled equal-card draws were within 1.81% of expected frequency. Tests cover history independence, local/server pool and position parity, duplicate constraints, replay/validation, old rules compatibility, and old/new account-handler starts/restarts. Account handler and client tests use mocked service boundaries; deployed rules and function versions were checked separately.
+
+Security advisor review found existing security-definer endpoint notices, service-only tables with no client policies, and disabled leaked-password protection. No permissions or auth settings were changed. Advisor references: https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable and https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection.

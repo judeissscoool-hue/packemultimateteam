@@ -4,6 +4,8 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import {stripTypeScriptTypes} from 'node:module';
 import * as engine from '../supabase/functions/_shared/atu-engine-ratings-20260920.js';
+import * as uniform from '../supabase/functions/_shared/atu-engine-uniform-20260928.js';
+const {usesDraftHistory}=uniform;
 import {draftExposure,cloneDraftFairness} from '../supabase/functions/_shared/draft-history.js';
 
 const seed=createHash('sha256').update('persistent-draft-history-tests').digest('hex');
@@ -40,7 +42,7 @@ const runId='12345678-1234-4123-8123-123456789abc',runToken='a'.repeat(64);
 let handler,records=[],created=0;
 let row={id:runId,user_id:'owner',mode:'draft',rules_version:engine.CLASSIC_RULES_VERSION,draft_seed:seed,nonce_hash:createHash('sha256').update(runToken).digest('hex'),draft_fairness:fair};
 const env={SUPABASE_URL:'https://example.supabase.co',SUPABASE_ANON_KEY:'anon',SUPABASE_SERVICE_ROLE_KEY:'server-only'};
-const context=vm.createContext({...engine,draftExposure,console,Response,Request,Headers,TextEncoder,crypto:webcrypto,
+const context=vm.createContext({...engine,usesDraftHistory,draftExposure,console,Response,Request,Headers,TextEncoder,crypto:webcrypto,
  corsHeaders:{'Access-Control-Allow-Headers':'authorization,apikey,content-type,x-client-info'},
  Deno:{env:{get:k=>env[k]},serve:f=>handler=f},
  createClient(_url,key){return key==='anon'?{
@@ -90,3 +92,19 @@ row.draft_fairness=fair;
 assert.equal((await handler(request({action:'start',pool:'modern'},'bad'))).status,401);
 assert.equal((await handler(request({action:'start',pool:'modern'},'valid','https://evil.example'))).status,403);
 console.log('Persistent draft history: immutable replay, reloads, exposure counting, auth and tamper checks passed');
+// New account drafts bypass exposure history entirely; old clients above still work.
+context.rulesForPool=uniform.rulesForPool;
+context.getEngineForRules=uniform.getEngineForRules;
+for(const pool of ['modern','history']){
+ const recordsBefore=records.length;
+ const rulesVersion=uniform.rulesForPool(pool,'draft');
+ res=await handler(request({action:'start',pool,rulesVersion}));
+ assert.equal(res.status,200);response=await res.json();
+ assert.equal(response.run.draft_fairness,null);
+ assert.equal(records.length,recordsBefore,'Uniform drafts must not write exposure history');
+ row.rules_version=rulesVersion;row.draft_fairness=null;
+ res=await handler(request({action:'start',pool,rulesVersion,previous:{runId,runToken,events:[]}}));
+ assert.equal(res.status,200,'Restart uniform drafts without needing history');
+ assert.equal(records.length,recordsBefore);
+}
+console.log('Uniform account starts/restarts bypass history and preserve old client support');
