@@ -26,7 +26,8 @@
 <script src="./supabase/functions/_shared/player-first-draft.js"></script>
 <script src="./supabase/functions/_shared/draft-random-20261002.js"></script>
 <script src="./supabase/functions/_shared/shuffled-player-draft-20261002.js"></script>
-<script src="./backend.js?v=shuffled-player-20261002"></script>
+<script src="./supabase/functions/_shared/card-cycle-draft-20261002.js"></script>
+<script src="./backend.js?v=card-cycle-20261002"></script>
 <style>
 /* ============ TOKENS: arena at night ============ */
 :root{
@@ -3558,15 +3559,15 @@ function classicRollPack(owned,counts,packKey,rng){
   persistRand();
   return cards;
 }
-/* DRAFT MODE: independent, name-balanced randomizer.
-   Why this is separate from packs:
-   - pack pull history/decks are persisted on the device and were leaking into Draft;
-   - players with 2–3 card variants otherwise received 2–3 lottery tickets;
-   - multi-position players otherwise appeared on far more slot boards.
-   Draft now chooses a PLAYER NAME first, then one eligible card version. Persistent
-   exposure counts + a strong recent-session cooldown keep long-run appearances even,
-   while a current-draft soft block avoids showing the same unpicked name repeatedly. */
+/* Frozen exposure helpers support older drafts. New drafts use exact-card
+   protection cycles, independently of Pack Mode's pull memory and decks. */
 const DRAFT_FAIR_KEY="atu-draft-fair-v1";
+const DRAFT_CARD_CYCLE_KEY="atu-card-cycle-v1",DRAFT_CARD_RELEASE_FRACTION=.75;
+let DRAFT_CARD_CYCLES={};
+function localCardCycleKey(){return ROSTER_POOL+"|"+(DRAFT_ERA||"all");}
+function persistCardCycle(){if(!D.cardCycle)return;
+  DRAFT_CARD_CYCLES[localCardCycleKey()]=Object.values(D.cardCycle.shown).flat();
+  sSet(DRAFT_CARD_CYCLE_KEY,DRAFT_CARD_CYCLES);}
 let DRAFT_FAIR_SESSION=0,DRAFT_NAME_SHOWN={},DRAFT_NAME_LAST={},DRAFT_CARD_SHOWN={};
 function persistDraftFair(){if(typeof sSet!=="function")return;
   sSet(DRAFT_FAIR_KEY,{session:DRAFT_FAIR_SESSION,shown:DRAFT_NAME_SHOWN,last:DRAFT_NAME_LAST,cards:DRAFT_CARD_SHOWN});}
@@ -6747,6 +6748,8 @@ try{
   const dk=sGet("atu-decks-v2");
   if(dk&&typeof dk==="object")TIER_DECKS=dk; /* reconcileDeck() folds in any new cards */
   const df=sGet(DRAFT_FAIR_KEY);
+  const dc=sGet(DRAFT_CARD_CYCLE_KEY);
+  if(dc&&typeof dc==="object"&&!Array.isArray(dc))DRAFT_CARD_CYCLES=dc;
   if(df&&typeof df==="object"){
     DRAFT_FAIR_SESSION=Number.isFinite(df.session)?df.session:0;
     DRAFT_NAME_SHOWN=df.shown&&typeof df.shown==="object"?df.shown:{};
@@ -6856,11 +6859,16 @@ function confetti(n,palette){
    in D.taken while losing their slot assignment. Rebuild those orphan selections
    into legal empty slots before rendering, then derive completion from the court. */
 function activeDraft(){return screen==="challenge"&&ATUBackend.classicDraftState()||(!DRAFT_ERA&&ATUBackend.getGameSession("draft")?.draft)||D;}
-function localDraftRules(){if(D.shuffledPlayerDraft)return ATUShuffledPlayerDraftRules.create({cards:DB,pool:eraPool,seed:D.shuffleSeed});if(D.playerFirstDraft)return ATUPlayerFirstDraftRules.create({cards:DB,pool:eraPool});if(D.uniformDraft)return ATUUniformDraftRules.create({cards:DB,pool:eraPool});return ATUDraftRules.create({cards:DB,weights:SPOTLIGHT,pool:eraPool,
+function localDraftRules(){if(D.cardCycleDraft){
+  const rng=ATUDraftRandomV1.create(D.cycleSeed,{offset:D.cycleOffset||0});
+  const rules=ATUCardCycleDraftRules.create({cards:DB,pool:eraPool,random:rng,
+    protection:{shown:DRAFT_CARD_CYCLES[localCardCycleKey()]||[]},releaseFraction:DRAFT_CARD_RELEASE_FRACTION});
+  return {...rules,start:()=>({...rules.start(),cycleOffset:rng.offset()}),apply:(d,event)=>{const result=rules.apply(d,event);d.cycleOffset=rng.offset();return result;}};
+}if(D.shuffledPlayerDraft)return ATUShuffledPlayerDraftRules.create({cards:DB,pool:eraPool,seed:D.shuffleSeed});if(D.playerFirstDraft)return ATUPlayerFirstDraftRules.create({cards:DB,pool:eraPool});if(D.uniformDraft)return ATUUniformDraftRules.create({cards:DB,pool:eraPool});return ATUDraftRules.create({cards:DB,weights:SPOTLIGHT,pool:eraPool,
   fair:{shown:DRAFT_NAME_SHOWN,last:DRAFT_NAME_LAST,cards:DRAFT_CARD_SHOWN,session:DRAFT_FAIR_SESSION}});}
 function applyDraftAction(event){
   if(screen==="challenge"&&ATUBackend.classicDraftState())return ATUBackend.applyClassicDraftAction(event);
-  try{if(!DRAFT_ERA&&ATUBackend.getGameSession("draft")){ATUBackend.applyGameAction("draft",event);return true;}localDraftRules().apply(D,event);persistDraftFair();return true;}
+  try{if(!DRAFT_ERA&&ATUBackend.getGameSession("draft")){ATUBackend.applyGameAction("draft",event);return true;}localDraftRules().apply(D,event);if(D.cardCycleDraft)persistCardCycle();else persistDraftFair();return true;}
   catch(error){notice(error.message);return false;}
 }
 function closeDraftPick(){const D=activeDraft();D.activeSlot=null;D.opts=null;render();}
@@ -6909,7 +6917,9 @@ async function startDraft(era){
     finally{startingNormalRun=false;}
     return;
   }
-  D={cardPool:ROSTER_POOL,shuffledPlayerDraft:true};D={...localDraftRules().start(),cardPool:ROSTER_POOL,shuffledPlayerDraft:true};
+  const cycleSeed=ATUDraftRandomV1.freshSeed();
+  D={cardPool:ROSTER_POOL,cardCycleDraft:true,cycleSeed};D={...localDraftRules().start(),cardPool:ROSTER_POOL,cardCycleDraft:true,cycleSeed};
+  persistCardCycle();
   render();
 }
 function pickCaptain(pid){

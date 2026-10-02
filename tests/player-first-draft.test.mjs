@@ -182,7 +182,7 @@ const token='a'.repeat(64),runRows=new Map();
 let createdRuns=0,historyRpcCalls=0,finalizedRuns=0,expectedRoster;
 function edgeHandler(name){
  const raw=fs.readFileSync(new URL(`../supabase/functions/${name}/index.ts`,import.meta.url),'utf8');
- assert.match(raw,/atu-engine-shuffled-player-20261002\.js/,'Edge handler must load the current versioned router');
+ assert.match(raw,/atu-engine-card-cycle-20261002\.js/,'Edge handler must load the current versioned router');
  const source=raw.replace(/import[\s\S]*?from "[^"]+";\r?\n/g,'');
  let handler;
  const context=vm.createContext({...engine,console,Response,Request,Headers,TextEncoder,crypto:webcrypto,

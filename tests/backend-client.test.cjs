@@ -139,7 +139,7 @@ async function run() {
     assert.match(view,/aria-selected="true"[^>]*>REWARDS/);
   }
   for (const rulesVersion of ["atu-v1", "atu-classic-v2", "atu-classic-v3", "atu-history-draft-v1", "atu-classic-v4", "atu-history-draft-v2"]) {
-    const router = await import('../supabase/functions/_shared/atu-engine-shuffled-player-20261002.js');
+    const router = await import('../supabase/functions/_shared/atu-engine-card-cycle-20261002.js');
     const engine = router.getEngineForRules(rulesVersion);
     const seed = '0123456789abcdef'.repeat(4), code = 'A1B2C3D4E5F60708';
     let completed = false, finalRoster, result, submissions = 0;
@@ -740,7 +740,8 @@ async function run() {
   {
     const seed='0123456789abcdef'.repeat(4);
     let submissions=0,fail=true;
-    const engine=await import('../supabase/functions/_shared/atu-engine-shuffled-player-20261002.js');
+    const engine=await import('../supabase/functions/_shared/atu-engine-card-cycle-20261002.js');
+    const normalFairness={kind:'card-cycle-v1',releaseFraction:.75,shown:[]};
     const test=makeContext({session:{user:{id:'normal-player'}},rpc(name,args){
       if(name==='get_my_profile')return {data:[{username:'Normal'}]};
       if(name==='sync_cloud_save')return {data:[{outcome:'created',revision:1}]};
@@ -750,15 +751,15 @@ async function run() {
       if(name==='draft-history'){
         if(body.action==='checkpoint')return {data:{ok:true}};
         assert.equal(body.pool,'modern');
-        return {data:{ok:true,run:{run_id:'normal-run',run_token:'b'.repeat(64),draft_seed:seed,expires_at:'2099-01-01',draft_fairness:null}}};
+        return {data:{ok:true,run:{run_id:'normal-run',run_token:'b'.repeat(64),draft_seed:seed,expires_at:'2099-01-01',draft_fairness:normalFairness}}};
       }
       submissions++;assert.equal(name,'validate-run');
-      const validated=engine.validateTranscript(seed,body.transcript,'draft',engine.CLASSIC_RULES_VERSION);
+      const validated=engine.validateTranscript(seed,body.transcript,'draft',engine.CLASSIC_RULES_VERSION,normalFairness);
       if(fail){fail=false;return {error:new Error('Disconnected')};}
       return {data:{ok:true,result:validated.result}};
     }});
     await test.api.init();const session=await test.api.beginGameRun('draft');
-    assert.equal(JSON.parse(test.storage.getItem('atu-game-runs-v1')).runs.draft.fairness,null,'Uniform signed-in run needs no history snapshot');
+    assert.deepEqual(JSON.parse(test.storage.getItem('atu-game-runs-v1')).runs.draft.fairness,normalFairness,'Card protection snapshot is saved with the signed-in run');
     test.api.applyGameAction('draft',{type:'captain',cardId:session.draft.captain[0].id});
     for(const slot of engine.ALL_SLOTS)if(session.draft.roster[slot]==null){
       test.api.applyGameAction('draft',{type:'open',slot});test.api.applyGameAction('draft',{type:'pick',cardId:session.draft.opts[0].id});
@@ -775,7 +776,7 @@ async function run() {
 
   {
     const fixture=JSON.parse(fs.readFileSync(require('node:path').join(__dirname,'perfect-draft.json'),'utf8'));
-    const engine=await import('../supabase/functions/_shared/atu-engine-shuffled-player-20261002.js');let submissions=0, fail=true;
+    const engine=await import('../supabase/functions/_shared/atu-engine-card-cycle-20261002.js');let submissions=0, fail=true;
     const test=makeContext({session:{user:{id:'perfect-player'}},storageSeed:{'atu-game-runs-v1':JSON.stringify({ownerId:'perfect-player',runs:{draft:{runId:'perfect-run',runToken:'b'.repeat(64),seed:fixture.seed,rulesVersion:'atu-classic-v2',expiresAt:'2099-01-01',events:[],status:'playing'}}})},rpc(name,args){
       if(name==='get_my_profile')return {data:[{username:'Perfect'}]};
       if(name==='sync_cloud_save')return {data:[{outcome:'updated',revision:1}]};

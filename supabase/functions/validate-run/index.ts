@@ -4,7 +4,7 @@ import {
   SUPPORTED_RULES_VERSIONS,
   isClassicRulesVersion,
   getEngineForRules
-} from "../_shared/atu-engine-shuffled-player-20261002.js";
+} from "../_shared/atu-engine-card-cycle-20261002.js";
 
 type JsonRecord = Record<string, unknown>;
 
