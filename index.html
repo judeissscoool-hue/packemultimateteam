@@ -24,7 +24,9 @@
 <script src="./supabase/functions/_shared/classic-draft.js"></script>
 <script src="./supabase/functions/_shared/uniform-draft.js"></script>
 <script src="./supabase/functions/_shared/player-first-draft.js"></script>
-<script src="./backend.js?v=player-first-draft-20261002"></script>
+<script src="./supabase/functions/_shared/draft-random-20261002.js"></script>
+<script src="./supabase/functions/_shared/shuffled-player-draft-20261002.js"></script>
+<script src="./backend.js?v=shuffled-player-20261002"></script>
 <style>
 /* ============ TOKENS: arena at night ============ */
 :root{
@@ -6854,7 +6856,7 @@ function confetti(n,palette){
    in D.taken while losing their slot assignment. Rebuild those orphan selections
    into legal empty slots before rendering, then derive completion from the court. */
 function activeDraft(){return screen==="challenge"&&ATUBackend.classicDraftState()||(!DRAFT_ERA&&ATUBackend.getGameSession("draft")?.draft)||D;}
-function localDraftRules(){if(D.playerFirstDraft)return ATUPlayerFirstDraftRules.create({cards:DB,pool:eraPool});if(D.uniformDraft)return ATUUniformDraftRules.create({cards:DB,pool:eraPool});return ATUDraftRules.create({cards:DB,weights:SPOTLIGHT,pool:eraPool,
+function localDraftRules(){if(D.shuffledPlayerDraft)return ATUShuffledPlayerDraftRules.create({cards:DB,pool:eraPool,seed:D.shuffleSeed});if(D.playerFirstDraft)return ATUPlayerFirstDraftRules.create({cards:DB,pool:eraPool});if(D.uniformDraft)return ATUUniformDraftRules.create({cards:DB,pool:eraPool});return ATUDraftRules.create({cards:DB,weights:SPOTLIGHT,pool:eraPool,
   fair:{shown:DRAFT_NAME_SHOWN,last:DRAFT_NAME_LAST,cards:DRAFT_CARD_SHOWN,session:DRAFT_FAIR_SESSION}});}
 function applyDraftAction(event){
   if(screen==="challenge"&&ATUBackend.classicDraftState())return ATUBackend.applyClassicDraftAction(event);
@@ -6907,7 +6909,7 @@ async function startDraft(era){
     finally{startingNormalRun=false;}
     return;
   }
-  D={cardPool:ROSTER_POOL,playerFirstDraft:true};D={...localDraftRules().start(),cardPool:ROSTER_POOL,playerFirstDraft:true};
+  D={cardPool:ROSTER_POOL,shuffledPlayerDraft:true};D={...localDraftRules().start(),cardPool:ROSTER_POOL,shuffledPlayerDraft:true};
   render();
 }
 function pickCaptain(pid){

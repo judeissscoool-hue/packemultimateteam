@@ -1,0 +1,17 @@
+# Shuffled player Classic Drafts
+
+Each new Classic Draft and Restart receives a fresh 256-bit random seed. The player names in every rarity are first put into a canonical order, then shuffled with Fisher–Yates. That shuffled order remains fixed for the draft. Each offer rolls rarity, uniformly selects one currently eligible player from that rarity's shuffled names, and uniformly selects one of that player's eligible card versions.
+
+The new random stream is ChaCha20 as specified by RFC 8439. Separate nonce streams supply the shuffle, rarity rolls, player picks and card-version picks. Player and version indices use rejection sampling: values outside the largest complete set of equal-sized buckets are discarded. This avoids even the small rounding bias from scaling a 32-bit random value into an arbitrary list size. Signed-in seeds still come from the database's existing 32 cryptographic random bytes; local and era drafts now also require `crypto.getRandomValues`, with no `Math.random` fallback.
+
+Base rarity odds remain Bronze 14%, Silver 40%, Gold 40%, Elite 4%, Icon 2%. Captain rarity anchors, era restrictions, positional eligibility, same-board player uniqueness and selected-roster uniqueness are unchanged. No exposure counters, prior-offer exclusions, recency weighting or consumed shuffle bag are introduced. An unselected player remains eligible for later boards and every player becomes eligible again in a new draft.
+
+**Shuffling followed by an unbiased random draw preserves the same intended player probabilities as the previous player-first selector. It does not guarantee fewer repeated faces, balanced session totals, or improved coverage.** The purpose is a fresh run order, a standard cryptographic generator, exact equal-sized index buckets, and evidence that database ordering cannot favor a player. The earlier 20-draft audit identified unusually concentrated outcomes without establishing a coding fault; this change is not evidence that such a fault existed.
+
+Modern & Nostalgia uses `atu-classic-v11`; True History uses `atu-history-draft-v9`. The new shared selector is `shuffled-player-draft-20261002.js` and randomness is `draft-random-20261002.js`. Draft state saves the seed, shuffled rarity lists and random-word offsets, so a refreshed page or a new local rules factory resumes the exact same sequence. Reopening an offered board does not draw again. Existing versions, including v10/v8, retain their frozen engines and can start, restart, resume and validate under their original rules. Pack Mode and Daily Challenge retain their existing rules.
+
+The backend registers two new rulesets and extends only the inspected Classic Draft version allowlists. Existing authentication, function security modes, grants and ranked qualification requirements remain. New runs return `draft_fairness: null` and do not read or write exposure history.
+
+Validation covers RFC and zero-key test vectors, independent OpenSSL ChaCha20 agreement, rejection boundaries, counter exhaustion, resumed offsets, browser/server parity, reordered source data, rarity thresholds, equal player and version frequencies, legal complete rosters, cached-board stability, refresh at seven picks, fresh resets, frozen old replay, authenticated handlers and forged-transcript rejection.
+
+References: [RFC 8439](https://www.rfc-editor.org/rfc/rfc8439.html), [Web Crypto getRandomValues](https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues).

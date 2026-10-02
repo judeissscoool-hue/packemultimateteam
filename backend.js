@@ -527,7 +527,7 @@
   async function loadEngine() {
     if (state.engine) return state.engine;
     if (!state.enginePromise) {
-      state.enginePromise = import("./supabase/functions/_shared/atu-engine-player-first-20261002.js?draft=20261002")
+      state.enginePromise = import("./supabase/functions/_shared/atu-engine-shuffled-player-20261002.js?draft=shuffled-player-20261002")
         .then(function (engine) {
           state.engine = engine;
           return engine;
