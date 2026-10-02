@@ -1,6 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2.112.2/cors";
-import { getEngineForRules, rulesForPool, usesDraftHistory } from "../_shared/atu-engine-uniform-20260928.js";
+import { getEngineForRules, rulesForPool, usesDraftHistory } from "../_shared/atu-engine-player-first-20261002.js";
 import { draftExposure } from "../_shared/draft-history.js";
 
 type JsonRecord = Record<string, unknown>;
@@ -133,7 +133,7 @@ Deno.serve(async (req: Request) => {
     // original roster. New clients explicitly request the new supported rules.
     const previousVersion=body.pool==='history'?'atu-history-draft-v2':'atu-classic-v4';
     const version=body.rulesVersion??previousVersion;
-    if(![previousVersion,body.pool==='history'?'atu-history-draft-v3':'atu-classic-v5',body.pool==='history'?'atu-history-draft-v4':'atu-classic-v6',body.pool==='history'?'atu-history-draft-v5':'atu-classic-v7',body.pool==='history'?'atu-history-draft-v6':'atu-classic-v8',rulesForPool(body.pool,'draft')].includes(version))return json(origin,400,{error:'Invalid draft rules'});
+    if(![previousVersion,body.pool==='history'?'atu-history-draft-v3':'atu-classic-v5',body.pool==='history'?'atu-history-draft-v4':'atu-classic-v6',body.pool==='history'?'atu-history-draft-v5':'atu-classic-v7',body.pool==='history'?'atu-history-draft-v6':'atu-classic-v8',body.pool==='history'?'atu-history-draft-v7':'atu-classic-v9',rulesForPool(body.pool,'draft')].includes(version))return json(origin,400,{error:'Invalid draft rules'});
     const created=await userClient.rpc('create_ranked_run',{p_mode:'draft',p_rules_version:version});
     if(created.error)throw created.error;
     const run=Array.isArray(created.data)?created.data[0]:created.data;
