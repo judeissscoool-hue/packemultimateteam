@@ -124,7 +124,8 @@ async function run() {
     assert.match(view, /@&lt;unsafe&gt;/, 'Handles must remain escaped');
     assert.match(view, /season-gold/);assert.match(view,/season-silver/);assert.match(view,/season-bronze/);
     for(const tier of [10,50,100])assert.match(view,new RegExp('TOP '+tier));
-    assert.match(view,/Qualified · skin reveal coming soon/);
+    assert.match(view,/Qualified · reward at season end/);
+    assert.match(view,/cards\/skins\/lebron-king\.jpg/);assert.match(view,/Heavy Is the Head/);
     assert.match(view, /Projected Top 5% reward/, 'Percentiles use the complete eligible population');
     assert.match(view, /#101/, 'Viewer outside the top 100 still sees their own rank');
     assert.ok(view.indexOf('season-rankingtable') < view.indexOf('ranking-play'));

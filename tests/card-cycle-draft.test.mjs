@@ -125,6 +125,45 @@ vm.runInContext(randomSource+'\n'+selectorSource+'\n'+html.match(/<script>\s*\/\
 vm.runInContext('Math.random=()=>{throw new Error("Legacy random source used")}',browser);
 assert.match(html,/card-cycle-draft-20261002\.js/);assert.match(localRulesSource,/cycleOffset/);
 const localCards=vm.runInContext('DB.filter(p=>p.acquisitionActive)',browser);
+
+// Newly started local runs capture the current 90% policy. Restored local runs
+// that predate the policy field keep their original 75% behavior, even though
+// the page default has changed. Execute the real startDraft and wrapper here.
+const localStartSource=html.slice(html.indexOf('let startingNormalRun=false;'),html.indexOf('function pickCaptain('));
+assert(localStartSource.includes('async function startDraft('));
+browser.ATUBackend={isSignedIn:()=>false};browser.render=()=>{};
+vm.runInContext(localStartSource,browser);
+assert.equal(vm.runInContext('DRAFT_CARD_RELEASE_FRACTION',browser),.9,'New local drafts must use the requested 90% default');
+for(const [pool,cards,version]of [['modern',modern,'atu-classic-v12'],['history',history,'atu-history-draft-v10']]){
+ const goldIds=cards.filter(card=>card.r==='Gold').map(card=>card.id),shown=goldIds.slice(0,Math.ceil(goldIds.length*.8));
+ for(const legacy of [true,false]){
+  const releaseFraction=legacy ? .75 : .9,fairness={...policy(shown),releaseFraction};
+  browser.testPool=pool;browser.testShown=shown;browser.testSeed=seed('local-policy-'+pool+'-'+legacy);
+  vm.runInContext('ROSTER_POOL=testPool;DRAFT_ERA=null;DRAFT_CARD_CYCLES[localCardCycleKey()]=[...testShown]',browser);
+  if(legacy){
+   vm.runInContext('D={cardPool:ROSTER_POOL,cardCycleDraft:true,cycleSeed:testSeed};D={...localDraftRules().start(),cardPool:ROSTER_POOL,cardCycleDraft:true,cycleSeed:testSeed};delete D.cycleReleaseFraction;D=JSON.parse(JSON.stringify(D));persistCardCycle()',browser);
+   assert.equal(vm.runInContext('Object.hasOwn(D,"cycleReleaseFraction")',browser),false,'Exercise a restored legacy draft without a stored policy field');
+  }else{
+   await vm.runInContext('startDraft(null)',browser);
+   assert.equal(vm.runInContext('D.cycleReleaseFraction',browser),.9,'The actual start path must capture policy on the new draft');
+  }
+  const draftSeed=vm.runInContext('D.cycleSeed',browser),session=engine.createClassicSession(draftSeed,[],version,fairness),events=[];
+  assert.deepEqual(snapshot(vm.runInContext('D',browser)),snapshot(session.draft),'Local captain board must use its captured policy snapshot');
+  const apply=event=>{
+   session.apply(event);events.push(event);browser.event=event;
+   vm.runInContext('D=JSON.parse(JSON.stringify(D));localDraftRules().apply(D,event);persistCardCycle()',browser);
+   assert.deepEqual(snapshot(vm.runInContext('D',browser)),snapshot(session.draft),'Serialized local policy must match trusted engine replay');
+   if(!legacy)assert.equal(vm.runInContext('D.cycleReleaseFraction',browser),.9,'Every restored new action retains its per-run policy');
+  };
+  apply({type:'captain',cardId:highest(session.draft.captain).id});
+  for(const slot of slots)if(session.draft.roster[slot]===null){apply({type:'open',slot});apply({type:'pick',cardId:highest(session.draft.opts).id});}
+  assert(session.draft.done);verifyJournal(fairness,session.draft,cards);
+  if(legacy)assert(session.draft.cardCycle.events.some(event=>event.type==='reset'&&event.tier==='Gold'),'A legacy 80%-filled pool must still release under the 75% policy');
+  assert.deepEqual(engine.createClassicSession(draftSeed,events,version,fairness).draft,session.draft,'Captured local policy remains replayable after later cycles');
+ }
+}
+vm.runInContext('DRAFT_CARD_CYCLES={}',browser);stored.clear();
+
 for(const [pool,cards,version]of [['modern',modern,'atu-classic-v12'],['history',history,'atu-history-draft-v10']]){
  const specific=engine.getEngineForRules(version);assert(engine.usesDraftHistory(version)&&engine.usesCardCycleHistory(version));
  for(const invalidSeed of [undefined,'123',seed(1).toUpperCase()])assert.throws(()=>engine.createClassicSession(invalidSeed,[],version),/seed/i);
@@ -178,4 +217,4 @@ for(const [pool,cards,version]of [['modern',modern,'atu-classic-v12'],['history'
  console.log(`${pool}: ${seen.size}/${cards.length} versions reached across 2,000 complete protected drafts; ${resetCount} resets, ${releaseCount} narrow releases; real local wrapper restart/restore and validator checks passed`);
 }
 assert(stored.get('atu-card-cycle-v1')['modern|all']&&stored.get('atu-card-cycle-v1')['history|all'],'Pool histories must coexist independently');
-console.log('Card-cycle tests passed: exact-card probability, unchanged rarity/caps, 75% reset, oldest eligible release, frozen old replay, immutable snapshots, local persistence and complete pool coverage');
+console.log('Card-cycle tests passed: exact-card probability, unchanged rarity/caps, new 90% local policy, legacy 75% continuity, oldest eligible release, frozen old replay, immutable snapshots, local persistence and complete pool coverage');

@@ -145,7 +145,7 @@ Deno.serve(async (req: Request) => {
     const run=Array.isArray(created.data)?created.data[0]:created.data;
     if(!run)throw new Error('Could not start draft');
     if(['atu-classic-v12','atu-history-draft-v10'].includes(version)){
-      const initialized=await admin.rpc('initialize_card_cycle',{p_run_id:run.run_id,p_user_id:userId,p_pool:body.pool,p_release_fraction:.75});
+      const initialized=await admin.rpc('initialize_card_cycle',{p_run_id:run.run_id,p_user_id:userId,p_pool:body.pool,p_release_fraction:.9});
       if(initialized.error)throw initialized.error;
       const fairness=initialized.data;
       const session=getEngineForRules(version).createClassicSession(run.draft_seed,[],fairness);

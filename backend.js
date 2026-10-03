@@ -1902,7 +1902,7 @@
 
   function seasonRewardsHTML() {
     return '<div class="season-rewards"><h3>Season rewards</h3><p>Your highest qualifying tier pays once at season end. The five-draft skin is separate. Exact ties share the same tier.</p>'
-      + '<p class="season-timing">Beta is open. End date and featured player skin to be announced; rewards have not been issued.</p>'
+      + '<p class="season-timing">Beta is open. End date to be announced; rewards have not been issued. The five-draft reward is LeBron James: Heavy Is the Head.</p>'
       + '<div class="season-reward-list"><div class="season-reward-line season-reward-heading"><span>FINISH</span><span>CREDITS</span><span>RAFTERS</span><span>HONOUR</span></div>'
       + SEASON_REWARDS.map(tier => '<div class="season-reward-line"><b>' + tier.label + '</b><span>' + tier.credits.toLocaleString('en-US') + ' CR</span><span>' + tier.packs + ' packs</span><span>' + (tier.rank ? seasonBadgeHTML(tier.rank) : '—') + '</span></div>').join('')
       + '</div></div>';
@@ -1914,11 +1914,11 @@
     const tier = seasonRewardTier(Number(viewer?.rank), Number(season?.eligible_players));
     const loaded = state.rankings.status === 'ready';
     return '<aside class="season-milestone"><span class="eyebrow">FIVE PERFECT DRAFTS</span><h3>One exclusive player skin</h3>'
-      + '<div class="season-skin-preview" aria-hidden="true"><b>82–0</b><span>BETA REWARD</span></div>'
+      + '<figure class="season-skin-preview"><img src="./cards/skins/lebron-king.jpg" alt="LeBron James wearing a crown and seated on a gold throne" loading="lazy" decoding="async"><figcaption><strong>Heavy Is the Head</strong><span>LeBron James · Beta reward</span></figcaption></figure>'
       + '<p>Save five separate 82–0 Classic Drafts to qualify. Improving the same draft counts once.</p>'
       + '<div class="season-steps" aria-label="' + progress + ' of 5 perfect drafts">' + [1,2,3,4,5].map(n => '<span class="' + (n <= progress ? 'done' : '') + '">' + (n <= progress ? '✓' : n) + '</span>').join('') + '</div>'
-      + '<p><b>' + (!state.session ? 'Sign in to track your progress' : !loaded ? 'Loading your progress…' : count >= 5 ? 'Qualified · skin reveal coming soon' : progress + ' / 5 perfect drafts') + '</b></p>'
-      + '<small>Featured player and skin reveal to come.</small>'
+      + '<p><b>' + (!state.session ? 'Sign in to track your progress' : !loaded ? 'Loading your progress…' : count >= 5 ? 'Qualified · reward at season end' : progress + ' / 5 perfect drafts') + '</b></p>'
+      + '<small>The skin will be awarded at beta season end.</small>'
       + (loaded && viewer ? '<div class="season-my-standing"><span class="eyebrow">YOUR CURRENT STANDING</span><div class="season-handle">@' + html(state.profile?.username || 'You') + seasonBadgeHTML(viewer.rank) + '</div><p>#' + html(viewer.rank) + ' · ' + Number(viewer.points).toLocaleString('en-US', {maximumFractionDigits:2}) + ' points</p>'
         + (tier ? '<b>' + tier.credits.toLocaleString('en-US') + ' CR + ' + tier.packs + ' Rafters packs</b><small>Projected ' + tier.label + ' reward · not final</small>' : '<small>Outside the placement reward tiers</small>') + '</div>' : '')
       + '<button class="season-text-button" onclick="ATUBackend.setRankingTab(\'rewards\')">VIEW SEASON REWARDS →</button></aside>';

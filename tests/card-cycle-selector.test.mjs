@@ -72,6 +72,36 @@ const open=(state,slot='PG')=>{state.rules.apply(state.draft,{type:'open',slot})
  assert.deepEqual(alreadyAtBoundary.draft.cardCycle.events[begin],{type:'reset',tier:'Gold'});
 }
 
+// Current 90% protection applies independently to every rarity, with ceiling
+// rounding for non-integral thresholds. Keep the saved/default 75% tests above.
+// Captains come from the other high rarity so their offers cannot consume the
+// boundary being measured; every target card is position-eligible.
+for(const count of [20,21])for(const [tierIndex,tier]of tiers.entries()){
+ const cards=tiers.flatMap((rarity,index)=>Array.from({length:count},(_,i)=>({id:index*100+i,name:rarity+i,tier:rarity,pos:'SG',positions:['SG','PG'],ovr:80})));
+ const targetIds=cards.filter(card=>card.tier===tier).map(card=>card.id),threshold=Math.ceil(count*.9);
+ const roll={Bronze:.1,Silver:.3,Gold:.7,Elite:.95,Icon:.99}[tier];
+ const random=()=>roll;random.int=bound=>bound===2&&tier==='Icon'?1:0;
+ const otherTier=tiers[(tierIndex+1)%tiers.length],otherId=cards.find(card=>card.tier===otherTier).id;
+ for(const shownCount of [threshold-1,threshold]){
+  const protection={kind:'card-cycle-v1',releaseFraction:.9,shown:[...targetIds.slice(0,shownCount),otherId]};
+  const original=plain(protection),rules=factory.create({cards,random,protection,releaseFraction:.9}),draft=rules.start();
+  rules.apply(draft,{type:'captain',cardId:draft.captain[0].id});
+  const before=plain(draft.cardCycle.shown),begin=draft.cardCycle.events.length;
+  rules.apply(draft,{type:'open',slot:'PG'});
+  const events=draft.cardCycle.events.slice(begin),label=`${tier} ${shownCount}/${count} at 90%`;
+  const expected=shownCount===threshold
+   ?[{type:'reset',tier},{type:'offer',cardId:targetIds[0],tier}]
+   :[{type:'offer',cardId:targetIds[shownCount],tier},{type:'reset',tier},{type:'offer',cardId:targetIds[0],tier}];
+  assert.deepEqual(events.slice(0,expected.length),expected,label);
+  assert.equal(events.filter(event=>event.type==='reset').length,1,label+' must reset exactly once');
+  assert(!events.some(event=>event.type==='release'),label+' has enough eligible cards without a scarcity release');
+  assert(draft.opts.every(card=>card.tier===tier),label+' must retain its rolled rarity');
+  assert.equal(new Set(draft.opts.map(card=>card.id)).size,5,label+' must not duplicate a card within the board');
+  for(const other of tiers.filter(value=>value!==tier))assert.deepEqual(draft.cardCycle.shown[other],before[other],label+' must preserve '+other+' protection');
+  assert.deepEqual(protection,original,label+' must preserve its immutable input');
+ }
+}
+
 // Scarce positions release only the oldest protected usable card per necessary
 // offer. Selected/board names stay excluded; unrelated IDs remain protected.
 {
@@ -130,4 +160,4 @@ const open=(state,slot='PG')=>{state.rules.apply(state.draft,{type:'open',slot})
  for(const protection of [null,[],{}, {shown:'0'}, {shown:[-1]}, {shown:[1.5]}, {shown:['1']}])assert.throws(()=>factory.create({cards:fixture(),protection}).start(),/Invalid/);
  for(const releaseFraction of [0,-1,1.1,NaN,'0.75'])assert.throws(()=>factory.create({cards:fixture(),releaseFraction}),/Invalid card cycle release fraction/);
 }
-console.log('Card cycle selector: exact-card probabilities, version-specific protection, restart snapshots, per-rarity 75% release, scarce positions, unchanged odds/caps and action-factory continuity passed');
+console.log('Card cycle selector: exact-card probabilities, version-specific protection, restart snapshots, all-five-rarity 90% boundaries/rounding, saved 75% compatibility, scarce positions, unchanged odds/caps and action-factory continuity passed');
