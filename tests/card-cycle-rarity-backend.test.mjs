@@ -3,15 +3,17 @@ import {createHash,webcrypto} from 'node:crypto';
 import {stripTypeScriptTypes} from 'node:module';
 import fs from 'node:fs';
 import vm from 'node:vm';
-import * as engine from '../supabase/functions/_shared/atu-engine-card-cycle-20261002.js';
+import * as engine from '../supabase/functions/_shared/atu-engine-card-cycle-rarity-20261003.js';
 import {draftExposure} from '../supabase/functions/_shared/draft-history.js';
 import {CARDS as modern} from '../supabase/functions/_shared/ratings-20260920/modern-data.js';
 import {CARDS as history} from '../supabase/functions/_shared/ratings-20260920/history-data.js';
 
 const tiers=['Bronze','Silver','Gold','Elite','Icon'];
 const cardsByPool={modern,history};
-const versions={modern:'atu-classic-v12',history:'atu-history-draft-v10'};
+const versions={modern:'atu-classic-v13',history:'atu-history-draft-v11'};
+const scalarVersions={modern:'atu-classic-v12',history:'atu-history-draft-v10'};
 const currentReleaseFraction=.9;
+const currentReleaseFractions={Bronze:.85,Silver:.85,Gold:.85,Elite:.85,Icon:.6};
 const slots=['B1','B2','B3','C','PF','SF','SG','PG'];
 const token='a'.repeat(64),wrongToken='b'.repeat(64);
 const hash=value=>createHash('sha256').update(value).digest('hex');
@@ -29,9 +31,12 @@ function row(number,version,owner='owner',mode='draft'){
 }
 function rpcError(message){return {error:{message}};}
 function initializeCycleSnapshot(stored,args){
- assert.equal(args.p_release_fraction,currentReleaseFraction);assert.equal(args.p_pool,poolForVersion(stored.rules_version));assert.equal(stored.rules_version,versions[args.p_pool]);
+ assert.equal(args.p_pool,poolForVersion(stored.rules_version));
+ const rarityPolicy=stored.rules_version===versions[args.p_pool];
+ if(rarityPolicy)assert.deepEqual(plain(args.p_release_fractions),currentReleaseFractions);
+ else{assert.equal(stored.rules_version,scalarVersions[args.p_pool]);assert.equal(args.p_release_fraction,currentReleaseFraction);}
  if(!stored.draft_fairness){
-  stored.draft_fairness={kind:'card-cycle-v1',releaseFraction:args.p_release_fraction,shown:tiers.flatMap(tier=>getCycle(stored.user_id,args.p_pool)[tier])};
+  stored.draft_fairness={...(rarityPolicy?{kind:'card-cycle-rarity-v1',releaseFractions:plain(args.p_release_fractions)}:{kind:'card-cycle-v1',releaseFraction:args.p_release_fraction}),shown:tiers.flatMap(tier=>getCycle(stored.user_id,args.p_pool)[tier])};
   journals.set(stored.id,[]);activeRuns.set(scope(stored.user_id,args.p_pool),stored.id);
  }
  return {data:plain(stored.draft_fairness)};
@@ -74,7 +79,12 @@ function edgeHandler(name){
     async rpc(rpc,args){
      calls.push({rpc,args:plain(args)});
      const stored=runRows.get(args.p_run_id);if(!stored||stored.user_id!==args.p_user_id)return rpcError('Invalid run owner');
-     if(rpc==='initialize_card_cycle')return initializeCycleSnapshot(stored,args);
+     if(rpc==='initialize_card_cycle_rarity'){
+      assert.equal(stored.rules_version,versions[args.p_pool]);return initializeCycleSnapshot(stored,args);
+     }
+     if(rpc==='initialize_card_cycle'){
+      assert.equal(stored.rules_version,scalarVersions[args.p_pool]);return initializeCycleSnapshot(stored,args);
+     }
      if(rpc==='record_card_cycle'){
       const events=plain(args.p_events),accepted=journals.get(stored.id);assert(accepted,'Initialize a snapshot before recording cycle events');
       const sharedLength=Math.min(accepted.length,events.length);
@@ -119,31 +129,33 @@ function play(run,limit=7,fairness=run.draft_fairness){
 function assertCycleSequence(pool,snapshot,events){
  const byId=new Map(cardsByPool[pool].map(card=>[card.id,card]));
  const cycle=empty();for(const id of snapshot.shown)cycle[byId.get(id).r].push(id);
- const thresholds=Object.fromEntries(tiers.map(tier=>[tier,Math.ceil(cardsByPool[pool].filter(card=>card.r===tier).length*snapshot.releaseFraction)]));
- let goldResets=0;
+ const thresholds=Object.fromEntries(tiers.map(tier=>[tier,Math.ceil(cardsByPool[pool].filter(card=>card.r===tier).length*(snapshot.releaseFractions?.[tier]??snapshot.releaseFraction))]));
+ let goldResets=0,iconResets=0;
  for(const event of events){
   const queue=cycle[event.tier];
   if(event.type==='reset'){
-   assert(queue.length>=thresholds[event.tier],`A rarity must reach the saved ${snapshot.releaseFraction*100}% threshold before whole-cycle release`);
+   assert(queue.length>=thresholds[event.tier],`A rarity must reach its saved threshold before whole-cycle release`);
    if(event.tier==='Gold')goldResets++;
+   if(event.tier==='Icon')iconResets++;
   }else if(event.type==='release')assert(queue.includes(event.cardId),'A position release must remove a protected exact ID');
   else{assert.equal(event.type,'offer');assert(!queue.includes(event.cardId),'An exact ID must not repeat before a reset or explicit scarce-position release');}
   applyDelta(cycle,event,pool);
  }
- return {cycle,goldResets};
+ return {cycle,goldResets,iconResets};
 }
-const cycleCalls=()=>calls.filter(call=>['initialize_card_cycle','record_card_cycle'].includes(call.rpc)).length;
+const cycleCalls=()=>calls.filter(call=>['initialize_card_cycle','initialize_card_cycle_rarity','record_card_cycle'].includes(call.rpc)).length;
 
 // Persist realistic seven-pick restarts through both account pools until the
-// Gold pool actually crosses 90%. Retry full/short checkpoints in reverse order.
+// Gold and Icon pools cross their distinct 85% and 60% thresholds. Retry full
+// and short checkpoints in reverse order through the actual HTTP handlers.
 let totalGoldResets=0;
 for(const pool of ['modern','history']){
  const otherPool=pool==='modern'?'history':'modern',otherBefore=plain(getCycle('owner',otherPool));
- let previous=null,previousRun=null,goldResets=0,firstRun,firstSnapshot;
- for(let attempt=0;attempt<60&&goldResets===0;attempt++){
+ let previous=null,previousRun=null,goldResets=0,iconResets=0,firstRun,firstSnapshot;
+ for(let attempt=0;attempt<60&&(goldResets===0||iconResets===0);attempt++){
   const before=plain(getCycle('owner',pool));
   const run=await start(pool,previous);assert.equal(run.rules_version,versions[pool]);
-  assert.deepEqual(run.draft_fairness,{kind:'card-cycle-v1',releaseFraction:currentReleaseFraction,shown:tiers.flatMap(tier=>before[tier])});
+  assert.deepEqual(run.draft_fairness,{kind:'card-cycle-rarity-v1',releaseFractions:currentReleaseFractions,shown:tiers.flatMap(tier=>before[tier])});
   if(previousRun){
    const currentHistory=plain(getCycle('owner',pool)),lateFinish=play(previousRun,8);
    await checkpoint(saved(previousRun,lateFinish.events));await checkpoint(previous);
@@ -152,7 +164,7 @@ for(const pool of ['modern','history']){
   if(!firstRun){firstRun=run;firstSnapshot=plain(run.draft_fairness);}
   const initialSnapshot=plain(run.draft_fairness),{session,events}=play(run);
   assert.deepEqual(run.draft_fairness,initialSnapshot,'Playing must not mutate the run snapshot');
-  const verified=assertCycleSequence(pool,initialSnapshot,session.draft.cardCycle.events);goldResets+=verified.goldResets;
+  const verified=assertCycleSequence(pool,initialSnapshot,session.draft.cardCycle.events);goldResets+=verified.goldResets;iconResets+=verified.iconResets;
   assert.deepEqual(verified.cycle,session.draft.cardCycle.shown);
   previous=saved(run,events);previousRun=run;
   await checkpoint(saved(run,events.slice(0,3)));await checkpoint(previous);
@@ -162,18 +174,18 @@ for(const pool of ['modern','history']){
   assert.deepEqual(runRows.get(firstRun.run_id).draft_fairness,firstSnapshot,'Later restarts must not rewrite an earlier immutable snapshot');
   assert.deepEqual(engine.createClassicSession(run.draft_seed,events,run.rules_version,initialSnapshot).draft,session.draft,'Server replay uses the original snapshot after later account mutations');
  }
- assert(goldResets>0,`Real ${pool} Gold offers must exercise the 90% release boundary`);totalGoldResets+=goldResets;
+ assert(goldResets>0,`Real ${pool} Gold offers must exercise the 85% release boundary`);assert(iconResets>0,`Real ${pool} Icon offers must exercise the 60% release boundary`);totalGoldResets+=goldResets;
  assert.deepEqual(getCycle('owner',otherPool),otherBefore,'History must be isolated between roster pools');
- console.log(`${pool}: account checkpoints/retries/seven-pick restarts reached the Gold 90% release boundary`);
+ console.log(`${pool}: account checkpoints/retries/seven-pick restarts reached both Gold 85% and Icon 60% release boundaries`);
 }
 assert(totalGoldResets>=2);
 const otherAccount=await start('modern',null,versions.modern,'valid-other');assert.deepEqual(otherAccount.draft_fairness.shown,[],'Accounts must not share cycle history');
 
 // A run started under the former 75% policy must replay at 75%, even after the
-// trusted new-start setting becomes 90%. The mock models the immutable RPC
+// trusted new-start setting becomes a rarity map. The mock models the immutable RPC
 // retry contract; real handler checkpoint/restart replay is exercised below.
 {
- const pool='modern',owner='owner-other',legacy=row(++createdRuns,versions.modern,owner);
+ const pool='modern',owner='owner-other',legacy=row(++createdRuns,scalarVersions.modern,owner);
  const gold=modern.filter(card=>card.r==='Gold'),shown=gold.slice(0,Math.ceil(gold.length*.75)-1).map(card=>card.id);
  legacy.draft_seed=hash('saved-75-percent-card-cycle');
  legacy.draft_fairness={kind:'card-cycle-v1',releaseFraction:.75,shown};runRows.set(legacy.id,legacy);
@@ -182,12 +194,14 @@ const otherAccount=await start('modern',null,versions.modern,'valid-other');asse
  assert.deepEqual(initializeCycleSnapshot(legacy,args).data,immutable,'Retrying initialization must return the saved 75% snapshot');
  const run={run_id:legacy.id,run_token:token,draft_seed:legacy.draft_seed,rules_version:legacy.rules_version,draft_fairness:plain(immutable)};
  const {session,events}=play(run),verified=assertCycleSequence(pool,immutable,session.draft.cardCycle.events);
- assert(verified.goldResets>0,'The saved run must release Gold at its original 75% boundary, before the new 90% boundary');
+ assert(verified.goldResets>0,'The saved run must release Gold at its original 75% boundary, before the new 85% boundary');
  await checkpoint(saved(run,events),200,'valid-other');
  assert.deepEqual(getCycle(owner,pool),verified.cycle,'The current handler must persist a saved 75% run using its original snapshot');
  assert.deepEqual(engine.createClassicSession(run.draft_seed,events,run.rules_version,immutable).draft,session.draft);
+ const beforeReplacement=plain(getCycle(owner,pool));
  const replacement=await start(pool,saved(run,events),versions.modern,'valid-other');
- assert.equal(replacement.draft_fairness.releaseFraction,currentReleaseFraction,'The next restart must receive 90% protection');
+ assert.deepEqual(replacement.draft_fairness.releaseFractions,currentReleaseFractions,'The next restart must receive per-rarity protection');
+ assert.deepEqual(replacement.draft_fairness.shown,tiers.flatMap(tier=>beforeReplacement[tier]),'Upgrading the rules must retain shared exact-card history');
  const accepted=plain(journals.get(legacy.id));
  assert.deepEqual(initializeCycleSnapshot(legacy,args).data,immutable,'A later initialization retry must not rewrite the old run');
  assert.deepEqual(journals.get(legacy.id),accepted,'An initialization retry must not erase accepted events');
@@ -218,15 +232,18 @@ for(const pool of ['modern','history']){
  const forged=plain(previous);forged.events[0].cardId=999999;await checkpoint(forged,400);
  await checkpoint({...previous,events:[...previous.events,{type:'offer',cardId:0}]},400);
  assert.equal(cycleCalls(),beforeCalls);assert.deepEqual(getCycle('owner','modern'),before);
- const corrupted=runRows.get(run.run_id),goodSnapshot=plain(corrupted.draft_fairness);corrupted.draft_fairness={kind:'card-cycle-v1',releaseFraction:currentReleaseFraction,shown:[999999]};
+ const corrupted=runRows.get(run.run_id),goodSnapshot=plain(corrupted.draft_fairness);corrupted.draft_fairness={kind:'card-cycle-rarity-v1',releaseFractions:currentReleaseFractions,shown:[999999]};
  await checkpoint(previous,400);assert.equal(cycleCalls(),beforeCalls);corrupted.draft_fairness=goodSnapshot;
  await checkpoint({...previous,cardCycle:{events:[{type:'offer',cardId:999999,tier:'Gold'}]},draft_fairness:{shown:[999999]}});
  assert.deepEqual(getCycle('owner','modern'),session.draft.cardCycle.shown,'Only server-replayed offers may change history');
  const mismatchBefore=createdRuns;
  assert.equal((await historyHandler(request('draft-history',{action:'start',pool:'modern',rulesVersion:versions.history}))).status,400);assert.equal(createdRuns,mismatchBefore);
  const stateBefore=plain(getCycle('owner','modern'));
- const tamperedStart=await start('modern',null,versions.modern,'valid-session',{draft_fairness:{kind:'card-cycle-v1',releaseFraction:.01,shown:[999999]},protection:{shown:[999999]}});
- assert.deepEqual(tamperedStart.draft_fairness.shown,tiers.flatMap(tier=>stateBefore[tier]));assert.equal(tamperedStart.draft_fairness.releaseFraction,currentReleaseFraction);
+ const tamperedStart=await start('modern',null,versions.modern,'valid-session',{draft_fairness:{kind:'card-cycle-rarity-v1',releaseFractions:{...currentReleaseFractions,Icon:.01},shown:[999999]},releaseFractions:{Icon:.01},protection:{shown:[999999]}});
+ assert.deepEqual(tamperedStart.draft_fairness.shown,tiers.flatMap(tier=>stateBefore[tier]));assert.deepEqual(tamperedStart.draft_fairness.releaseFractions,currentReleaseFractions);
+ const forgedPolicy=plain(runRows.get(tamperedStart.run_id).draft_fairness);forgedPolicy.releaseFractions.Icon=0;
+ runRows.get(tamperedStart.run_id).draft_fairness=forgedPolicy;const beforeBadPolicy=cycleCalls();
+ await checkpoint(saved(tamperedStart,[]),400);assert.equal(cycleCalls(),beforeBadPolicy,'Malformed stored policy must fail before recording cycle events');
 }
 
 // The real HTTP validator accepts new-version Classic duel transcripts and
@@ -246,4 +263,4 @@ for(const pool of ['modern','history']){
  assert.equal(result.status,played.session.draft.done&&engine.calculateResult(played.session.draft.roster,account.rules_version).projectedWins===82?200:422,'Account replay must preserve the ranked 82-0 gate');
 }
 assert(finalizedRuns>=2);
-console.log('Card-cycle Edge handlers passed: immutable snapshots, pool/account separation, seven-pick restart, ordered checkpoint retries, 90% release, saved 75% replay/retry compatibility, frozen versions, auth/token/tamper rejection and validator acceptance (mocked database boundaries)');
+console.log('Rarity-cycle Edge handlers passed: immutable snapshots, pool/account separation, seven-pick restart, ordered checkpoint retries, Gold85%/Icon60% boundaries, saved scalar75% replay and retained history on upgrade, frozen versions, auth/token/policy/transcript rejection and validator acceptance (mocked database boundaries)');

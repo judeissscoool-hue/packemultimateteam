@@ -1,6 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2.112.2/cors";
-import { getEngineForRules, rulesForPool, usesDraftHistory } from "../_shared/atu-engine-card-cycle-20261002.js";
+import { getEngineForRules, rulesForPool, usesDraftHistory } from "../_shared/atu-engine-card-cycle-rarity-20261003.js";
 import { draftExposure } from "../_shared/draft-history.js";
 
 type JsonRecord = Record<string, unknown>;
@@ -114,7 +114,7 @@ Deno.serve(async (req: Request) => {
       const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(previous.runToken));
       const hash=[...new Uint8Array(digest)].map(x=>x.toString(16).padStart(2,'0')).join('');
       if(hash!==run.nonce_hash)throw new Error('Invalid run token');
-      if(['atu-classic-v12','atu-history-draft-v10'].includes(run.rules_version)){
+      if(['atu-classic-v12','atu-history-draft-v10','atu-classic-v13','atu-history-draft-v11'].includes(run.rules_version)){
         const session=getEngineForRules(run.rules_version).createClassicSession(run.draft_seed,previous.events,run.draft_fairness);
         const result=await admin.rpc('record_card_cycle',{p_run_id:run.id,p_user_id:userId,p_events:session.draft.cardCycle.events});
         if(result.error)throw result.error;
@@ -139,11 +139,21 @@ Deno.serve(async (req: Request) => {
     // original roster. New clients explicitly request the new supported rules.
     const previousVersion=body.pool==='history'?'atu-history-draft-v2':'atu-classic-v4';
     const version=body.rulesVersion??previousVersion;
-    if(![previousVersion,body.pool==='history'?'atu-history-draft-v3':'atu-classic-v5',body.pool==='history'?'atu-history-draft-v4':'atu-classic-v6',body.pool==='history'?'atu-history-draft-v5':'atu-classic-v7',body.pool==='history'?'atu-history-draft-v6':'atu-classic-v8',body.pool==='history'?'atu-history-draft-v7':'atu-classic-v9',body.pool==='history'?'atu-history-draft-v8':'atu-classic-v10',body.pool==='history'?'atu-history-draft-v9':'atu-classic-v11',rulesForPool(body.pool,'draft')].includes(version))return json(origin,400,{error:'Invalid draft rules'});
+    if(![previousVersion,body.pool==='history'?'atu-history-draft-v3':'atu-classic-v5',body.pool==='history'?'atu-history-draft-v4':'atu-classic-v6',body.pool==='history'?'atu-history-draft-v5':'atu-classic-v7',body.pool==='history'?'atu-history-draft-v6':'atu-classic-v8',body.pool==='history'?'atu-history-draft-v7':'atu-classic-v9',body.pool==='history'?'atu-history-draft-v8':'atu-classic-v10',body.pool==='history'?'atu-history-draft-v9':'atu-classic-v11',body.pool==='history'?'atu-history-draft-v10':'atu-classic-v12',rulesForPool(body.pool,'draft')].includes(version))return json(origin,400,{error:'Invalid draft rules'});
     const created=await userClient.rpc('create_ranked_run',{p_mode:'draft',p_rules_version:version});
     if(created.error)throw created.error;
     const run=Array.isArray(created.data)?created.data[0]:created.data;
     if(!run)throw new Error('Could not start draft');
+    if(['atu-classic-v13','atu-history-draft-v11'].includes(version)){
+      const initialized=await admin.rpc('initialize_card_cycle_rarity',{p_run_id:run.run_id,p_user_id:userId,p_pool:body.pool,
+        p_release_fractions:{Bronze:.85,Silver:.85,Gold:.85,Elite:.85,Icon:.6}});
+      if(initialized.error)throw initialized.error;
+      const fairness=initialized.data;
+      const session=getEngineForRules(version).createClassicSession(run.draft_seed,[],fairness);
+      const saved=await admin.rpc('record_card_cycle',{p_run_id:run.run_id,p_user_id:userId,p_events:session.draft.cardCycle.events});
+      if(saved.error)throw saved.error;
+      return json(origin,200,{ok:true,run:{...run,draft_fairness:fairness}});
+    }
     if(['atu-classic-v12','atu-history-draft-v10'].includes(version)){
       const initialized=await admin.rpc('initialize_card_cycle',{p_run_id:run.run_id,p_user_id:userId,p_pool:body.pool,p_release_fraction:.9});
       if(initialized.error)throw initialized.error;

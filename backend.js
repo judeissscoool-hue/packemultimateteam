@@ -527,7 +527,7 @@
   async function loadEngine() {
     if (state.engine) return state.engine;
     if (!state.enginePromise) {
-      state.enginePromise = import("./supabase/functions/_shared/atu-engine-card-cycle-20261002.js?draft=card-cycle-20261002")
+      state.enginePromise = import("./supabase/functions/_shared/atu-engine-card-cycle-rarity-20261003.js?draft=card-cycle-rarity-20261003")
         .then(function (engine) {
           state.engine = engine;
           return engine;
@@ -1914,7 +1914,7 @@
     const tier = seasonRewardTier(Number(viewer?.rank), Number(season?.eligible_players));
     const loaded = state.rankings.status === 'ready';
     return '<aside class="season-milestone"><span class="eyebrow">FIVE PERFECT DRAFTS</span><h3>One exclusive player skin</h3>'
-      + '<figure class="season-skin-preview"><img src="./cards/skins/lebron-king.jpg" alt="LeBron James wearing a crown and seated on a gold throne" loading="lazy" decoding="async"><figcaption><strong>Heavy Is the Head</strong><span>LeBron James · Beta reward</span></figcaption></figure>'
+      + '<figure class="season-skin-preview"><img src="./cards/skins/lebron-heavy-is-the-head-20261003.png" alt="LeBron James wearing a crown and seated on a gold throne" loading="lazy" decoding="async"><figcaption><strong>Heavy Is the Head</strong><span>LeBron James · Beta reward</span></figcaption></figure>'
       + '<p>Save five separate 82–0 Classic Drafts to qualify. Improving the same draft counts once.</p>'
       + '<div class="season-steps" aria-label="' + progress + ' of 5 perfect drafts">' + [1,2,3,4,5].map(n => '<span class="' + (n <= progress ? 'done' : '') + '">' + (n <= progress ? '✓' : n) + '</span>').join('') + '</div>'
       + '<p><b>' + (!state.session ? 'Sign in to track your progress' : !loaded ? 'Loading your progress…' : count >= 5 ? 'Qualified · reward at season end' : progress + ' / 5 perfect drafts') + '</b></p>'
