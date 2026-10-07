@@ -5123,6 +5123,46 @@ const CARD_ART_BASE="cards/"; /* relative to the deployed site root (Vercel /pub
    CARD_ART.add("dwyane-wade"). Kept explicit so the game never fires a request
    (and never shows a broken image) for art that isn't there yet. */
 const CARD_ART=new Set([
+  "marcus-camby-den",
+  "michael-redd-mil",
+  "nikola-vucevic-orl",
+  "robert-williams-bos",
+  "serge-ibaka-okc",
+  "caron-butler-was",
+  "chris-kaman-lac",
+  "danny-granger-ind",
+  "david-lee-gsw",
+  "deandre-ayton-phx",
+  "jarrett-allen-cle",
+  "kevin-martin-sac",
+  "monta-ellis-gsw",
+  "zydrunas-ilgauskas-cle",
+  "corey-maggette-lac",
+  "eric-bledsoe-phx",
+  "rj-barrett-nyk",
+  "john-collins-atl",
+  "mikal-bridges-nyk",
+  "tyreke-evans-sac",
+  "lauri-markkanen-uta",
+  "coby-white-chi",
+  "ivica-zubac-lac",
+  "miles-bridges-cha",
+  "desmond-bane-mem",
+  "jaden-mcdaniels-min",
+  "josh-giddey-chi",
+  "jalen-duren-det",
+  "trey-murphy-iii-nop",
+  "shaedon-sharpe-por",
+  "ja-morant-por",
+  "amen-thompson-hou",
+  "ausar-thompson-det",
+  "cooper-flagg-dal",
+  "stephon-castle-sas",
+  "dylan-harper-sas",
+  "kon-knueppel-cha",
+  "mike-bibby-mem",
+  "jaren-jackson-jr-mem",
+  "shane-battier-mem",
   "tim-hardaway-mia",
   "alonzo-mourning-cha",
   "mark-eaton-uta",
@@ -6292,6 +6332,8 @@ function cardSlugFor(p){
   /* Base tiers share approved artwork, including future players and alternate eras. */
   if(p.tier==="Bronze")return "tier-bronze";
   if(p.tier==="Silver")return "tier-silver";
+  /* The duplicate Boston roster entry shares Robert Williams' Boston artwork. */
+  if(p.id===1293&&p.team==="BOS")return "robert-williams-bos";
   const c=cardSlugCard(p),n=cardSlug(p.name);
   if(CARD_ART.has(c))return c;      /* an explicit team-specific file always wins */
   /* A franchise's artwork stays with that franchise when ratings or cards change. */
