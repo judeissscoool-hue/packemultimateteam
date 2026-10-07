@@ -28,7 +28,9 @@
 <script src="./supabase/functions/_shared/shuffled-player-draft-20261002.js"></script>
 <script src="./supabase/functions/_shared/card-cycle-draft-20261002.js"></script>
 <script src="./supabase/functions/_shared/card-cycle-rarity-draft-20261003.js"></script>
-<script src="./backend.js?v=card-cycle-rarity-20261003"></script>
+<script src="./supabase/functions/_shared/player-identity-20261007.js"></script>
+<script src="./supabase/functions/_shared/card-cycle-identity-draft-20261007.js"></script>
+<script src="./backend.js?v=card-cycle-identity-20261007"></script>
 <style>
 /* ============ TOKENS: arena at night ============ */
 :root{
@@ -6862,7 +6864,13 @@ function confetti(n,palette){
    in D.taken while losing their slot assignment. Rebuild those orphan selections
    into legal empty slots before rendering, then derive completion from the court. */
 function activeDraft(){return screen==="challenge"&&ATUBackend.classicDraftState()||(!DRAFT_ERA&&ATUBackend.getGameSession("draft")?.draft)||D;}
-function localDraftRules(){if(D.rarityCardCycleDraft){
+function localDraftRules(){if(D.identityCardCycleDraft){
+  const rng=ATUDraftRandomV1.create(D.cycleSeed,{offset:D.cycleOffset||0});
+  const releaseFractions={...D.cycleReleaseFractions};
+  const rules=ATUCardCycleIdentityDraftRules.create({cards:DB,pool:eraPool,random:rng,
+    protection:{shown:DRAFT_CARD_CYCLES[localCardCycleKey()]||[]},releaseFractions});
+  return {...rules,start:()=>({...rules.start(),cycleOffset:rng.offset(),cycleReleaseFractions:{...releaseFractions}}),apply:(d,event)=>{const result=rules.apply(d,event);d.cycleOffset=rng.offset();return result;}};
+}if(D.rarityCardCycleDraft){
   const rng=ATUDraftRandomV1.create(D.cycleSeed,{offset:D.cycleOffset||0});
   const releaseFractions={...D.cycleReleaseFractions};
   const rules=ATUCardCycleRarityDraftRules.create({cards:DB,pool:eraPool,random:rng,
@@ -6878,7 +6886,7 @@ function localDraftRules(){if(D.rarityCardCycleDraft){
   fair:{shown:DRAFT_NAME_SHOWN,last:DRAFT_NAME_LAST,cards:DRAFT_CARD_SHOWN,session:DRAFT_FAIR_SESSION}});}
 function applyDraftAction(event){
   if(screen==="challenge"&&ATUBackend.classicDraftState())return ATUBackend.applyClassicDraftAction(event);
-  try{if(!DRAFT_ERA&&ATUBackend.getGameSession("draft")){ATUBackend.applyGameAction("draft",event);return true;}localDraftRules().apply(D,event);if(D.rarityCardCycleDraft||D.cardCycleDraft)persistCardCycle();else persistDraftFair();return true;}
+  try{if(!DRAFT_ERA&&ATUBackend.getGameSession("draft")){ATUBackend.applyGameAction("draft",event);return true;}localDraftRules().apply(D,event);if(D.identityCardCycleDraft||D.rarityCardCycleDraft||D.cardCycleDraft)persistCardCycle();else persistDraftFair();return true;}
   catch(error){notice(error.message);return false;}
 }
 function closeDraftPick(){const D=activeDraft();D.activeSlot=null;D.opts=null;render();}
@@ -6888,9 +6896,10 @@ function reconcileDraftState(){
   ALL_SLOTS.forEach(s=>{if(!(s in D.roster))D.roster[s]=null;});
   D.taken=Array.isArray(D.taken)?D.taken.filter(id=>DB[id]):[];
   const placedIds=new Set(ALL_SLOTS.map(s=>D.roster[s]).filter(id=>id!=null));
-  const placedNames=new Set([...placedIds].map(id=>DB[id].name));
+  const playerKey=p=>D.playerIdentityVersion==="atu-player-identity-v1"?ATUPlayerIdentityV1.key(p):p.name;
+  const placedNames=new Set([...placedIds].map(id=>playerKey(DB[id])));
   const orphans=[];
-  D.taken.forEach(id=>{const p=DB[id];if(!placedIds.has(id)&&!placedNames.has(p.name)){orphans.push(id);placedNames.add(p.name);}});
+  D.taken.forEach(id=>{const p=DB[id],key=playerKey(p);if(!placedIds.has(id)&&!placedNames.has(key)){orphans.push(id);placedNames.add(key);}});
   orphans.forEach(id=>{
     const p=DB[id];
     const slot=DRAFT_ORDER.find(s=>D.roster[s]==null&&eligible(p,s));
@@ -6928,7 +6937,7 @@ async function startDraft(era){
     return;
   }
   const cycleSeed=ATUDraftRandomV1.freshSeed();
-  D={cardPool:ROSTER_POOL,rarityCardCycleDraft:true,cycleSeed,cycleReleaseFractions:{...DRAFT_CARD_RELEASE_FRACTIONS}};D={...localDraftRules().start(),cardPool:ROSTER_POOL,rarityCardCycleDraft:true,cycleSeed};
+  D={cardPool:ROSTER_POOL,identityCardCycleDraft:true,cycleSeed,cycleReleaseFractions:{...DRAFT_CARD_RELEASE_FRACTIONS}};D={...localDraftRules().start(),cardPool:ROSTER_POOL,identityCardCycleDraft:true,cycleSeed};
   persistCardCycle();
   render();
 }

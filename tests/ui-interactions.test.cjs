@@ -93,6 +93,29 @@ for (const match of source.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)) {
 }
 console.log('UI interaction tests passed');
 
+// Only the new identity rules canonicalize aliases while restoring orphan picks.
+for(const identityAware of [true,false]){
+  const slots=['PG','SG','SF','PF','C','B1','B2','B3'];
+  const cards=[
+    {id:0,name:'Robert Williams III',positions:['C']},
+    {id:1,name:'Robert Williams',positions:['PF']},
+    {id:2,name:'Kenyon Martin Jr.',positions:['SF']},
+    {id:3,name:'KJ Martin',positions:['SF']},
+    {id:4,name:'Kenyon Martin',positions:['PF']}
+  ];
+  const roster=Object.fromEntries(slots.map(slot=>[slot,null]));roster.C=0;roster.SF=2;
+  const draft={roster,taken:[0,1,2,3,4],stage:'picking',...(identityAware?{playerIdentityVersion:'atu-player-identity-v1'}:{})};
+  const context=vm.createContext({DB:cards,ALL_SLOTS:slots,DRAFT_ORDER:['PF','PG','SG','SF','C','B1','B2','B3'],
+    activeDraft:()=>draft,emptyRoster:()=>Object.fromEntries(slots.map(slot=>[slot,null])),
+    eligible:(card,slot)=>slot.startsWith('B')||card.positions.includes(slot)});
+  vm.runInContext(fs.readFileSync(path.join(__dirname,'../supabase/functions/_shared/player-identity-20261007.js'),'utf8'),context);
+  vm.runInContext(source.slice(source.indexOf('function reconcileDraftState(){'),source.indexOf('function startEraByIndex(')),context);
+  context.reconcileDraftState();
+  assert.deepEqual(Array.from(draft.taken).sort((a,b)=>a-b),identityAware?[0,2,4]:[0,1,2,3,4],
+    identityAware?'Alias orphans stay excluded while the distinct father is restored':'Archived drafts retain their original name-based recovery');
+  if(identityAware)assert.equal(draft.roster.PF,4,'Kenyon Martin remains distinct from Kenyon Martin Jr.');
+}
+
 // Pointer gestures use the same two-way eligibility rules on touch and mouse.
 {
  const draft={stage:'picking',roster:{PG:0,SG:1,C:2,B1:3}};
