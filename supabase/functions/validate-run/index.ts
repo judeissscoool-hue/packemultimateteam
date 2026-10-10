@@ -4,7 +4,7 @@ import {
   SUPPORTED_RULES_VERSIONS,
   isClassicRulesVersion,
   getEngineForRules
-} from "../_shared/atu-engine-card-cycle-identity-20261007.js";
+} from "../_shared/atu-engine-classic-difficulty-20261010.js";
 
 type JsonRecord = Record<string, unknown>;
 

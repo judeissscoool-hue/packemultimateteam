@@ -30,7 +30,8 @@
 <script src="./supabase/functions/_shared/card-cycle-rarity-draft-20261003.js"></script>
 <script src="./supabase/functions/_shared/player-identity-20261007.js"></script>
 <script src="./supabase/functions/_shared/card-cycle-identity-draft-20261007.js"></script>
-<script src="./backend.js?v=card-cycle-identity-20261007"></script>
+<script src="./supabase/functions/_shared/classic-win-curve-20261010.js"></script>
+<script src="./backend.js?v=classic-difficulty-20261010"></script>
 <style>
 /* ============ TOKENS: arena at night ============ */
 :root{
@@ -3406,9 +3407,30 @@ function rosterMinOvr(roster){
   const ids=ALL_SLOTS.map(s=>roster[s]).filter(id=>id!=null);
   return ids.length?Math.min(...ids.map(id=>DB[id].ovr)):0;
 }
-function legacyRunView(){return typeof currentRunRules==="function"&&typeof ATUBackend!=="undefined"?ATUBackend.legacyView?.(currentRunRules()):null;}
-function chemistry(roster){
-  const legacy=legacyRunView();if(legacy)return legacy.chemistry(roster);
+function isNewClassicResultRules(version){return version==="atu-classic-v15"||version==="atu-history-draft-v13";}
+/* Resolve the roster being scored, rather than the screen displaying it. Trophy
+   scans can inspect a Pack squad and a Classic squad in the same render. */
+function rosterResultRules(roster,version){
+  if(version!==undefined)return version||null;
+  if(typeof SHARED!=="undefined"&&SHARED?.roster===roster)return SHARED.resultRulesVersion||null;
+  if(typeof DD!=="undefined"&&DD?.roster===roster)return null;
+  if(typeof ATUBackend!=="undefined"){
+    if(ATUBackend.classicDraftState?.()?.roster===roster)return ATUBackend.challengeRulesVersion?.()||null;
+    if(ATUBackend.getGameSession?.("draft")?.draft?.roster===roster)return ATUBackend.gameRulesVersion?.("draft")||null;
+  }
+  if(typeof D!=="undefined"&&D?.roster===roster)return D.resultRulesVersion||null;
+  if(typeof S!=="undefined"){
+    if(S.classic?.roster===roster)return typeof ATUBackend!=="undefined"?ATUBackend.gameRulesVersion?.("pack")||null:null;
+    if(S.main?.roster===roster||S.rare?.roster===roster)return null;
+  }
+  return typeof currentRunRules==="function"?currentRunRules()||null:null;
+}
+function legacyRunView(version){
+  if(version===undefined)version=typeof currentRunRules==="function"?currentRunRules():null;
+  return typeof ATUBackend!=="undefined"?ATUBackend.legacyView?.(version)||null:null;
+}
+function chemistry(roster,version){
+  const legacy=legacyRunView(rosterResultRules(roster,version));if(legacy)return legacy.chemistry(roster);
   const links=[];
   /* team cores: starters sharing a franchise (strongest link) */
   const counts={};
@@ -3438,13 +3460,14 @@ function chemistry(roster){
   return {bonus,links};
 }
 function startersFull(roster){return STARTER_SLOTS.every(s=>roster[s]!=null);}
-function teamOVR(roster){
-  const legacy=legacyRunView();if(legacy)return legacy.teamOVR(roster);
+function teamOVR(roster,version){
+  const resultRulesVersion=rosterResultRules(roster,version);
+  const legacy=legacyRunView(resultRulesVersion);if(legacy)return {...legacy.teamOVR(roster),resultRulesVersion};
   /* starting five = 70% of team OVR, bench = 30% */
   const sv=STARTER_SLOTS.map(s=>roster[s]==null?60:Math.max(60,DB[roster[s]].ovr));
   const bv=BENCH_SLOTS.map(s=>roster[s]==null?60:Math.max(60,DB[roster[s]].ovr));
   const base=(sv.reduce((a,b)=>a+b,0)/5)*0.70+(bv.reduce((a,b)=>a+b,0)/3)*0.30;
-  const chem=chemistry(roster);
+  const chem=chemistry(roster,resultRulesVersion);
   const total=Math.max(60,Math.min(99,Math.round(base+chem.bonus)));
   /* effective rating drives the win curve: chemistry counts double there,
      so a lower-OVR team with perfect chem can out-project a chem-less one */
@@ -3455,8 +3478,8 @@ function teamOVR(roster){
      to a perfect season; the weakest link now caps the ceiling instead. */
   const minOvr=full?rosterMinOvr(roster):0;
   const gated=full&&minOvr<PERFECT_MIN_OVR;
-  if(gated)eff=Math.min(eff,EFF_CAP_NO_PERFECT);
-  return {base:Math.round(base),chem,total,eff,ready:startersFull(roster),full,minOvr,gated};
+  if(gated)eff=Math.min(eff,isNewClassicResultRules(resultRulesVersion)?ATUClassicWinCurveV1.gateCap:EFF_CAP_NO_PERFECT);
+  return {base:Math.round(base),chem,total,eff,ready:startersFull(roster),full,minOvr,gated,resultRulesVersion};
 }
 /* Linear progression between anchors below 80 wins avoids repeated flat spots.
    The calibrated cosine 80–82 segment and perfection gate remain unchanged. */
@@ -3482,8 +3505,13 @@ function recordIdentity(wins){
   if(wins>=20)return {title:"Rebuilding",sub:"Pieces exist; wins do not",cls:""};
   return {title:"Lottery Lifers",sub:"Back to the draft board",cls:""};
 }
-function projection(eff){
-  const legacy=legacyRunView();if(legacy)return legacy.projection(eff);
+function projection(eff,version){
+  if(version===undefined)version=typeof currentRunRules==="function"?currentRunRules():null;
+  const legacy=legacyRunView(version);if(legacy)return legacy.projection(eff);
+  if(isNewClassicResultRules(version)){
+    const wins=ATUClassicWinCurveV1.projectWins(eff),identity=recordIdentity(wins);
+    return {wins,losses:82-wins,label:identity.title,identity};
+  }
   const e=Math.max(60,Math.min(EIGHTY_TWO_EFF,eff));
   let wins=PROJ[PROJ.length-1][1];
   for(let i=0;i<PROJ.length-1;i++){const [a,wa]=PROJ[i],[b,wb]=PROJ[i+1];
@@ -3496,7 +3524,7 @@ function projection(eff){
 /* highest effective rating that still projects 81 wins — the ceiling applied to any
    roster carrying a sub-Gold card. Derived from the curve so it tracks EIGHTY_TWO_EFF. */
 const PERFECT_BOUNDARY=(()=>{let lo=60,hi=EIGHTY_TWO_EFF;
-  for(let i=0;i<80;i++){const mid=(lo+hi)/2;if(projection(mid).wins>=82)hi=mid;else lo=mid;}
+  for(let i=0;i<80;i++){const mid=(lo+hi)/2;if(projection(mid,null).wins>=82)hi=mid;else lo=mid;}
   return {cap:lo,winning:hi};})();
 const EFF_CAP_NO_PERFECT=PERFECT_BOUNDARY.cap;
 function recordIdentityHTML(pr,ready,clubEligible=true){
@@ -3509,13 +3537,16 @@ function recordIdentityHTML(pr,ready,clubEligible=true){
   return `<div class="recordid ${i.cls}"><div><div class="rid-main">${i.title}</div><div class="rid-sub">${i.sub}</div></div><div class="rid-record">${pr.wins}–${pr.losses}</div></div>`;
 }
 function nearMissChem(o){
-  const legacy=legacyRunView();if(legacy)return legacy.nearMissChem(o);
+  const version=o.resultRulesVersion??null;
+  const legacy=legacyRunView(version);if(legacy)return legacy.nearMissChem(o);
   if(!o.ready)return null;
   if(o.full&&o.minOvr<PERFECT_MIN_OVR)return {hit:false,needed:null,gated:true};
-  const pr=projection(o.eff);if(pr.wins>=82)return {hit:true,needed:0};
-  const needed=Math.max(0,(PERFECT_BOUNDARY.winning-o.eff)/CHEM_WIN_MULT);
+  const pr=projection(o.eff,version);if(pr.wins>=82)return {hit:true,needed:0};
+  const winning=isNewClassicResultRules(version)?ATUClassicWinCurveV1.boundary.winning:PERFECT_BOUNDARY.winning;
+  const needed=Math.max(0,(winning-o.eff)/CHEM_WIN_MULT);
   return {hit:false,needed:Math.max(0.1,Math.ceil((needed-1e-10)*10)/10)};
 }
+function rosterProjection(roster,version){const o=teamOVR(roster,version);return projection(o.eff,o.resultRulesVersion);}
 function nearMissHTML(o){
   if(!o.full)return ""; /* only meaningful once ALL 8 slots (incl bench) are set — otherwise the number shifts as cards are added, not just from chemistry */
   const n=nearMissChem(o);if(!n)return "";
@@ -3657,7 +3688,7 @@ function sanitizeSave(){
 function save(){sSet("atu-save-v4",S);}
 function saveHS(){sSet("atu-hs-v4",HS);}
 function bump(side){const o=teamOVR(S[side].roster);if(!o.ready)return;
-  const pr=projection(o.eff);
+  const pr=projection(o.eff,o.resultRulesVersion);
   if(o.total>HS[side].ovr){HS[side].ovr=o.total;HS[side].wins=pr.wins;saveHS();}}
 
 let screen="landing";       // landing | team | packs | rare | draft | classic
@@ -3683,7 +3714,7 @@ function rosterPlayers(r){return ALL_SLOTS.map(s=>r&&r[s]!=null?DB[r[s]]:null).f
 function activeRosters(){const a=[];["main","classic"].forEach(k=>S[k]&&a.push({mode:k,r:S[k].roster}));if(D.done)a.push({mode:"draft",r:D.roster});return a;}
 function hasLineup(test){return activeRosters().some(x=>{const ps=rosterPlayers(x.r);return ps.length===8&&test(ps,x.r,x.mode);});}
 function starterTest(test){return activeRosters().some(x=>{const ps=STARTER_SLOTS.map(s=>x.r[s]!=null?DB[x.r[s]]:null).filter(Boolean);return ps.length===5&&test(ps,x.r,x.mode);});}
-function bestLive(){let best={wins:0,chem:0,total:60,mode:""};activeRosters().forEach(x=>{const o=teamOVR(x.r);if(!o.ready)return;const pr=projection(o.eff);if(pr.wins>best.wins)best={wins:pr.wins,chem:o.chem.bonus,total:o.total,mode:x.mode};});return best;}
+function bestLive(){let best={wins:0,chem:0,total:60,mode:""};activeRosters().forEach(x=>{const o=teamOVR(x.r);if(!o.ready)return;const pr=projection(o.eff,o.resultRulesVersion);if(pr.wins>best.wins)best={wins:pr.wins,chem:o.chem.bonus,total:o.total,mode:x.mode};});return best;}
 function markActivations(){const names=ownedNames();activeRosters().forEach(x=>{const starters=STARTER_SLOTS.map(s=>x.r[s]!=null?DB[x.r[s]].name:null).filter(Boolean);const set=new Set(starters);DUOS.forEach(g=>{if(g.m.every(n=>set.has(n)))T.activatedChem[g.l]=1;});WHAT_IF.forEach(g=>{if(g.m.every(n=>set.has(n)))T.activatedWhatIf[g.id]=1;});ICONIC_TEAMS.forEach(g=>{const all=new Set(rosterPlayers(x.r).map(p=>p.name));if(g.m.every(n=>all.has(n)))T.activatedTeams[g.id]=1;});});}
 function trophyProgress(cur,max,missing){return {cur:Math.min(cur,max),max,done:cur>=max,missing:missing||[]};}
 function countNames(pred){const names=ownedNames();return [...names].filter(n=>{const cards=DB.filter(p=>p.name===n);return cards.some(pred);}).length;}
@@ -3771,10 +3802,10 @@ function baseTrophies(){const a=[];const add=(id,n,tier,cat,desc,fn,hidden=false
  add("first-connection","First Connection","Bronze","Chemistry","Activate one iconic chemistry group.",()=>trophyProgress(Object.keys(T.activatedChem).length,1));add("chem-student","Chemistry Student","Silver","Chemistry","Activate ten iconic groups.",()=>trophyProgress(Object.keys(T.activatedChem).length,10));add("linked-history","Linked Through History","Diamond","Chemistry","Activate fifty iconic groups.",()=>trophyProgress(Object.keys(T.activatedChem).length,50));add("every-story","Every Story Told","Immortal","Chemistry","Activate every iconic chemistry group.",()=>trophyProgress(Object.keys(T.activatedChem).length,DUOS.length));
  add("same-colours","Same Colours","Silver","Squad Building","Start five players from one franchise.",()=>trophyProgress(starterTest(ps=>new Set(ps.map(p=>p.team)).size===1)?1:0,1));add("eight-deep","Eight Deep","Diamond","Squad Building","Field eight players from one franchise.",()=>trophyProgress(hasLineup(ps=>new Set(ps.map(p=>p.team)).size===1)?1:0,1));add("across-ages","Across the Ages","Silver","Squad Building","Start players from five different era tags.",()=>trophyProgress(starterTest(ps=>new Set(ps.map(p=>p.tags.find(t=>t.startsWith("Era_")))).size===5)?1:0,1));
  const squads=[["defensive","Defensive Identity","Style_Lockdown"],["let-fly","Let It Fly","Style_Sharpshooter"],["above-rim","Above the Rim","Style_FlightClub"],["paint-war","Paint Warfare","Style_PaintBeast"],["ball-string","Ball on a String","Style_AnkleBreaker"]];squads.forEach(([id,n,t])=>add(id,n,"Silver","Squad Building",`Start five players carrying ${TAG_LABEL[t]||t}.`,()=>trophyProgress(starterTest(ps=>ps.every(p=>p.tags.includes(t)))?1:0,1)));
- add("no-icons","No Icons Needed","Gold","Squad Building","Project 60 wins with no Icon in the active roster.",()=>trophyProgress(hasLineup((ps,r)=>ps.every(p=>p.tier!=="Icon")&&projection(teamOVR(r).eff).wins>=60)?1:0,1));add("underdog","Underdog Dynasty","Diamond","Squad Building","Project 60 wins with no card above 89 OVR.",()=>trophyProgress(hasLineup((ps,r)=>ps.every(p=>p.ovr<=89)&&projection(teamOVR(r).eff).wins>=60)?1:0,1));
+ add("no-icons","No Icons Needed","Gold","Squad Building","Project 60 wins with no Icon in the active roster.",()=>trophyProgress(hasLineup((ps,r)=>ps.every(p=>p.tier!=="Icon")&&rosterProjection(r).wins>=60)?1:0,1));add("underdog","Underdog Dynasty","Diamond","Squad Building","Project 60 wins with no card above 89 OVR.",()=>trophyProgress(hasLineup((ps,r)=>ps.every(p=>p.ovr<=89)&&rosterProjection(r).wins>=60)?1:0,1));
  add("first-pack","Welcome to the Game","Bronze","Pack Moments","Open one pack.",()=>trophyProgress(T.stats.packs,1));add("elite-arrival","Elite Arrival","Bronze","Pack Moments","Pull an Elite.",()=>trophyProgress(T.stats.elitePulled,1));add("icon-walkout","Icon Walkout","Silver","Pack Moments","Pull an Icon.",()=>trophyProgress(T.stats.iconsPulled,1));add("double-trouble","Double Trouble","Silver","Pack Moments","Pull two Elite-or-better cards in one pack.",()=>trophyProgress(T.stats.doubleElite,1));add("pack-legends","Pack of Legends","Diamond","Pack Moments","Pull three Elite-or-better cards in one pack.",()=>trophyProgress(T.stats.threeElite,1));add("icon-double","Icon Double","Immortal","Pack Moments","Pull two Icons in one pack.",()=>trophyProgress(T.stats.doubleIcon,1));add("perfect-pull","Perfect Pull","Diamond","Pack Moments","Pull a 99 OVR card.",()=>trophyProgress(T.stats.pulled99,1));
  add("first-draft","First Draft","Bronze","Draft","Complete a Classic Draft.",()=>trophyProgress(T.stats.drafts,1));add("good-eye","Good Eye","Bronze","Draft","Draft a 60-win team.",()=>trophyProgress(HS.draft.wins||0,60));add("elite-drafter","Elite Drafter","Gold","Draft","Draft a 72-win team.",()=>trophyProgress(HS.draft.wins||0,72));add("near-perfect-draft","Near Perfect","Diamond","Draft","Draft an 81-win team.",()=>trophyProgress(HS.draft.wins||0,81));
- add("white-mamba","The White Mamba","Diamond","Hidden","Build a winning roster containing Brian Scalabrine.",()=>trophyProgress(hasLineup((ps,r)=>ps.some(p=>p.name==="Brian Scalabrine")&&projection(teamOVR(r).eff).wins>=42)?1:0,1),true);add("tall-ball","Tall Ball","Gold","Hidden","Start five players eligible at center.",()=>trophyProgress(starterTest(ps=>ps.every(p=>p.positions.includes("C")))?1:0,1),true);add("goat-debate","Generational Argument","Immortal","Hidden","Start Jordan, LeBron, Kareem and Kobe together.",()=>{const req=["Michael Jordan","LeBron James","Kareem Abdul-Jabbar","Kobe Bryant"];return trophyProgress(starterTest(ps=>req.every(n=>ps.some(p=>p.name===n)))?1:0,1)},true);
+ add("white-mamba","The White Mamba","Diamond","Hidden","Build a winning roster containing Brian Scalabrine.",()=>trophyProgress(hasLineup((ps,r)=>ps.some(p=>p.name==="Brian Scalabrine")&&rosterProjection(r).wins>=42)?1:0,1),true);add("tall-ball","Tall Ball","Gold","Hidden","Start five players eligible at center.",()=>trophyProgress(starterTest(ps=>ps.every(p=>p.positions.includes("C")))?1:0,1),true);add("goat-debate","Generational Argument","Immortal","Hidden","Start Jordan, LeBron, Kareem and Kobe together.",()=>{const req=["Michael Jordan","LeBron James","Kareem Abdul-Jabbar","Kobe Bryant"];return trophyProgress(starterTest(ps=>req.every(n=>ps.some(p=>p.name===n)))?1:0,1)},true);
  add("alternate-timeline","Alternate Timeline","Silver","What If","Complete one What If archive entry.",()=>trophyProgress(WHAT_IF.filter(g=>setProgressSoft(g.m).done).length,1));add("trade-machine","The Trade Machine","Gold","What If","Complete five What If entries.",()=>trophyProgress(WHAT_IF.filter(g=>setProgressSoft(g.m).done).length,5));add("multiverse","The Multiverse","Immortal","What If","Complete the entire What If archive.",()=>trophyProgress(WHAT_IF.filter(g=>setProgressSoft(g.m).done).length,WHAT_IF.length));
  add("starting-something","Starting Something","Silver","Iconic Teams","Complete one Iconic Team entry.",()=>trophyProgress(ICONIC_TEAMS.filter(g=>setProgressSoft(g.m).done).length,1));add("champ-dna","Championship DNA","Gold","Iconic Teams","Complete five champion-team entries.",()=>trophyProgress(ICONIC_TEAMS.filter(g=>g.kind==="Champion"&&setProgressSoft(g.m).done).length,5));add("basketball-museum","Basketball Museum","Immortal","Iconic Teams","Complete every Iconic Team entry.",()=>trophyProgress(ICONIC_TEAMS.filter(g=>setProgressSoft(g.m).done).length,ICONIC_TEAMS.length));
  return a;}
@@ -3798,7 +3829,7 @@ function trophyRoster(mode,r,opts){
    let fresh=0; players.forEach(p=>{if(!T.seenCards[p.id])fresh++; ledgerAdd(p);});
    if(fresh){saveTrophies(); if(typeof creditsForDiscovery==="function")creditsForDiscovery(fresh);}}
   const o=teamOVR(r);const ranked=mode!=="classic"&&!(opts&&opts.eraLocked); /* era-locked drafts don't count toward win/record prestige */
-  if(o.ready&&ranked){const w=projection(o.eff).wins;T.stats.maxWins=Math.max(T.stats.maxWins,w);T.stats.maxChem=Math.max(T.stats.maxChem,o.chem.bonus);if(w===82){const sig=mode==="draft"?(ATUBackend.gameRunId("draft")||(D.perfectRunId||(D.perfectRunId=Date.now()+"-"+Math.random()))):ALL_SLOTS.map(s=>r[s]??"x").join(",");if(T.last82[mode]!==sig){T.last82[mode]=sig;if(mode==="draft")T.stats.draft82++;else if(mode==="classic")T.stats.pack82++;}}}
+  if(o.ready&&ranked){const w=projection(o.eff,o.resultRulesVersion).wins;T.stats.maxWins=Math.max(T.stats.maxWins,w);T.stats.maxChem=Math.max(T.stats.maxChem,o.chem.bonus);if(w===82){const sig=mode==="draft"?(ATUBackend.gameRunId("draft")||(D.perfectRunId||(D.perfectRunId=Date.now()+"-"+Math.random()))):ALL_SLOTS.map(s=>r[s]??"x").join(",");if(T.last82[mode]!==sig){T.last82[mode]=sig;if(mode==="draft")T.stats.draft82++;else if(mode==="classic")T.stats.pack82++;}}}
   evaluateTrophies();}
 sanitizeSave();save();
 migrateTrophies();
@@ -4132,7 +4163,7 @@ function dailyValidity(){
   const ok=DD.challenge.valid(dailyStarters(),DD.roster);
   return {full:true,valid:ok,reason:ok?"Constraint met":"Constraint not met: "+DD.challenge.hint};
 }
-function dailyResult(){const o=teamOVR(DD.roster),pr=projection(o.eff);return {ovr:o.total,eff:o.eff,chem:o.chem.bonus,wins:pr.wins,identity:recordIdentity(pr.wins)};}
+function dailyResult(){const o=teamOVR(DD.roster),pr=projection(o.eff,o.resultRulesVersion);return {ovr:o.total,eff:o.eff,chem:o.chem.bonus,wins:pr.wins,identity:recordIdentity(pr.wins)};}
 function dailySubmit(){
   const v=dailyValidity();
   if(!v.valid)return {ok:false,reason:v.reason};
@@ -4167,7 +4198,7 @@ function dailySlotHTML(slot){
 }
 function dailyHTML(){
   if(!DD||DD.dateKey!==todayKey())dailyStart();
-  const ch=DD.challenge,ovr=teamOVR(DD.roster),pr=projection(ovr.eff);
+  const ch=DD.challenge,ovr=teamOVR(DD.roster),pr=projection(ovr.eff,ovr.resultRulesVersion);
   const filled=ALL_SLOTS.filter(s=>DD.roster[s]!=null).length;
   const v=dailyValidity(),best=DAILY.best[DD.dateKey];
   return `
@@ -6634,7 +6665,7 @@ function dropOn(e,side,slot){
 function collDragOver(e){if(DRAG&&DRAG.from!=="coll")e.preventDefault();}
 function dropToColl(e,side){e.preventDefault();if(!DRAG||DRAG.from==="coll")return;
   const from=DRAG.from;dragEnd();unslot(side,from);}
-function currentRunRules(){if(screen==="challenge")return ATUBackend.challengeRulesVersion?.();if(screen==="draft"&&!DRAFT_ERA)return ATUBackend.gameRulesVersion?.("draft");if(screen==="classic")return ATUBackend.gameRulesVersion?.("pack");return null;}
+function currentRunRules(){if(screen==="challenge")return ATUBackend.challengeRulesVersion?.();if(screen==="draft")return (!DRAFT_ERA&&ATUBackend.gameRulesVersion?.("draft"))||D.resultRulesVersion||null;if(screen==="classic")return ATUBackend.gameRulesVersion?.("pack");if(screen==="share")return SHARED?.resultRulesVersion||null;return null;}
 function setRosterPool(value){if(!["modern","history"].includes(value))return;ROSTER_POOL=value;sSet("atu-roster-pool-v1",value);if(typeof S!=="undefined"&&!S.classic.opened&&!S.classic.captainUsed&&!Object.keys(S.classic.coll).length&&!ATUBackend.getGameSession("pack"))S.classic.cardPool=value;render();}
 function rosterPoolHTML(){return '<button class="btn" aria-haspopup="dialog" onclick="openRosterPool()">Player pool</button>';}
 function openRosterPool(){
@@ -6649,7 +6680,7 @@ function openRosterPool(){
   sheet.querySelector('[aria-pressed="true"]').focus();
 }
 function hubHTML(side){
-  const st=S[side],ovr=teamOVR(st.roster),pr=projection(ovr.eff);
+  const st=S[side],ovr=teamOVR(st.roster),pr=projection(ovr.eff,ovr.resultRulesVersion);
   const rec=`${pr.wins}–${pr.losses}`;
   const chemHTML=ovr.chem.links.length
     ?ovr.chem.links.map(l=>`<span class="${"ck-"+l.kind}">${l.label} ×${l.n} → +${l.bonus.toFixed(1)}</span>`).join("")
@@ -7036,7 +7067,8 @@ async function startDraft(era){
     return;
   }
   const cycleSeed=ATUDraftRandomV1.freshSeed();
-  D={cardPool:ROSTER_POOL,identityCardCycleDraft:true,cycleSeed,cycleReleaseFractions:{...DRAFT_CARD_RELEASE_FRACTIONS}};D={...localDraftRules().start(),cardPool:ROSTER_POOL,identityCardCycleDraft:true,cycleSeed};
+  const resultRulesVersion=ROSTER_POOL==="history"?"atu-history-draft-v13":"atu-classic-v15";
+  D={cardPool:ROSTER_POOL,identityCardCycleDraft:true,cycleSeed,cycleReleaseFractions:{...DRAFT_CARD_RELEASE_FRACTIONS},resultRulesVersion};D={...localDraftRules().start(),cardPool:ROSTER_POOL,identityCardCycleDraft:true,cycleSeed,resultRulesVersion};
   persistCardCycle();
   render();
 }
@@ -7072,7 +7104,7 @@ function draftPickInto(pid){
   if(completed)confetti(80);
   if(completed&&screen==="draft"){
     D.done=true; /* stay on the court \u2014 no summary screen */
-    const o=teamOVR(D.roster),pr=projection(o.eff);
+    const o=teamOVR(D.roster),pr=projection(o.eff,o.resultRulesVersion);
     if(!DRAFT_ERA&&o.total>HS.draft.ovr){HS.draft.ovr=o.total;HS.draft.wins=pr.wins;saveHS();} /* era runs don't set the all-time best */
     T.stats.drafts++;trophyRoster("draft",D.roster,{eraLocked:!!DRAFT_ERA});
     if(typeof creditsForRun==="function"){creditsForRun("draft");if(!DRAFT_ERA)creditsForRecord(pr.wins);}
@@ -7207,7 +7239,7 @@ function doDraftSwap(a,b){
   if(!applyDraftAction({type:"swap",from:a,to:b}))return;
   closeSheet();
   if(D.done&&screen==="draft"){
-    const o=teamOVR(D.roster),pr=projection(o.eff);
+    const o=teamOVR(D.roster),pr=projection(o.eff,o.resultRulesVersion);
     if(!DRAFT_ERA&&o.total>HS.draft.ovr){HS.draft.ovr=o.total;HS.draft.wins=pr.wins;saveHS();}
     trophyRoster("draft",D.roster,{eraLocked:!!DRAFT_ERA});
   }
@@ -7266,7 +7298,7 @@ function draftHTML(){
           <div class="eramenu">${viableEras().map((e,i)=>`<button class="eraitem" onclick="startEraByIndex(${i})"><b>${eraLabel(e)}</b><small>${eraPlayerCount(e)} players</small></button>`).join("")}</div>
         </details>
       </div></div>`;
-  const ovr=teamOVR(D.roster),pr=projection(ovr.eff);
+  const ovr=teamOVR(D.roster),pr=projection(ovr.eff,ovr.resultRulesVersion);
   const filled=ALL_SLOTS.filter(s=>D.roster[s]!=null).length;
   return `
   ${draftEra?`<div class="erabadge">◷ ${eraLabel(draftEra)} ERA DRAFT · practice mode — doesn\u2019t count toward records</div>`:""}
@@ -7337,10 +7369,11 @@ function landingHTML(){
 }
 /* ---- share roster (Draft + Classic) ---- */
 let SHARED=null;
-function buildShareURL(modeKey,roster){
+function buildShareURL(modeKey,roster,version=rosterResultRules(roster)){
   /* scan the 8 active board slots, compress card IDs into one query string */
   const ids=ALL_SLOTS.map(s=>roster[s]==null?"x":roster[s]).join(",");
-  return location.origin+location.pathname+"?share="+modeKey+":"+ids;
+  const resultRulesVersion=modeKey==="draft"&&isNewClassicResultRules(version)?version:null;
+  return location.origin+location.pathname+"?share="+modeKey+":"+ids+(resultRulesVersion?"&resultRulesVersion="+encodeURIComponent(resultRulesVersion):"");
 }
 function parseShare(){
   /* new ?share= format, with legacy #s= links still honored */
@@ -7356,7 +7389,9 @@ function parseShare(){
     if(!Number.isInteger(id)||id<0||id>=DB.length)return null;
     roster[ALL_SLOTS[i]]=id;any=true;
   }
-  return any?{mode:m[1],roster}:null;
+  const version=new URLSearchParams(location.search).get("resultRulesVersion");
+  const resultRulesVersion=m[1]==="draft"&&isNewClassicResultRules(version)?version:null;
+  return any?{mode:m[1],roster,...(resultRulesVersion?{resultRulesVersion}:{})}:null;
 }
 function copyText(t){
   try{navigator.clipboard.writeText(t);notice("Share link copied — paste it anywhere.");return;}catch(e){}
@@ -7483,7 +7518,7 @@ function drawRosterCanvas(modeKey,roster,eraLocked){
         :"P A C K   M O D E   R U N";
       c.fillText(modeLabel,540,152);
       /* scoreboard — compact, ends above the pentagon */
-      const o=teamOVR(roster),pr=projection(o.eff);
+      const o=teamOVR(roster),pr=projection(o.eff,o.resultRulesVersion);
       /* left block: big OVR centered on x=330 — alignment set explicitly per group */
       c.textAlign="center";c.fillStyle="#ffc53d";c.font="900 118px "+IMG_FONT;
       c.fillText(o.total,330,300);
@@ -7551,7 +7586,7 @@ async function shareRosterImage(modeKey){
   const eraLocked=modeKey==="draft"&&!!DRAFT_ERA;
   const blob=await drawRosterCanvas(modeKey,roster,eraLocked);
   if(!blob){notice("Couldn't render the image on this browser.");return;}
-  const o=teamOVR(roster),pr=projection(o.eff),perfect=modeKey==="draft"&&!eraLocked&&pr.wins===82;
+  const o=teamOVR(roster),pr=projection(o.eff,o.resultRulesVersion),perfect=modeKey==="draft"&&!eraLocked&&pr.wins===82;
   const stem=modeKey==="draft"?"draft":modeKey==="daily"?"daily":"pack-mode";
   const file=new File([blob],`all-time-ultimate-${stem}${(perfect&&!eraLocked)?"-82-0-club":""}.png`,{type:"image/png"});
   const dailyName=modeKey==="daily"&&DD?DD.challenge.name:"";
@@ -7585,7 +7620,7 @@ function shareSlotHTML(roster,slot){
   return `<div class="slot-${slot}" style="position:relative">${cardHTML(DB[pid])}</div>`;
 }
 function shareHTML(){
-  const r=SHARED.roster,ovr=teamOVR(r),pr=projection(ovr.eff);
+  const r=SHARED.roster,ovr=teamOVR(r),pr=projection(ovr.eff,ovr.resultRulesVersion);
   return `
   <div class="panel" style="margin-bottom:12px">
     <div class="rowhead"><h2>Shared ${SHARED.mode==="draft"?"Classic Draft":"Pack Mode"} Squad</h2>

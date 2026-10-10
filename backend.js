@@ -527,7 +527,7 @@
   async function loadEngine() {
     if (state.engine) return state.engine;
     if (!state.enginePromise) {
-      state.enginePromise = import("./supabase/functions/_shared/atu-engine-card-cycle-identity-20261007.js?draft=card-cycle-identity-20261007")
+      state.enginePromise = import("./supabase/functions/_shared/atu-engine-classic-difficulty-20261010.js?draft=classic-difficulty-20261010")
         .then(function (engine) {
           state.engine = engine;
           return engine;

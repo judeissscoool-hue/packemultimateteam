@@ -140,7 +140,7 @@ async function run() {
     assert.match(view,/aria-selected="true"[^>]*>REWARDS/);
   }
   for (const rulesVersion of ["atu-v1", "atu-classic-v2", "atu-classic-v3", "atu-history-draft-v1", "atu-classic-v4", "atu-history-draft-v2"]) {
-    const router = await import('../supabase/functions/_shared/atu-engine-card-cycle-identity-20261007.js');
+    const router = await import('../supabase/functions/_shared/atu-engine-classic-difficulty-20261010.js');
     const engine = router.getEngineForRules(rulesVersion);
     const seed = '0123456789abcdef'.repeat(4), code = 'A1B2C3D4E5F60708';
     let completed = false, finalRoster, result, submissions = 0;
@@ -741,8 +741,8 @@ async function run() {
   for(const pool of ['modern','history']){
     const seed='0123456789abcdef'.repeat(4);
     let submissions=0,fail=true;
-    const engine=await import('../supabase/functions/_shared/atu-engine-card-cycle-identity-20261007.js');
-    const version=pool==='history'?'atu-history-draft-v12':'atu-classic-v14';
+    const engine=await import('../supabase/functions/_shared/atu-engine-classic-difficulty-20261010.js');
+    const version=pool==='history'?'atu-history-draft-v13':'atu-classic-v15';
     const normalFairness={kind:'card-cycle-rarity-v1',releaseFractions:{Bronze:.85,Silver:.85,Gold:.85,Elite:.85,Icon:.6},shown:[]};
     const test=makeContext({session:{user:{id:'normal-player'}},rpc(name,args){
       if(name==='get_my_profile')return {data:[{username:'Normal'}]};
@@ -782,10 +782,10 @@ async function run() {
   // identity rules when it restores a saved draft.
   const archivedCycleSnapshots=[
     ...[['atu-classic-v12','modern'],['atu-history-draft-v10','history']].flatMap(([version,pool])=>[.75,.9].map(fraction=>({version,pool,fairness:{kind:'card-cycle-v1',releaseFraction:fraction,shown:[]}}))),
-    ...[['atu-classic-v13','modern'],['atu-history-draft-v11','history']].map(([version,pool])=>({version,pool,fairness:{kind:'card-cycle-rarity-v1',releaseFractions:{Bronze:.85,Silver:.85,Gold:.85,Elite:.85,Icon:.6},shown:[]}}))
+    ...[['atu-classic-v13','modern'],['atu-history-draft-v11','history'],['atu-classic-v14','modern'],['atu-history-draft-v12','history']].map(([version,pool])=>({version,pool,fairness:{kind:'card-cycle-rarity-v1',releaseFractions:{Bronze:.85,Silver:.85,Gold:.85,Elite:.85,Icon:.6},shown:[]}}))
   ];
   for(const {version,pool,fairness} of archivedCycleSnapshots){
-    const engine=await import('../supabase/functions/_shared/atu-engine-card-cycle-rarity-20261003.js');
+    const engine=await import('../supabase/functions/_shared/atu-engine-card-cycle-identity-20261007.js');
     const seed='0123456789abcdef'.repeat(4),events=[];
     const expected=engine.createClassicSession(seed,[],version,fairness);
     const apply=event=>{expected.apply(event);events.push(event);};
@@ -805,7 +805,7 @@ async function run() {
 
   {
     const fixture=JSON.parse(fs.readFileSync(require('node:path').join(__dirname,'perfect-draft.json'),'utf8'));
-    const engine=await import('../supabase/functions/_shared/atu-engine-card-cycle-identity-20261007.js');let submissions=0, fail=true;
+    const engine=await import('../supabase/functions/_shared/atu-engine-classic-difficulty-20261010.js');let submissions=0, fail=true;
     const test=makeContext({session:{user:{id:'perfect-player'}},storageSeed:{'atu-game-runs-v1':JSON.stringify({ownerId:'perfect-player',runs:{draft:{runId:'perfect-run',runToken:'b'.repeat(64),seed:fixture.seed,rulesVersion:'atu-classic-v2',expiresAt:'2099-01-01',events:[],status:'playing'}}})},rpc(name,args){
       if(name==='get_my_profile')return {data:[{username:'Perfect'}]};
       if(name==='sync_cloud_save')return {data:[{outcome:'updated',revision:1}]};

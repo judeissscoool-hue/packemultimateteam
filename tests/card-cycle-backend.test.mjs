@@ -51,7 +51,7 @@ function applyDelta(cycle,event,pool){
 const edgeEnv={SUPABASE_URL:'https://example.supabase.co',SUPABASE_ANON_KEY:'anon',SUPABASE_SERVICE_ROLE_KEY:'server-only'};
 function edgeHandler(name){
  const raw=fs.readFileSync(new URL(`../supabase/functions/${name}/index.ts`,import.meta.url),'utf8');
- assert.match(raw,/atu-engine-card-cycle-identity-20261007\.js/,'The real handler must import the current rarity-cycle router while retaining scalar versions');
+ assert.match(raw,/atu-engine-classic-difficulty-20261010\.js/,'The real handler must import the current rarity-cycle router while retaining scalar versions');
  const source=raw.replace(/import[\s\S]*?from "[^"]+";\r?\n/g,'');
  let handler;
  const context=vm.createContext({...engine,console,Response,Request,Headers,TextEncoder,crypto:webcrypto,draftExposure,

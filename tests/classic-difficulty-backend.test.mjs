@@ -3,14 +3,14 @@ import {createHash,webcrypto} from 'node:crypto';
 import {stripTypeScriptTypes} from 'node:module';
 import fs from 'node:fs';
 import vm from 'node:vm';
-import * as engine from '../supabase/functions/_shared/atu-engine-card-cycle-identity-20261007.js';
+import * as engine from '../supabase/functions/_shared/atu-engine-classic-difficulty-20261010.js';
 import {draftExposure} from '../supabase/functions/_shared/draft-history.js';
 import {CARDS as modern} from '../supabase/functions/_shared/ratings-20260920/modern-data.js';
 import {CARDS as history} from '../supabase/functions/_shared/ratings-20260920/history-data.js';
 
 const tiers=['Bronze','Silver','Gold','Elite','Icon'];
 const cardsByPool={modern,history};
-const versions={modern:'atu-classic-v14',history:'atu-history-draft-v12'};
+const versions={modern:'atu-classic-v15',history:'atu-history-draft-v13'};
 const scalarVersions={modern:'atu-classic-v12',history:'atu-history-draft-v10'};
 const currentReleaseFraction=.9;
 const currentReleaseFractions={Bronze:.85,Silver:.85,Gold:.85,Elite:.85,Icon:.6};
@@ -282,4 +282,4 @@ for(const [pool,oldVersion,draftSeed,picks]of [
  await checkpoint({runId:current.id,runToken:token,events},400);
  assert.equal(cycleCalls(),beforeCalls);assert.deepEqual(getCycle('owner',pool),beforeHistory,'Forged duplicate alias transcript must not mutate cycle history');
 }
-console.log('Identity-cycle Edge handlers passed: immutable snapshots, unchanged Gold85%/Icon60% cycles, restart/history retention, old scalar and rarity replay, actual duplicate-alias rejection before checkpoint/finalization, auth/token/policy rejection and valid transcript acceptance (mocked database boundaries)');
+console.log('Classic-difficulty Edge handlers passed: immutable snapshots, unchanged Gold85%/Icon60% cycles, restart/history retention, old scalar and rarity replay, actual duplicate-alias rejection before checkpoint/finalization, auth/token/policy rejection and valid transcript acceptance (mocked database boundaries)');
