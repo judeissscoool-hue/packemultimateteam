@@ -71,6 +71,15 @@
     }
   };
 
+  // Legal values and moves are declared in state-machines.js. The fallback keeps
+  // the game working when that file is missing (an older cached page).
+  const machines = global.ATUStateMachines || null;
+  function move(name, holder, field, to) {
+    if (machines) return machines.transition(name, holder, field, to);
+    holder[field] = to;
+    return to;
+  }
+
   function newFriendsState(ownerId) {
     return { ownerId, rows: [], status: "idle", message: "", query: "", busy: false,
       loading: false, loadVersion: 0, lastCheckedAt: 0, lastPresenceAt: 0, timer: null, ticking: false,
@@ -369,7 +378,7 @@
     cloudOwner = null;
     global.clearTimeout(state.syncTimer);
     if (previous && previous.userId === userId && Date.now() - previous.at < 60000) {
-      state.cloudStatus = "error";
+      move("cloudSave", state, "cloudStatus", "error");
       setMessage("Online progress changed again while loading. Automatic recovery is paused to keep the page stable. Close other game tabs, then refresh once to reconnect.", "error");
       return;
     }
@@ -377,7 +386,7 @@
     // Persist the guard before applying data; if storage fails, do not reload.
     recoveryStorage.setItem(recoveryKey, JSON.stringify({userId:userId,at:Date.now()}));
     applySnapshot(row.payload, row.revision, userId);
-    state.cloudStatus = "synced";
+    move("cloudSave", state, "cloudStatus", "synced");
     state.cloudConflict = null;
     global.location.reload();
   }
@@ -396,7 +405,7 @@
       ? options.expectedRevision
       : (Number(meta.revision) || 0);
     const isImport = !!(options && options.isImport);
-    state.cloudStatus = "syncing";
+    move("cloudSave", state, "cloudStatus", "syncing");
     cloudRender();
     const result = await state.client.rpc("sync_cloud_save", {
       p_expected_revision: expectedRevision,
@@ -415,7 +424,7 @@
       return row;
     }
     if (row.outcome === "missing") {
-      state.cloudStatus = "error";
+      move("cloudSave", state, "cloudStatus", "error");
       throw new Error("The cloud save disappeared. Refresh and try again.");
     }
     updateCloudMeta({
@@ -425,7 +434,7 @@
       updatedAt: payload.generatedAt,
       lastSyncedAt: new Date().toISOString()
     });
-    state.cloudStatus = "synced";
+    move("cloudSave", state, "cloudStatus", "synced");
     state.cloudConflict = null;
     if (cloudWriteVersion !== writeVersion) return pushSnapshotNow();
     cloudRender();
@@ -442,7 +451,7 @@
     const userId = state.session.user.id;
     if (cloudPush) await cloudPush;
     if (state.session?.user.id !== userId) return;
-    state.cloudStatus = "checking";
+    move("cloudSave", state, "cloudStatus", "checking");
     state.cloudConflict = null;
     rerender();
     try {
@@ -466,13 +475,13 @@
       const sameRevision = Number(meta.revision) === Number(remote.revision);
       if (sameAccount && sameRevision) {
         if (meta.dirty) await pushSnapshot({ expectedRevision: Number(remote.revision) });
-        else state.cloudStatus = "synced";
+        else move("cloudSave", state, "cloudStatus", "synced");
         cloudOwner = userId;
         return;
       }
       adoptOnlineSave(remote, userId);
     } catch (error) {
-      state.cloudStatus = global.navigator && global.navigator.onLine === false ? "offline" : "error";
+      move("cloudSave", state, "cloudStatus", global.navigator && global.navigator.onLine === false ? "offline" : "error");
       setMessage(errorText(error, "Could not check the cloud save."), "error");
     } finally {
       rerender();
@@ -498,7 +507,7 @@
       try {
         if (getCloudMeta().dirty) await pushSnapshot();
       } catch (error) {
-        state.cloudStatus = global.navigator && global.navigator.onLine === false ? "offline" : "error";
+        move("cloudSave", state, "cloudStatus", global.navigator && global.navigator.onLine === false ? "offline" : "error");
         setMessage(errorText(error, "Progress remains on this device and will sync later."), "error");
         cloudRender();
       }
@@ -544,7 +553,7 @@
   function restoreClassicSession(active) {
     classicSession = state.engine.createClassicSession(active.seed, active.events || [], active.rulesVersion);
     active.roster = classicSession.draft.roster;
-    active.stage = classicSession.draft.done ? "arrange" : classicSession.draft.stage;
+    move("duelRun", active, "stage", classicSession.draft.done ? "arrange" : classicSession.draft.stage);
   }
 
   function classicDraftState() {
@@ -561,7 +570,7 @@
       classicSession.apply(event);
       active.events.push(event);
       active.roster = classicSession.draft.roster;
-      active.stage = classicSession.draft.done ? "arrange" : classicSession.draft.stage;
+      move("duelRun", active, "stage", classicSession.draft.done ? "arrange" : classicSession.draft.stage);
       state.challenge.error = "";
       writeActiveChallenge(active);
       return true;
@@ -599,7 +608,7 @@
       active.picks.forEach((id, index) => { active.roster[active.manifest.boards[index].slot] = id; });
     }
     state.challenge.active = active;
-    state.challenge.phase = "draft";
+    move("duel", state.challenge, "phase", "draft");
     state.challenge.code = code;
     state.challenge.error = "";
     return true;
@@ -628,7 +637,7 @@
     if (!/^[A-F0-9]{16}$/.test(normalized) || !state.client || state.refreshingChallenge) return;
     state.challenge.code = normalized;
     state.refreshingChallenge = true;
-    if (!quiet) { state.challenge.phase = "loading"; rerender(); }
+    if (!quiet) { move("duel", state.challenge, "phase", "loading"); rerender(); }
     state.challenge.error = "";
     try {
       const result = await state.client.rpc("get_async_challenge_invitation", { p_code: normalized });
@@ -639,23 +648,23 @@
       if (invitation && invitation.status === "completed") {
         await loadChallengeResult(normalized);
         if (normalized !== state.challenge.code) return;
-        state.challenge.phase = "result";
+        move("duel", state.challenge, "phase", "result");
       } else if (invitation && invitation.status === 'expired') {
         state.challenge.active = null;
-        state.challenge.phase = 'invitation';
+        move("duel", state.challenge, "phase", 'invitation');
       } else {
         const stored = readActiveChallenge();
         if (stored && stored.code === normalized && stored.stage === "submitted") {
           state.challenge.active = stored;
-          state.challenge.phase = "share";
+          move("duel", state.challenge, "phase", "share");
         } else if (!await restoreActiveChallenge(normalized)) {
           state.challenge.active = null;
-          state.challenge.phase = invitation ? "invitation" : "not_found";
+          move("duel", state.challenge, "phase", invitation ? "invitation" : "not_found");
         }
       }
     } catch (error) {
       if (normalized !== state.challenge.code) return;
-      if (!quiet) state.challenge.phase = "error";
+      if (!quiet) move("duel", state.challenge, "phase", "load_failed");
       state.challenge.error = errorText(error, "Could not refresh the duel. Try again.");
     } finally {
       state.refreshingChallenge = false;
@@ -702,7 +711,7 @@
         restoreClassicSession(active);
       }
       state.challenge.code = active.code;
-      state.challenge.phase = "draft";
+      move("duel", state.challenge, "phase", "draft");
       state.challenge.invitation = null;
       state.challenge.resultRows = [];
       state.challenge.showPicker = true;
@@ -730,7 +739,7 @@
       if (!row) throw new Error("Challenge could not be created.");
       await initializeChallengeRun(row, "creator");
     } catch (error) {
-      state.challenge.phase = "error";
+      move("duel", state.challenge, "phase", "start_failed");
       state.challenge.error = errorText(error, "Could not create a challenge.");
     } finally {
       setBusy(false);
@@ -810,28 +819,28 @@
       const transcript=run.pending||[...run.events,{type:"arrange",roster:{...roster}}];
       const validated=state.engine.validateTranscript(run.seed,transcript,mode,run.rulesVersion,run.fairness);
       if(validated.result.projectedWins!==82){
-        if(run.pending){delete run.pending;delete run.error;run.status="playing";saveGameRun(mode,run);}
+        if(run.pending){delete run.pending;delete run.error;move("gameRun", run, "status", "playing");saveGameRun(mode,run);}
         return;
       }
       const rankingOvr=draftRankingOvr(validated.roster,run.rulesVersion,validated.result);
       if(!run.pending&&run.result&&rankingOvr<=run.result.rankingOvr)return;
       // Keep the exact submission for retries after closing a tab or losing the response.
-      run.pending=transcript;run.status="saving";saveGameRun(mode,run);
+      run.pending=transcript;move("gameRun", run, "status", "saving");saveGameRun(mode,run);
       const response=await state.client.functions.invoke("validate-run",{body:{runId:run.runId,runToken:run.runToken,transcript}});
       if(state.session?.user.id!==ownerId)return;
       if(response.error||!response.data?.ok)throw response.error||new Error("Run could not be saved.");
       // An older request must not overwrite a newly started run.
       const current=readGameRuns().runs?.[mode];
       if(current?.runId===run.runId){
-        current.status="submitted";
+        move("gameRun", current, "status", "submitted");
         current.result={...response.data.result,rankingOvr:response.data.result?.rankingOvr??rankingOvr};
         delete current.pending;delete current.error;saveGameRun(mode,current);
       }
-      state.rankings.status="idle";rerender();
+      move("rankings", state.rankings, "status", "idle");rerender();
     }catch(error){
       const current=readGameRuns().runs?.[mode];
       if(state.session?.user.id===ownerId&&current?.runId===run.runId){
-        current.status="retry";current.error="Result not saved yet. Retry when connected.";
+        move("gameRun", current, "status", "retry");current.error="Result not saved yet. Retry when connected.";
         saveGameRun(mode,current);
       }
       if(!automatic)rerender();
@@ -899,7 +908,7 @@
         manifest: engine.createRunManifest(row.draft_seed, row.mode)
       };
       state.challenge.code = "";
-      state.challenge.phase = "draft";
+      move("duel", state.challenge, "phase", "draft");
       state.challenge.invitation = null;
       state.challenge.resultRows = [];
       state.challenge.showPicker = true;
@@ -907,7 +916,7 @@
       writeActiveChallenge(active);
       if (typeof global.setScreen === "function") global.setScreen("challenge");
     } catch (error) {
-      state.challenge.phase = "error";
+      move("duel", state.challenge, "phase", "start_failed");
       state.challenge.error = errorText(error, "Could not start this ranked run.");
     } finally {
       setBusy(false);
@@ -929,7 +938,7 @@
       await initializeChallengeRun(row, "opponent");
     } catch (error) {
       state.challenge.error = errorText(error, "Could not accept this challenge.");
-      state.challenge.phase = "error";
+      move("duel", state.challenge, "phase", "start_failed");
     } finally {
       setBusy(false);
     }
@@ -961,7 +970,7 @@
     active.captainId = cardId;
     active.roster = { B3: cardId };
     state.challenge.showPicker = false;
-    active.stage = "picking";
+    move("duelRun", active, "stage", "picking");
     writeActiveChallenge(active);
     rerender();
   }
@@ -977,7 +986,7 @@
     state.challenge.showPicker = false;
     if (active.picks.length === active.manifest.boards.length) {
       active.localResult = state.engine.calculateResult(active.roster, active.rulesVersion);
-      active.stage = "arrange";
+      move("duelRun", active, "stage", "arrange");
     }
     writeActiveChallenge(active);
     rerender();
@@ -1055,15 +1064,15 @@
       writeActiveChallenge(summary);
       state.challenge.active = summary;
       if (active.role === "ranked") {
-        state.challenge.phase = "ranked_result";
-        state.rankings.status = "idle";
+        move("duel", state.challenge, "phase", "ranked_result");
+        move("rankings", state.rankings, "status", "idle");
         setMessage("You made the leaderboard!", "ok");
       } else if (active.role === "creator") {
-        state.challenge.phase = "share";
+        move("duel", state.challenge, "phase", "share");
         setMessage("Your team is locked in. Send the challenge!", "ok");
       } else {
         await loadChallengeResult(active.code);
-        state.challenge.phase = "result";
+        move("duel", state.challenge, "phase", "result");
         setMessage("Final buzzer! Your Draft Duel is complete.", "ok");
       }
     } catch (error) {
@@ -1076,7 +1085,7 @@
   function finishRankedRun() {
     if (state.challenge.active) state.rankings.mode = state.challenge.active.mode;
     state.challenge.active = null;
-    state.challenge.phase = "idle";
+    move("duel", state.challenge, "phase", "idle");
     state.challenge.error = "";
     state.challenge.swapSlot = null;
     if (typeof global.setScreen === "function") global.setScreen("rankings");
@@ -1105,7 +1114,7 @@
     if (!state.client) return;
     if (mode) state.rankings.mode = mode === "one_v_one" ? mode : "draft";
     if (period) state.rankings.period = period;
-    state.rankings.status = "loading";
+    move("rankings", state.rankings, "status", "loading");
     state.rankings.error = "";
     const request = ++state.rankings.request;
     const rankingMode = state.rankings.mode;
@@ -1117,15 +1126,20 @@
         state.client.rpc("get_leaderboard", { p_mode: rankingMode, p_period: rankingPeriod, p_limit: 100 }),
         state.client.rpc("get_beta_season_status")
       ]);
-      if (request !== state.rankings.request || viewerId !== (state.session?.user.id || null)) return;
+      if (request !== state.rankings.request) return;
+      if (viewerId !== (state.session?.user.id || null)) {
+        // The player signed in or out mid-load: drop this answer and reload for them.
+        move("rankings", state.rankings, "status", "idle");
+        return;
+      }
       if (result.error) throw result.error;
       if (season.error) throw season.error;
       state.rankings.season = season.data && !Array.isArray(season.data) ? { ...season.data, viewerId } : null;
       state.rankings.rows = Array.isArray(result.data) ? result.data : [];
-      state.rankings.status = "ready";
+      move("rankings", state.rankings, "status", "ready");
     } catch (error) {
       if (request !== state.rankings.request) return;
-      state.rankings.status = "error";
+      move("rankings", state.rankings, "status", "error");
       state.rankings.error = errorText(error, "Could not load rankings.");
     } finally {
       rerender();
@@ -1209,7 +1223,7 @@
       || friends.busy || (friends.loading && !force)) return;
     const version = ++friends.loadVersion;
     friends.loading = true;
-    if (friends.status === "idle") { friends.status = "loading"; renderFriendsPanels(); }
+    if (friends.status === "idle") { move("friends", friends, "status", "loading"); renderFriendsPanels(); }
     try {
       const result = await state.client.rpc("get_friends");
       if (state.friends !== friends || version !== friends.loadVersion) return;
@@ -1220,11 +1234,11 @@
       const incomingIds = new Set(friends.rows.filter(row => row.relationship === "incoming").map(row => row.friend_public_id));
       for (const id of friends.dismissedInvites) if (!incomingIds.has(id)) friends.dismissedInvites.delete(id);
       if (friends.noticeError && !incomingIds.has(friends.noticeError.id)) friends.noticeError = null;
-      friends.status = "ready";
+      move("friends", friends, "status", "ready");
     } catch (_) {
       if (state.friends !== friends || version !== friends.loadVersion) return;
       friends.rows = [];
-      friends.status = "error";
+      move("friends", friends, "status", "error");
     } finally {
       if (state.friends === friends && version === friends.loadVersion) {
         friends.loading = false;
@@ -1378,13 +1392,19 @@
     }
   }
 
+  // Reopens the duel named by the current code after a failed load, start or accept.
+  function retryChallenge() {
+    if (state.challenge.code) return loadChallengeInvitation(state.challenge.code);
+    resetChallenge();
+  }
+
   function resetChallenge() {
     const unfinished = state.challenge.active && activeChallengeValid(state.challenge.active);
     if (unfinished && !global.confirm("Discard the unfinished challenge saved on this device?")) return;
     writeActiveChallenge(null);
     global.clearTimeout(state.challengeTimer);
     state.challenge.showPicker = false;
-    state.challenge.phase = "idle";
+    move("duel", state.challenge, "phase", "idle");
     state.challenge.code = "";
     state.challenge.invitation = null;
     state.challenge.resultRows = [];
@@ -1401,7 +1421,7 @@
   async function refreshSignedInState() {
     if (!state.session) {
       state.profile = null;
-      state.cloudStatus = "offline";
+      move("cloudSave", state, "cloudStatus", "offline");
       return;
     }
     try {
@@ -1432,7 +1452,7 @@
     state.initialized = true;
     if (!configured() || !global.supabase || typeof global.supabase.createClient !== "function") {
       state.available = false;
-      state.cloudStatus = "offline";
+      move("cloudSave", state, "cloudStatus", "offline");
       rerender();
       return;
     }
@@ -1480,14 +1500,14 @@
       scheduleSocialActivity();
       if (event === "PASSWORD_RECOVERY") {
         state.recovery = true;
-        state.authMode = "recovery";
+        move("authForm", state, "authMode", "recovery");
         if (typeof global.setScreen === "function") global.setScreen("account");
       }
       global.setTimeout(async function () {
         if (session && (cloudOwner !== session.user.id || event === "SIGNED_IN")) await refreshSignedInState();
         else if (!session) {
           state.profile = null;
-          state.cloudStatus = "offline";
+          move("cloudSave", state, "cloudStatus", "offline");
         }
         rerender();
       }, 0);
@@ -1508,7 +1528,7 @@
       scheduleSocialActivity();
       if (socialIsActive()) loadFriends(true);
       else {
-        state.friends.status = "idle";
+        move("friends", state.friends, "status", "idle");
         renderFriendsPanels();
       }
     };
@@ -1550,7 +1570,7 @@
           setMessage("Account created and signed in.", "ok");
         } else {
           setMessage("Account created. Open the verification email before signing in.", "ok");
-          state.authMode = "signin";
+          move("authForm", state, "authMode", "signin");
         }
       } else {
         const result = await state.client.auth.signInWithPassword({ email: email, password: password });
@@ -1608,7 +1628,7 @@
       const result = await state.client.auth.updateUser({ password: password });
       if (result.error) throw result.error;
       state.recovery = false;
-      state.authMode = "signin";
+      move("authForm", state, "authMode", "signin");
       setMessage("Password updated.", "ok");
       if (global.history && global.location.search.includes("auth=account")) {
         global.history.replaceState(null, "", global.location.pathname);
@@ -1646,7 +1666,7 @@
       state.session = null;
       syncFriendsIdentity();
       state.profile = null;
-      state.cloudStatus = "offline";
+      move("cloudSave", state, "cloudStatus", "offline");
       setMessage("Signed out. Your device progress is still available.", "ok");
       state.accountReturn = null;
       removeLocal(ACCOUNT_RETURN_KEY);
@@ -1696,7 +1716,7 @@
   }
 
   function setAuthMode(mode) {
-    state.authMode = mode;
+    move("authForm", state, "authMode", machines ? machines.coerce("authForm", mode, "signin") : mode);
     state.message = "";
     rerender();
   }
@@ -1850,8 +1870,14 @@
       return challengeHeaderHTML('DRAFT DUEL', '@' + creator + ' is calling you out!', 'Think you can build a better squad from the same draft?')
         + statusMessageHTML() + challengeMessageHTML() + duelLayoutHTML(left, right);
     }
-    if (['not_found', 'error'].includes(state.challenge.phase)) return challengeHeaderHTML('DRAFT DUEL', 'The challenge could not load', 'The link may have expired. Try again or start a new duel.')
-      + challengeMessageHTML() + '<button class="btn" onclick="ATUBackend.resetChallenge()">BACK TO 1V1</button>';
+    const backToDuels = '<button class="btn" onclick="ATUBackend.resetChallenge()">BACK TO 1V1</button>';
+    if (state.challenge.phase === 'not_found') return challengeHeaderHTML('DRAFT DUEL', 'This duel link didn’t work', 'The link may be mistyped or expired. Ask your friend for a new one, or start your own duel.')
+      + '<div class="challengeactions">' + backToDuels + '</div>';
+    if (state.challenge.phase === 'load_failed') return challengeHeaderHTML('DRAFT DUEL', 'The challenge could not load', 'Check your connection, then try again.')
+      + challengeMessageHTML() + '<div class="challengeactions"><button class="btn gold" onclick="ATUBackend.retryChallenge()">TRY AGAIN</button>' + backToDuels + '</div>';
+    if (state.challenge.phase === 'start_failed') return challengeHeaderHTML('DRAFT DUEL', 'The duel could not start', 'Nothing was lost. Check the note below, then try again.')
+      + challengeMessageHTML() + '<div class="challengeactions">'
+      + (state.challenge.code ? '<button class="btn gold" onclick="ATUBackend.retryChallenge()">BACK TO THE CHALLENGE</button>' : '') + backToDuels + '</div>';
     const left = '<div class="duel-player"><span>YOUR TEAM</span><h3>Classic Draft</h3></div><p class="duel-note">Pick your captain. Build your eight. Set your lineup.</p>'
       + (playerRequirementHTML("challenge") || '<button class="btn gold" onclick="ATUBackend.createChallenge()" ' + (state.busy ? 'disabled' : '') + '>START MY DRAFT</button>') + global.challengeCourtHTML({});
     const right = '<div class="duel-player"><span>OPPONENT</span><h3>Your friend’s court</h3></div>' + duelInviteHTML(false) + global.challengeCourtHTML({}, {hidden:true});
@@ -2032,6 +2058,16 @@
     return '<button class="accountpill" onclick="setScreen(\'account\')"><span class="accountdot ' + (state.cloudStatus === "synced" ? "synced" : "") + '"></span>' + html(name ? "@" + name : "Account") + "</button>";
   }
 
+  if (machines) {
+    machines.track("duel", () => state.challenge.phase);
+    machines.track("duelRun", () => state.challenge.active ? state.challenge.active.stage : null);
+    machines.track("cloudSave", () => state.cloudStatus);
+    machines.track("rankings", () => state.rankings.status);
+    machines.track("friends", () => state.friends.status);
+    machines.track("authForm", () => state.authMode);
+    machines.track("gameRun", () => state.session ? readGameRuns().runs?.draft?.status || null : null);
+  }
+
   global.ATUBackend = Object.freeze({
     init: init,
     accountHTML: accountHTML,
@@ -2072,6 +2108,7 @@
     submitChallenge: submitChallenge,
     copyChallengeLink: copyChallengeLink,
     resetChallenge: resetChallenge,
+    retryChallenge: retryChallenge,
     finishRankedRun: finishRankedRun,
     loadRankings: loadRankings,
     beginGameRun: beginGameRun,

@@ -4,6 +4,10 @@ const vm = require("node:vm");
 const { webcrypto } = require("node:crypto");
 
 const source = fs.readFileSync(require("node:path").join(__dirname, "..", "backend.js"), "utf8");
+// Every context also loads the state-machine registry, so each flow below
+// doubles as a check that it only makes declared moves.
+const machineSource = fs.readFileSync(require("node:path").join(__dirname, "..", "state-machines.js"), "utf8");
+const machineRegistries = [];
 
 function makeStorage(seed = {}) {
   const values = new Map(Object.entries(seed));
@@ -88,6 +92,8 @@ function makeContext({ session = null, rpc, storageSeed = {}, withClient = true,
     encodeURIComponent,
     console
   });
+  vm.runInContext(machineSource, context, { filename: require("node:path").join(__dirname, "..", "state-machines.js") });
+  machineRegistries.push(window.ATUStateMachines);
   vm.runInContext(source, context, { filename: require("node:path").join(__dirname, "..", "backend.js"), importModuleDynamically: vm.constants.USE_MAIN_CONTEXT_DEFAULT_LOADER });
   return { api: window.ATUBackend, window, storage, calls };
 }
@@ -835,9 +841,65 @@ async function run() {
     await test.api.flushCloud();
   }
 
+  // Each way a duel can fail has its own page, so the heading matches what happened.
+  {
+    const code='ABCDEF0123456789';
+    let invitation={error:{message:'network down'}};
+    const test=makeContext({session:{user:{id:'duel-fail'}},href:'https://game.example/index.html?challenge='+code,rpc(name){
+      if(name==='get_my_profile')return {data:[{username:'Duelist',public_id:'public-duelist'}]};
+      if(name==='get_async_challenge_invitation')return invitation;
+      if(name==='create_async_challenge')return {data:null,error:{message:'daily ranked-run quota reached'}};
+      return {data:[]};
+    }});
+    await test.api.init();
+    let view=test.api.challengeHTML();
+    assert.match(view,/The challenge could not load/);
+    assert.match(view,/retryChallenge\(\)">TRY AGAIN/,'A failed load offers a retry instead of a dead end');
+    invitation={data:[]};
+    await test.api.retryChallenge();
+    view=test.api.challengeHTML();
+    assert.match(view,/This duel link didn’t work/);
+    assert.doesNotMatch(view,/TRY AGAIN/,'A link that matches no duel cannot be retried');
+    invitation={data:[{status:'open',creator_username:'Rival',creator_public_id:'public-rival'}]};
+    await test.api.loadChallengeInvitation(code);
+    assert.match(test.api.challengeHTML(),/@Rival is calling you out/);
+    test.api.resetChallenge();
+    await test.api.createChallenge();
+    view=test.api.challengeHTML();
+    assert.match(view,/The duel could not start/);
+    assert.match(view,/online run limit/,'The real reason is shown');
+    assert.doesNotMatch(view,/could not load|expired/,'A failed start is not blamed on the link');
+    assert.doesNotMatch(view,/BACK TO THE CHALLENGE/,'There is no challenge to go back to before one is created');
+    test.api.resetChallenge();
+    assert.match(test.api.challengeHTML(),/START MY DRAFT/);
+  }
+
+  // Signing in or out while the leaderboard loads must not leave it loading forever.
+  {
+    let authChanged,loads=0;
+    const test=makeContext({session:{user:{id:'rank-switch'}},auth:{onAuthStateChange(callback){authChanged=callback;}},rpc(name){
+      if(name==='get_my_profile')return {data:[{username:'Switcher'}]};
+      if(name==='get_leaderboard'){
+        if(!loads++)authChanged('SIGNED_OUT',null);
+        return {data:[{rank:1,username:'Leader',profile_id:'public-1',games:1,points:100,best_team_ovr:100}]};
+      }
+      if(name==='get_beta_season_status')return {data:{eligible_players:1}};
+      return {data:[]};
+    }});
+    await test.api.init();
+    await test.api.loadRankings('draft','all_time');
+    assert.doesNotMatch(test.api.rankingsHTML(),/Leader/,'An answer fetched for the previous viewer is dropped');
+    test.api.onScreen('rankings');
+    await new Promise(resolve=>setTimeout(resolve,20));
+    assert.equal(loads,2,'The leaderboard reloads for the new viewer');
+    assert.match(test.api.rankingsHTML(),/Leader/);
+  }
+
 }
 
 run().then(() => {
+  const undeclared = machineRegistries.flatMap(registry => registry.violations.map(v => `${v.machine}: ${v.from} -> ${v.to}`));
+  assert.deepEqual([...new Set(undeclared)], [], "Backend flows must only make moves declared in state-machines.js");
   console.log("backend client tests passed");
 }).catch(error => {
   console.error(error);

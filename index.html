@@ -31,7 +31,8 @@
 <script src="./supabase/functions/_shared/player-identity-20261007.js"></script>
 <script src="./supabase/functions/_shared/card-cycle-identity-draft-20261007.js"></script>
 <script src="./supabase/functions/_shared/classic-win-curve-20261010.js"></script>
-<script src="./backend.js?v=classic-difficulty-20261010"></script>
+<script src="./state-machines.js?v=20261109"></script>
+<script src="./backend.js?v=state-machines-20261109"></script>
 <style>
 /* ============ TOKENS: arena at night ============ */
 :root{
@@ -3691,7 +3692,7 @@ function bump(side){const o=teamOVR(S[side].roster);if(!o.ready)return;
   const pr=projection(o.eff,o.resultRulesVersion);
   if(o.total>HS[side].ovr){HS[side].ovr=o.total;HS[side].wins=pr.wins;saveHS();}}
 
-let screen="landing";       // landing | team | packs | rare | draft | classic
+let screen="landing";       // one of the "screen" states declared in state-machines.js
 function sideFor(scr){return scr==="rare"?"rare":scr==="classic"?"classic":"main";}
 let lastOVR={main:60,rare:60,classic:60};
 let D={stage:"idle",done:false,taken:[],roster:emptyRoster(),opts:null,activeSlot:null,lastSlot:null,captain:[],offeredNames:[]};
@@ -6602,7 +6603,9 @@ function renderTopNav(){
     else if(end>rail.scrollLeft+rail.clientWidth)rail.scrollLeft=end-rail.clientWidth;
   });
 }
-function setScreen(s){screen=s==="packs"?"team":s;render();window.scrollTo(0,0);}
+/* Page names are declared in state-machines.js ("screen"); an unknown one opens Home. */
+function knownScreen(s){return typeof ATUStateMachines==="undefined"?s:ATUStateMachines.coerce("screen",s,"landing");}
+function setScreen(s){screen=knownScreen(s==="packs"?"team":s);render();window.scrollTo(0,0);}
 function renderTabs(){
   const bar=$("#tabs");if(!bar)return;
   let items;
@@ -7822,6 +7825,7 @@ function render(){
       <button onclick="showPrivacy()">Privacy Policy</button>
       <span>·</span><span>Fan-made sandbox — not affiliated with or endorsed by the NBA, its teams, or players.</span>
     </footer>`;
+  app.dataset.screen=screen;
   ATUVisuals.onRender(screen);
   ATUBackend.onScreen(screen);
   const duelDialog=$("#duel-pick-dialog");
@@ -7907,6 +7911,11 @@ const __sh=parseShare();
 if(__sh){SHARED=__sh;screen="share";}
 else if(/^[A-F0-9]{16}$/i.test(new URLSearchParams(location.search).get("challenge")||""))screen="challenge";
 else if(new URLSearchParams(location.search).get("auth")==="account")screen="account";
+/* live readout for debugging and automation: ATUStateMachines.snapshot() */
+ATUStateMachines.track("screen",()=>screen);
+ATUStateMachines.track("draft",()=>ATUStateMachines.draftPhase(activeDraft()));
+ATUStateMachines.track("daily",()=>ATUStateMachines.dailyPhase(DD));
+ATUStateMachines.track("raftersPack",()=>ATUStateMachines.raftersPhase(RF));
 ATUBackend.init();
 render();
 if(new URLSearchParams(location.search).get("privacy")==="1")

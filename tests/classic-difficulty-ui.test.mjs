@@ -30,7 +30,7 @@ globalThis.near=nearMissChem;globalThis.rules=rosterResultRules;
 globalThis.resolveProjection=rosterProjection;globalThis.model=teamOVR;
 `,ui);
 for(const block of html.matchAll(/<script>([\s\S]*?)<\/script>/g))new vm.Script(block[1]);
-assert(html.indexOf('classic-win-curve-20261010.js')<html.indexOf('backend.js?v=classic-difficulty-20261010'));
+assert(html.indexOf('classic-win-curve-20261010.js')<html.indexOf('backend.js?v='));
 assert.match(fs.readFileSync(new URL('../backend.js',import.meta.url),'utf8'),/atu-engine-classic-difficulty-20261010\.js\?draft=classic-difficulty-20261010/);
 
 // The browser and trusted engine calculate identical results for both pools.
